@@ -7,10 +7,10 @@
 #      workflow — the registry validates the workflow FILENAME, so it must be this one.
 #   2. A release-please release created with GITHUB_TOKEN does NOT fire a downstream
 #      `on: release` workflow, so a same-workflow gate on the outputs is the zero-secret path.
-# => npm + PyPI trusted-publisher records must point at THIS filename (release-please.yml).
+# => npm + PyPI trusted-publisher records must point at THIS filename (release.yml).
 #
 # No tokens anywhere: release-please uses GITHUB_TOKEN; publishing is OIDC (id-token: write).
-name: release-please
+name: release
 
 on:
   push:
