@@ -7,6 +7,9 @@
 #    completeness: a clean fern exit code is necessary but NOT sufficient — a real
 #    incident had fern exit 0 while silently dropping resource modules.)
 #  - build: proves the emitted source actually compiles / installs on a clean machine.
+#  - readme-smoke: EXECUTES both README quickstarts against a stub serving sanitized
+#    real-wire fixtures. Exists because a broken quickstart shipped to PyPI once —
+#    documentation that isn't run is documentation nobody verified.
 name: ci
 
 on:
@@ -87,3 +90,17 @@ jobs:
       - run: pip install -e .
       - name: Import smoke test
         run: python -c "from planir import PlanirClient, AsyncPlanirClient; print('import ok')"
+
+  readme-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Execute both README quickstarts against the stub
+        run: bash scripts/readme-smoke/run.sh

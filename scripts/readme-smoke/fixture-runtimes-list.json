@@ -1,0 +1,52 @@
+{
+  "runtimes": [
+    {
+      "id": "019f0000-0000-7000-8000-000000000001",
+      "desiredState": "running",
+      "generation": 0,
+      "image": "docker.io/library/alpine:3.20",
+      "env": {},
+      "resources": {
+        "cpuMillis": 1000,
+        "memoryBytes": 1073741824,
+        "storageBytes": 4294967296,
+        "ephemeralStorageBytes": 4294967296
+      },
+      "rootfsReadOnly": false,
+      "ports": [
+        8080
+      ],
+      "urls": {
+        "8080": "https://rt-example.runtimes.planir.io"
+      },
+      "metadata": {
+        "purpose": "readme-smoke"
+      },
+      "clientRef": "rt-019f0000000070008000000000000001"
+    },
+    {
+      "id": "019f0000-0000-7000-8000-000000000002",
+      "desiredState": "running",
+      "generation": 0,
+      "image": "docker.io/library/alpine:3.20",
+      "env": {},
+      "resources": {
+        "cpuMillis": 1000,
+        "memoryBytes": 1073741824,
+        "storageBytes": 4294967296,
+        "ephemeralStorageBytes": 4294967296
+      },
+      "rootfsReadOnly": false,
+      "ports": [
+        8080
+      ],
+      "urls": {
+        "8080": "https://rt-example.runtimes.planir.io"
+      },
+      "metadata": {
+        "purpose": "readme-smoke"
+      },
+      "clientRef": "rt-019f0000000070008000000000000001"
+    }
+  ]
+}
