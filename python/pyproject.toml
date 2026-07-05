@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "planir"
-version = "0.1.0-beta.0"
+version = "0.1.0-beta.1"
 description = "Official Python SDK for planir.io — hosted, hardware-isolated microVM runtimes with a stable public URL per runtime."
 readme = "README.md"
 license = "Apache-2.0"
