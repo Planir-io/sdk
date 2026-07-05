@@ -49,12 +49,17 @@ jobs:
         working-directory: ts
     steps:
       - uses: actions/checkout@v4
+      # NO registry-url on purpose: setup-node's registry-url writes a token .npmrc with a
+      # placeholder NODE_AUTH_TOKEN, and npm silently falls back to it when the OIDC
+      # exchange fails — masking the real error as a 404. With no auth config at all,
+      # OIDC trusted publishing is the ONLY auth path and failures surface as ENEEDAUTH.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org # required: puts npm on the OIDC auth path
-      - name: Update npm (trusted publishing needs >= 11.5.1; node 22 ships 10.x)
-        run: npm install -g npm@latest
+          node-version: 24
+      - name: Update npm (trusted publishing needs >= 11.5.1)
+        run: |
+          npm install -g npm@latest
+          npm --version
       - run: npm install
       - run: npm run build
       - name: Publish (prerelease versions go to the `beta` dist-tag, never `latest`)
