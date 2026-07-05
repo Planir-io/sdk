@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://schema.buildwithfern.dev/generators-yml.json
+# SDK generation runs fully local (`fern generate --local --force`) — Docker only,
+# no Fern cloud. Input is the VENDORED, pinned contract (openapi.json in this dir);
+# refresh it via .github/workflows/sync-contract.yml, never curl-at-build.
+#
+# Local-file-system output emits SOURCE ONLY (verified against fern source): the
+# full-package path is gated on `--generate-tests` / a self-hosted entitlement, and
+# NO config key overrides it. So package.json / pyproject.toml are curated in-repo
+# (release-please owns their version); the generator writes ONLY the SDK source into
+# ts/src and python/src/planir, which is the drift-gated tree. No version is stamped
+# into the generated code (no publish config present), so the tree is version-stable.
+api:
+  specs:
+    - openapi: openapi.json
+      overrides: overrides.yml
+default-group: local
+groups:
+  local:
+    generators:
+      - name: fern-typescript-sdk
+        output:
+          location: local-file-system
+          path: ../ts/src
+        version: 3.77.0
+        config:
+          naming:
+            client: PlanirClient
+      - name: fern-python-sdk
+        output:
+          location: local-file-system
+          path: ../python/src/planir
+        version: 5.15.2
+        config:
+          client:
+            class_name: PlanirClient
+          pydantic_config:
+            version: v2

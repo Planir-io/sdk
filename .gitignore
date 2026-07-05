@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.egg-info/
+__pycache__/
+.DS_Store
+.fern-out/
+fern/.preview/
+fern/.definition/

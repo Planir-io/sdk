@@ -1,0 +1,61 @@
+# Refresh the vendored contract and regenerate the SDKs — the ONLY way fern/openapi.json
+# changes. Pulls the PUBLIC published contract (no auth, no secret), regenerates, and opens
+# a single self-consistent PR (spec diff + generated diff together) for human review. If
+# nothing changed, no PR is opened. This is the deliberate, reviewable alternative to
+# curl-at-build: a contract bump is always an explicit diff, never a silent SDK change.
+#
+# Note: the PR is created with GITHUB_TOKEN, so ci.yml's `on: pull_request` drift gate does
+# not auto-run on it (a documented GITHUB_TOKEN limitation). That's acceptable here because
+# this job JUST regenerated the tree, so it is self-consistent by construction; the drift
+# gate still guards all human PRs and post-merge pushes. Upgrade to a bot App/PAT later if
+# auto-PRs need their own CI run.
+name: sync-contract
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # weekly, Monday 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch the published contract (public, no auth)
+        run: |
+          curl -fsSL https://api.planir.io/openapi.json -o fern/openapi.json.new
+          # Guard against a truncated/garbage response before it lands in the tree.
+          jq empty fern/openapi.json.new
+          mv fern/openapi.json.new fern/openapi.json
+
+      - name: Regenerate SDK source from the refreshed contract
+        run: ./scripts/regen.sh
+
+      - name: Open PR if the contract or generated code changed
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: sync/contract
+          title: "chore: sync published contract + regenerate SDKs"
+          commit-message: "chore: sync published contract + regenerate SDKs"
+          author: "planir-bot <300069359+planir-bot@users.noreply.github.com>"
+          committer: "planir-bot <300069359+planir-bot@users.noreply.github.com>"
+          body: |
+            Automated by `sync-contract.yml`.
+
+            Pulled the latest published contract from
+            `https://api.planir.io/openapi.json` and regenerated the SDK source.
+            Review the contract diff and the generated `ts/src` + `python/src/planir`
+            diff together — they must land as one commit to keep the drift gate green.
+          add-paths: |
+            fern/openapi.json
+            ts/src
+            python/src/planir

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "planir"
+version = "0.0.1"
+description = "Official Python SDK for planir.io — hosted, hardware-isolated microVM runtimes with a stable public URL per runtime."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9"
+keywords = ["planir", "sandbox", "microvm", "agents", "runtime", "sdk"]
+dependencies = [
+    "httpx>=0.21.2",
+    "pydantic>=2.0",
+    "typing_extensions>=4.0",
+]
+
+[project.urls]
+Homepage = "https://planir.io"
+Repository = "https://github.com/Planir-io/sdk"
+
+[tool.hatch.build.targets.wheel]
+# The generator writes the whole package into src/planir; ship only the runtime
+# package. Generated tests, per-package docs, and the fern provenance dir are
+# excluded from the wheel (they stay in the repo for browsing + the drift gate).
+packages = ["src/planir"]
+exclude = [
+    "src/planir/tests",
+    "src/planir/*.md",
+    "src/planir/.fern",
+]
+
+[tool.hatch.build.targets.wheel.force-include]
+# py.typed is a curated marker kept OUTSIDE the generated tree (so it never trips
+# the regen drift gate), injected into the package at build time.
+"py.typed" = "planir/py.typed"
+
+[tool.hatch.build.targets.sdist]
+include = ["src/planir", "README.md", "py.typed"]
+exclude = ["src/planir/tests"]

@@ -1,0 +1,89 @@
+# CI for the generated SDKs.
+#
+#  - drift-gate: the load-bearing check. Regenerates the SDK source from the pinned,
+#    vendored contract and FAILS if the committed tree differs by one byte. Without
+#    this, "generated + committed + reproducible" is a claim nobody enforces — someone
+#    hand-edits generated code and it silently persists. (Also asserts structural
+#    completeness: a clean fern exit code is necessary but NOT sufficient — a real
+#    incident had fern exit 0 while silently dropping resource modules.)
+#  - build: proves the emitted source actually compiles / installs on a clean machine.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  drift-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Regenerate from the committed, pinned fern/openapi.json (never curl-live here).
+      # scripts/regen.sh pins the fern CLI; generators are pinned in fern/generators.yml.
+      - name: Regenerate SDK source
+        run: ./scripts/regen.sh
+
+      - name: Fail on drift (catches modified, new, AND deleted generated files)
+        run: |
+          # git status --porcelain (not `git diff`) so brand-new untracked files —
+          # e.g. a new endpoint's resource client — are caught too. .fern/metadata.json
+          # stamps the origin git commit, which is volatile by design, so exclude it.
+          drift="$(git status --porcelain -- ts/src python/src/planir \
+            ':(exclude)python/src/planir/.fern/metadata.json')"
+          if [ -n "$drift" ]; then
+            echo "::error::Committed SDK differs from a fresh regen. Run ./scripts/regen.sh and commit, and never hand-edit generated code."
+            echo "$drift"
+            git diff -- ts/src python/src/planir ':(exclude)python/src/planir/.fern/metadata.json'
+            exit 1
+          fi
+          echo "No drift: committed SDK matches a fresh regen."
+
+      - name: Completeness assert (exit 0 != complete output)
+        run: |
+          tags="$(jq '[.tags[].name] | unique | length' fern/openapi.json)"
+          ts_modules="$(find ts/src/api/resources -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
+          py_modules="$(find python/src/planir -mindepth 1 -maxdepth 1 -type d \
+            ! -name core ! -name types ! -name errors ! -name tests ! -name .fern | wc -l | tr -d ' ')"
+          echo "spec tags=$tags  ts modules=$ts_modules  py modules=$py_modules"
+          if [ "$ts_modules" -lt "$tags" ] || [ "$py_modules" -lt "$tags" ]; then
+            echo "::error::Generated fewer resource modules than the spec declares tags — silently dropped output."
+            exit 1
+          fi
+
+  build-ts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build
+      - name: Import smoke test
+        run: node --input-type=module -e "import { PlanirClient } from './dist/index.js'; if (typeof PlanirClient !== 'function') { throw new Error('PlanirClient not exported'); }"
+
+  build-python:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Import smoke test
+        run: python -c "from planir import PlanirClient, AsyncPlanirClient; print('import ok')"

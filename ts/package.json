@@ -1,0 +1,44 @@
+{
+  "name": "planir",
+  "version": "0.0.1",
+  "description": "Official TypeScript/JavaScript SDK for planir.io — hosted, hardware-isolated microVM runtimes with a stable public URL per runtime.",
+  "license": "Apache-2.0",
+  "homepage": "https://planir.io",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Planir-io/sdk.git",
+    "directory": "ts"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "prepublishOnly": "tsc --project tsconfig.json"
+  },
+  "keywords": [
+    "planir",
+    "sandbox",
+    "microvm",
+    "agents",
+    "runtime",
+    "sdk"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

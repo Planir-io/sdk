@@ -1,0 +1,87 @@
+# SDK-surface naming only — never behavior. Sets the SDK resource group and strips
+# the redundant resource suffix from method names
+# (client.runtimes.createRuntime -> client.runtimes.create).
+# Both keys are needed: a method-name override alone drops the tag-derived group
+# and flattens every method onto the root client (observed with fern-typescript-sdk
+# 3.77.0 / fern-python-sdk 5.15.2).
+# Lives here, not in the published contract: consumers of openapi.json never see these.
+paths:
+  /healthz:
+    get:
+      x-fern-sdk-group-name: health
+      x-fern-sdk-method-name: check
+  /v1:
+    get:
+      x-fern-sdk-group-name: meta
+      x-fern-sdk-method-name: getVersion
+  /v1/runtimes:
+    post:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: create
+    get:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: list
+      # Day-one auto-pagination (spec audit #4): cursor in, nextCursor out.
+      x-fern-pagination:
+        cursor: $request.cursor
+        next_cursor: $response.nextCursor
+        results: $response.runtimes
+  /v1/runtimes/{id}:
+    get:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: get
+    delete:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: destroy
+  /v1/runtimes/{id}/start:
+    post:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: start
+  /v1/runtimes/{id}/stop:
+    post:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: stop
+  /v1/runtimes/{id}/restart:
+    post:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: restart
+  /v1/runtimes/{id}/exec:
+    post:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: exec
+  /v1/runtimes/{id}/exec/detached:
+    post:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: execDetached
+  /v1/runtimes/{id}/exec/{execId}:
+    get:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: getExec
+  /v1/runtimes/{id}/config:
+    put:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: updateConfig
+  /v1/runtimes/{id}/env:
+    put:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: updateEnv
+  /v1/runtimes/{id}/network:
+    put:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: updateNetwork
+  /v1/runtimes/{id}/reach:
+    post:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: reach
+  /v1/runtimes/{id}/logs:
+    get:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: getLogs
+  /v1/runtimes/{id}/usage:
+    get:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: getUsage
+  /v1/runtimes/{id}/events:
+    get:
+      x-fern-sdk-group-name: runtimes
+      x-fern-sdk-method-name: getEvents
