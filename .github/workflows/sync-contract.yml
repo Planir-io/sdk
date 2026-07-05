@@ -4,6 +4,16 @@
 # nothing changed, no PR is opened. This is the deliberate, reviewable alternative to
 # curl-at-build: a contract bump is always an explicit diff, never a silent SDK change.
 #
+# Trigger model: the PRIMARY trigger is a human dispatching this workflow right after a
+# contract change deploys (a line in the provider's deploy checklist); the daily cron is
+# the backstop for the day someone forgets. No cross-repo push credential — that trade
+# was made deliberately (zero secrets) and polling-as-backstop is the standard posture.
+#
+# oasdiff classifies the contract diff. The contract is SOFT-FROZEN (additive only until
+# beta), so a breaking diff fails this run AFTER the PR is opened: the PR carries the full
+# diff + verdict for review, but the red run stops a breaking change from reading as a
+# friendly routine sync.
+#
 # Note: the PR is created with GITHUB_TOKEN, so ci.yml's `on: pull_request` drift gate does
 # not auto-run on it (a documented GITHUB_TOKEN limitation). That's acceptable here because
 # this job JUST regenerated the tree, so it is self-consistent by construction; the drift
@@ -13,7 +23,7 @@ name: sync-contract
 
 on:
   schedule:
-    - cron: "0 9 * * 1" # weekly, Monday 09:00 UTC
+    - cron: "0 6 * * *" # daily backstop; the real trigger is dispatch-on-deploy
   workflow_dispatch:
 
 permissions:
@@ -32,30 +42,74 @@ jobs:
 
       - name: Fetch the published contract (public, no auth)
         run: |
+          cp fern/openapi.json /tmp/openapi.previous.json
           curl -fsSL https://api.planir.io/openapi.json -o fern/openapi.json.new
           # Guard against a truncated/garbage response before it lands in the tree.
           jq empty fern/openapi.json.new
           mv fern/openapi.json.new fern/openapi.json
 
+      - name: Classify the contract diff (oasdiff)
+        id: oasdiff
+        run: |
+          if cmp -s /tmp/openapi.previous.json fern/openapi.json; then
+            echo "verdict=unchanged" >> "$GITHUB_OUTPUT"
+            echo "Contract unchanged."
+            exit 0
+          fi
+          # Pinned binary (the docker image only ships mutable tags — no pins there).
+          curl -fsSL https://github.com/oasdiff/oasdiff/releases/download/v1.21.0/oasdiff_1.21.0_linux_amd64.tar.gz -o /tmp/oasdiff.tgz
+          echo "293811c172672e9e86313ef925f136d8a2352c7b56937f6b0f91c5de1166bd8f  /tmp/oasdiff.tgz" | sha256sum -c -
+          tar xzf /tmp/oasdiff.tgz -C /tmp oasdiff
+          set +e
+          /tmp/oasdiff breaking --fail-on WARN /tmp/openapi.previous.json fern/openapi.json \
+            > /tmp/oasdiff.txt 2>&1
+          breaking=$?
+          set -e
+          cat /tmp/oasdiff.txt
+          if [ "$breaking" -ne 0 ]; then
+            echo "verdict=BREAKING" >> "$GITHUB_OUTPUT"
+          else
+            echo "verdict=additive" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Regenerate SDK source from the refreshed contract
         run: ./scripts/regen.sh
+
+      - name: Compose PR body (always — create-pull-request reads body-path even when it
+          ends up opening nothing)
+        run: |
+          touch /tmp/oasdiff.txt
+          {
+            echo "Automated by \`sync-contract.yml\`."
+            echo
+            echo "**oasdiff verdict: ${{ steps.oasdiff.outputs.verdict }}**"
+            echo
+            echo '```'
+            cat /tmp/oasdiff.txt
+            echo '```'
+            echo
+            echo "Pulled the latest published contract from"
+            echo '`https://api.planir.io/openapi.json` and regenerated the SDK source.'
+            echo "Review the contract diff and the generated \`ts/src\` + \`python/src/planir\`"
+            echo "diff together — they must land as one commit to keep the drift gate green."
+          } > /tmp/pr-body.md
 
       - name: Open PR if the contract or generated code changed
         uses: peter-evans/create-pull-request@v6
         with:
           branch: sync/contract
-          title: "chore: sync published contract + regenerate SDKs"
+          title: "chore: sync published contract + regenerate SDKs (${{ steps.oasdiff.outputs.verdict }})"
           commit-message: "chore: sync published contract + regenerate SDKs"
           author: "planir-bot <300069359+planir-bot@users.noreply.github.com>"
           committer: "planir-bot <300069359+planir-bot@users.noreply.github.com>"
-          body: |
-            Automated by `sync-contract.yml`.
-
-            Pulled the latest published contract from
-            `https://api.planir.io/openapi.json` and regenerated the SDK source.
-            Review the contract diff and the generated `ts/src` + `python/src/planir`
-            diff together — they must land as one commit to keep the drift gate green.
+          body-path: /tmp/pr-body.md
           add-paths: |
             fern/openapi.json
             ts/src
             python/src/planir
+
+      - name: Enforce additive-only (contract soft freeze)
+        if: ${{ steps.oasdiff.outputs.verdict == 'BREAKING' }}
+        run: |
+          echo "::error::Breaking contract change detected. The PR is open with the full oasdiff report — this red run exists so a breaking sync can never read as routine."
+          exit 1
