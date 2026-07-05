@@ -7,9 +7,9 @@
 #    completeness: a clean fern exit code is necessary but NOT sufficient — a real
 #    incident had fern exit 0 while silently dropping resource modules.)
 #  - build: proves the emitted source actually compiles / installs on a clean machine.
-#  - readme-smoke: EXECUTES both README quickstarts against a stub serving sanitized
-#    real-wire fixtures. Exists because a broken quickstart shipped to PyPI once —
-#    documentation that isn't run is documentation nobody verified.
+#  - readme-smoke: EXECUTES both README quickstarts against a Prism mock of the pinned
+#    contract. Exists because a broken quickstart shipped to PyPI once — documentation
+#    that isn't run is documentation nobody verified.
 name: ci
 
 on:
@@ -102,5 +102,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Execute both README quickstarts against the stub
+      - name: Execute both README quickstarts against the contract mock
         run: bash scripts/readme-smoke/run.sh
