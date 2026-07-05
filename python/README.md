@@ -17,9 +17,9 @@ from planir import PlanirClient
 
 client = PlanirClient(token=os.environ["PLANIR_TOKEN"])
 
-# List runtimes
+# List runtimes (one page; pass cursor=page.next_cursor for the next one)
 page = client.runtimes.list()
-for runtime in page:
+for runtime in page.runtimes:
     print(runtime.id)
 
 # Create a runtime
