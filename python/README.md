@@ -1,5 +1,37 @@
 # planir
 
-Official SDK for [planir.io](https://planir.io) — hosted, hardware-isolated microVM runtimes with a stable public URL per runtime.
+Official Python SDK for [planir.io](https://planir.io) — hosted, hardware-isolated
+microVM runtimes with a stable public URL per runtime. Sync and async clients.
 
-This is a placeholder release reserving the package name. The real SDK (generated Python client: `PlanirClient`, sync + async) ships with the public beta.
+## Install
+
+```sh
+pip install planir
+```
+
+## Usage
+
+```python
+import os
+from planir import PlanirClient
+
+client = PlanirClient(token=os.environ["PLANIR_TOKEN"])
+
+# List runtimes
+page = client.runtimes.list()
+for runtime in page:
+    print(runtime.id)
+
+# Create a runtime
+runtime = client.runtimes.create(image="ghcr.io/acme/agent:latest")
+print(runtime.urls)
+```
+
+The client defaults to `https://api.planir.io`; pass `base_url` or `environment` to
+override. An async client is available as `AsyncPlanirClient`. `client.runtimes.exec(...)`
+runs synchronously; `client.runtimes.exec_detached(...)` returns an exec id you poll with
+`client.runtimes.get_exec(...)`.
+
+## License
+
+Apache-2.0
