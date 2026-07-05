@@ -15,46 +15,13 @@ name: release
 on:
   push:
     branches: [main]
-  workflow_dispatch: # TEMPORARY: manual trigger for the oidc-diagnose job below
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  # TEMPORARY diagnostic: performs npm's OIDC token exchange by hand and prints the
-  # registry's verbatim response, so a trusted-publisher mismatch names itself instead
-  # of surfacing as a bare ENEEDAUTH. Remove once npm publishing works.
-  oidc-diagnose:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-    steps:
-      - name: Exchange GitHub OIDC token with npm registry
-        run: |
-          set -euo pipefail
-          gh_token_response="$(curl -sS -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org")"
-          id_token="$(printf '%s' "$gh_token_response" | jq -r .value)"
-          echo "GitHub OIDC token obtained: $([ -n "$id_token" ] && [ "$id_token" != null ] && echo yes || echo NO)"
-          echo "--- OIDC claims presented to npm:"
-          printf '%s' "$id_token" | cut -d. -f2 | base64 -d 2>/dev/null | jq '{repository, repository_owner, workflow, workflow_ref, job_workflow_ref, environment, ref, event_name}' || true
-          echo "--- npm exchange response:"
-          status="$(curl -sS -o /tmp/npm-exchange.json -w '%{http_code}' \
-            -X POST "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/planir" \
-            -H "Authorization: Bearer ${id_token}" \
-            -H "Content-Type: application/json")"
-          echo "HTTP ${status}"
-          if [ "$status" = "200" ] || [ "$status" = "201" ]; then
-            echo "EXCHANGE SUCCEEDED (registry token redacted)"
-          else
-            cat /tmp/npm-exchange.json
-            exit 1
-          fi
-
   release-please:
-    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     outputs:
       # Gate on the PER-PACKAGE output. The bare `releases_created` output is documented-
