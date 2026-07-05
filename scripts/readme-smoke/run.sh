@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# README smoke gate: EXECUTES both README quickstarts, copy-pasted, against a stub server
-# serving sanitized real-wire fixtures. A quickstart that doesn't run is a rejected change.
+# README smoke gate: EXECUTES both README quickstarts, copy-pasted, against a Prism mock
+# of the SAME pinned contract everything else is gated on (fern/openapi.json). No
+# hand-written fixtures — a hand-copied contract is a cache with no invalidation. Because
+# Prism serves only what the contract defines, a quickstart calling a nonexistent
+# endpoint 404s here too.
 #
-# The ONLY edit applied to each snippet is pointing the client at the stub (baseUrl /
+# The ONLY edit applied to each snippet is pointing the client at the mock (baseUrl /
 # base_url injection) — asserted below, so a README refactor that breaks the injection
 # fails the gate loudly instead of silently skipping execution.
 #
@@ -10,20 +13,30 @@
 # JavaScript (no TS-only syntax) — node executes it directly, no transpile step.
 set -euo pipefail
 
+PRISM_VERSION="5.15.11"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WORK="$(mktemp -d)"
-STUB_PID=""
-trap '[ -n "$STUB_PID" ] && kill "$STUB_PID" 2>/dev/null; rm -rf "$WORK"' EXIT
+MOCK_PID=""
+trap '[ -n "$MOCK_PID" ] && kill "$MOCK_PID" 2>/dev/null; rm -rf "$WORK"' EXIT
 
-node "$ROOT/scripts/readme-smoke/stub-server.mjs" &
-STUB_PID=$!
+# One surgical edit to the spec Prism serves: drop RuntimesList.nextCursor. Prism emits a
+# value for every schema property, so the mock would hand a cursor on EVERY page and the
+# TS quickstart's auto-pagination (`for await`) would loop forever by construction.
+# Deleting the property makes every list response a last page. Everything else stays
+# derived from the pinned contract — no hand-written fixtures.
+jq 'del(.components.schemas.RuntimesList.properties.nextCursor)' \
+  "$ROOT/fern/openapi.json" > "$WORK/openapi.mock.json"
+cmp -s "$WORK/openapi.mock.json" <(jq . "$ROOT/fern/openapi.json") && { echo "FAIL: nextCursor deletion matched nothing — RuntimesList schema changed shape"; exit 1; }
+
+npx --yes "@stoplight/prism-cli@${PRISM_VERSION}" mock "$WORK/openapi.mock.json" -p 8787 &
+MOCK_PID=$!
 export PLANIR_BASE_URL="http://127.0.0.1:8787"
 export PLANIR_TOKEN="readme-smoke-dummy"
-for _ in $(seq 1 50); do
-  curl -sf "$PLANIR_BASE_URL/healthz" >/dev/null 2>&1 && break
-  sleep 0.1
+for _ in $(seq 1 300); do
+  curl -s -o /dev/null -H "Authorization: Bearer $PLANIR_TOKEN" "$PLANIR_BASE_URL/v1/runtimes" && break
+  sleep 0.2
 done
-curl -sf "$PLANIR_BASE_URL/healthz" >/dev/null # fail hard if the stub never came up
+curl -sf -o /dev/null -H "Authorization: Bearer $PLANIR_TOKEN" "$PLANIR_BASE_URL/v1/runtimes" # fail hard if the mock never came up
 
 extract() { # extract(readme, fence) -> first fenced code block
   awk -v fence="$2" '$0 == "```" fence {f=1; next} /^```$/ {if (f) exit} f' "$1"

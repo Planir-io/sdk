@@ -26,8 +26,8 @@ const runtime = await client.runtimes.create({ image: "ghcr.io/acme/agent:latest
 console.log(runtime.urls);
 ```
 
-The client defaults to `https://api.planir.io`. Pass `environment` or `baseUrl` to
-override. `client.runtimes.exec(...)` runs synchronously; `client.runtimes.execDetached(...)`
+The client defaults to `https://api.planir.io`; pass `baseUrl` to point elsewhere
+(e.g. a mock server in tests). `client.runtimes.exec(...)` runs synchronously; `client.runtimes.execDetached(...)`
 returns an exec id you poll with `client.runtimes.getExec(...)`.
 
 ## License
