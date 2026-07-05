@@ -6,3 +6,7 @@ __pycache__/
 .fern-out/
 fern/.preview/
 fern/.definition/
+# fern stamps a generation-provenance dir into the emitted package; its originGitCommit
+# is inherently stale in this local-generation model (points at gen-time HEAD, always
+# behind the commit that would include it). Version provenance lives in fern/generators.yml.
+**/.fern/
