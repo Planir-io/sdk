@@ -14,11 +14,13 @@
 # diff + verdict for review, but the red run stops a breaking change from reading as a
 # friendly routine sync.
 #
-# Note: the PR is created with GITHUB_TOKEN, so ci.yml's `on: pull_request` drift gate does
-# not auto-run on it (a documented GITHUB_TOKEN limitation). That's acceptable here because
-# this job JUST regenerated the tree, so it is self-consistent by construction; the drift
-# gate still guards all human PRs and post-merge pushes. Upgrade to a bot App/PAT later if
-# auto-PRs need their own CI run.
+# Note: the PR is created with SYNC_BOT_TOKEN (planir-bot fine-grained PAT, this repo only,
+# Contents + Pull requests write) so ci.yml's `on: pull_request` gate runs on sync PRs
+# automatically — the original GITHUB_TOKEN posture left auto-PRs check-less and stuck
+# behind the workflow-approval banner (hit live 2026-07-09 on the control-plane sync, PR #5).
+# The zero-secrets trade documented here previously was consciously revised that day.
+# If the secret is ever missing, the step falls back to GITHUB_TOKEN: the sync still works,
+# the PR just reverts to needing manual workflow approval + post-merge CI.
 name: sync-contract
 
 on:
@@ -97,6 +99,7 @@ jobs:
       - name: Open PR if the contract or generated code changed
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ secrets.SYNC_BOT_TOKEN || github.token }}
           branch: sync/contract
           title: "chore: sync published contract + regenerate SDKs (${{ steps.oasdiff.outputs.verdict }})"
           commit-message: "chore: sync published contract + regenerate SDKs"
