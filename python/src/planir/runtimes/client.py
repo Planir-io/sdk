@@ -130,7 +130,7 @@ class RuntimesClient:
             Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb.
 
         resources : typing.Optional[CreateRuntimeRequestResources]
-            Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 1 GiB memoryBytes (1073741824), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
+            Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
 
         ports : typing.Optional[typing.Sequence[int]]
             Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.
@@ -793,7 +793,7 @@ class AsyncRuntimesClient:
             Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb.
 
         resources : typing.Optional[CreateRuntimeRequestResources]
-            Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 1 GiB memoryBytes (1073741824), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
+            Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
 
         ports : typing.Optional[typing.Sequence[int]]
             Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.

@@ -6,6 +6,9 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
+    from .api_key import ApiKey
+    from .api_key_list import ApiKeyList
+    from .api_key_mint import ApiKeyMint
     from .api_version_info import ApiVersionInfo
     from .api_version_info_version import ApiVersionInfoVersion
     from .detached_exec import DetachedExec
@@ -24,6 +27,9 @@ if typing.TYPE_CHECKING:
     from .observed import Observed
     from .observed_last_exit import ObservedLastExit
     from .observed_phase import ObservedPhase
+    from .preset import Preset
+    from .preset_family import PresetFamily
+    from .presets_list import PresetsList
     from .reach import Reach
     from .readiness_spec import ReadinessSpec
     from .resource_spec import ResourceSpec
@@ -31,9 +37,25 @@ if typing.TYPE_CHECKING:
     from .runtime_desired_state import RuntimeDesiredState
     from .runtime_with_observed import RuntimeWithObserved
     from .runtimes_list import RuntimesList
+    from .team import Team
+    from .team_kind import TeamKind
+    from .team_ledger import TeamLedger
+    from .team_ledger_entry import TeamLedgerEntry
+    from .team_ledger_entry_kind import TeamLedgerEntryKind
+    from .team_package_summary import TeamPackageSummary
+    from .team_package_summary_billing_mode import TeamPackageSummaryBillingMode
+    from .team_usage import TeamUsage
+    from .team_usage_totals import TeamUsageTotals
+    from .team_usage_window import TeamUsageWindow
+    from .team_usage_window_prices import TeamUsageWindowPrices
+    from .team_usage_window_state import TeamUsageWindowState
+    from .topup import Topup
     from .usage import Usage
     from .usage_list import UsageList
 _dynamic_imports: typing.Dict[str, str] = {
+    "ApiKey": ".api_key",
+    "ApiKeyList": ".api_key_list",
+    "ApiKeyMint": ".api_key_mint",
     "ApiVersionInfo": ".api_version_info",
     "ApiVersionInfoVersion": ".api_version_info_version",
     "DetachedExec": ".detached_exec",
@@ -52,6 +74,9 @@ _dynamic_imports: typing.Dict[str, str] = {
     "Observed": ".observed",
     "ObservedLastExit": ".observed_last_exit",
     "ObservedPhase": ".observed_phase",
+    "Preset": ".preset",
+    "PresetFamily": ".preset_family",
+    "PresetsList": ".presets_list",
     "Reach": ".reach",
     "ReadinessSpec": ".readiness_spec",
     "ResourceSpec": ".resource_spec",
@@ -59,6 +84,19 @@ _dynamic_imports: typing.Dict[str, str] = {
     "RuntimeDesiredState": ".runtime_desired_state",
     "RuntimeWithObserved": ".runtime_with_observed",
     "RuntimesList": ".runtimes_list",
+    "Team": ".team",
+    "TeamKind": ".team_kind",
+    "TeamLedger": ".team_ledger",
+    "TeamLedgerEntry": ".team_ledger_entry",
+    "TeamLedgerEntryKind": ".team_ledger_entry_kind",
+    "TeamPackageSummary": ".team_package_summary",
+    "TeamPackageSummaryBillingMode": ".team_package_summary_billing_mode",
+    "TeamUsage": ".team_usage",
+    "TeamUsageTotals": ".team_usage_totals",
+    "TeamUsageWindow": ".team_usage_window",
+    "TeamUsageWindowPrices": ".team_usage_window_prices",
+    "TeamUsageWindowState": ".team_usage_window_state",
+    "Topup": ".topup",
     "Usage": ".usage",
     "UsageList": ".usage_list",
 }
@@ -86,6 +124,9 @@ def __dir__():
 
 
 __all__ = [
+    "ApiKey",
+    "ApiKeyList",
+    "ApiKeyMint",
     "ApiVersionInfo",
     "ApiVersionInfoVersion",
     "DetachedExec",
@@ -104,6 +145,9 @@ __all__ = [
     "Observed",
     "ObservedLastExit",
     "ObservedPhase",
+    "Preset",
+    "PresetFamily",
+    "PresetsList",
     "Reach",
     "ReadinessSpec",
     "ResourceSpec",
@@ -111,6 +155,19 @@ __all__ = [
     "RuntimeDesiredState",
     "RuntimeWithObserved",
     "RuntimesList",
+    "Team",
+    "TeamKind",
+    "TeamLedger",
+    "TeamLedgerEntry",
+    "TeamLedgerEntryKind",
+    "TeamPackageSummary",
+    "TeamPackageSummaryBillingMode",
+    "TeamUsage",
+    "TeamUsageTotals",
+    "TeamUsageWindow",
+    "TeamUsageWindowPrices",
+    "TeamUsageWindowState",
+    "Topup",
     "Usage",
     "UsageList",
 ]

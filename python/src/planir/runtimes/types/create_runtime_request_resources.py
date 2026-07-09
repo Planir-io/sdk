@@ -10,7 +10,7 @@ from ...core.serialization import FieldMetadata
 
 class CreateRuntimeRequestResources(UniversalBaseModel):
     """
-    Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 1 GiB memoryBytes (1073741824), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
+    Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
     """
 
     memory_bytes: typing_extensions.Annotated[
