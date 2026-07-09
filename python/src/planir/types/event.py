@@ -17,7 +17,7 @@ class Event(UniversalBaseModel):
 
     type: str = pydantic.Field()
     """
-    Event vocabulary today: `created`, `desired-state-changed`, `config-updated`, plus one event per observed-phase transition (`provisioning`, `running`, `stopped`, `error`, `destroying`, `destroyed`). The set is additive over time — treat unknown types as audit records. Events are the audit/wake-up channel; the authoritative state is always `GET /v1/runtimes/{id}` `observed.phase`.
+    Event vocabulary today: `created`, `desired-state-changed`, `config-updated`, `env-updated`, `network-updated`, plus one event per observed-phase transition (`provisioning`, `running`, `stopped`, `error`, `destroying`, `destroyed`). The set is additive over time — treat unknown types as audit records. Events are the audit/wake-up channel; the authoritative state is always `GET /v1/runtimes/{id}` `observed.phase`.
     """
 
     occurred_at: typing_extensions.Annotated[

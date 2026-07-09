@@ -3,6 +3,8 @@
 import typing
 
 ErrorErrorCode = typing.Union[
-    typing.Literal["UNAUTHENTICATED", "INVALID_REQUEST", "NOT_FOUND", "INVALID_STATE", "CONFLICT", "INTERNAL"],
+    typing.Literal[
+        "UNAUTHENTICATED", "INVALID_REQUEST", "NOT_FOUND", "INVALID_STATE", "CONFLICT", "RATE_LIMITED", "INTERNAL"
+    ],
     typing.Any,
 ]

@@ -17,6 +17,7 @@ export namespace Error_ {
             NotFound: "NOT_FOUND",
             InvalidState: "INVALID_STATE",
             Conflict: "CONFLICT",
+            RateLimited: "RATE_LIMITED",
             Internal: "INTERNAL",
         } as const;
         export type Code = (typeof Code)[keyof typeof Code];

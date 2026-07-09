@@ -21,7 +21,7 @@ export interface CreateRuntimeRequest {
     command?: string[];
     /** Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb. */
     entrypoint?: string[];
-    /** Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 1 GiB memoryBytes (1073741824), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values. */
+    /** Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values. */
     resources?: CreateRuntimeRequest.Resources;
     /** Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique. */
     ports?: number[];
@@ -39,7 +39,7 @@ export interface CreateRuntimeRequest {
 
 export namespace CreateRuntimeRequest {
     /**
-     * Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 1 GiB memoryBytes (1073741824), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
+     * Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
      */
     export interface Resources {
         /** RAM allocation in bytes. Minimum 134217728 (128 MiB) — below that no real image starts, so sub-floor requests are rejected here instead of surfacing as a confusing in-guest OOM after boot. */

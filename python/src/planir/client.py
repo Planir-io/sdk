@@ -12,7 +12,9 @@ from .environment import PlanirClientEnvironment
 if typing.TYPE_CHECKING:
     from .health.client import AsyncHealthClient, HealthClient
     from .meta.client import AsyncMetaClient, MetaClient
+    from .presets.client import AsyncPresetsClient, PresetsClient
     from .runtimes.client import AsyncRuntimesClient, RuntimesClient
+    from .team.client import AsyncTeamClient, TeamClient
 
 
 class PlanirClient:
@@ -102,6 +104,8 @@ class PlanirClient:
         self._health: typing.Optional[HealthClient] = None
         self._meta: typing.Optional[MetaClient] = None
         self._runtimes: typing.Optional[RuntimesClient] = None
+        self._presets: typing.Optional[PresetsClient] = None
+        self._team: typing.Optional[TeamClient] = None
 
     @property
     def health(self):
@@ -126,6 +130,22 @@ class PlanirClient:
 
             self._runtimes = RuntimesClient(client_wrapper=self._client_wrapper)
         return self._runtimes
+
+    @property
+    def presets(self):
+        if self._presets is None:
+            from .presets.client import PresetsClient  # noqa: E402
+
+            self._presets = PresetsClient(client_wrapper=self._client_wrapper)
+        return self._presets
+
+    @property
+    def team(self):
+        if self._team is None:
+            from .team.client import TeamClient  # noqa: E402
+
+            self._team = TeamClient(client_wrapper=self._client_wrapper)
+        return self._team
 
 
 def _make_default_async_client(
@@ -236,6 +256,8 @@ class AsyncPlanirClient:
         self._health: typing.Optional[AsyncHealthClient] = None
         self._meta: typing.Optional[AsyncMetaClient] = None
         self._runtimes: typing.Optional[AsyncRuntimesClient] = None
+        self._presets: typing.Optional[AsyncPresetsClient] = None
+        self._team: typing.Optional[AsyncTeamClient] = None
 
     @property
     def health(self):
@@ -260,6 +282,22 @@ class AsyncPlanirClient:
 
             self._runtimes = AsyncRuntimesClient(client_wrapper=self._client_wrapper)
         return self._runtimes
+
+    @property
+    def presets(self):
+        if self._presets is None:
+            from .presets.client import AsyncPresetsClient  # noqa: E402
+
+            self._presets = AsyncPresetsClient(client_wrapper=self._client_wrapper)
+        return self._presets
+
+    @property
+    def team(self):
+        if self._team is None:
+            from .team.client import AsyncTeamClient  # noqa: E402
+
+            self._team = AsyncTeamClient(client_wrapper=self._client_wrapper)
+        return self._team
 
 
 def _get_base_url(*, base_url: typing.Optional[str] = None, environment: PlanirClientEnvironment) -> str:

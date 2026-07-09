@@ -29,6 +29,7 @@ export class MetaClient {
      * @param {MetaClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
      *     await client.meta.getVersion()
@@ -70,6 +71,11 @@ export class MetaClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.Error_,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
