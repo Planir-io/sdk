@@ -4,7 +4,15 @@ import typing
 
 ErrorErrorCode = typing.Union[
     typing.Literal[
-        "UNAUTHENTICATED", "INVALID_REQUEST", "NOT_FOUND", "INVALID_STATE", "CONFLICT", "RATE_LIMITED", "INTERNAL"
+        "UNAUTHENTICATED",
+        "INVALID_REQUEST",
+        "NOT_FOUND",
+        "INVALID_STATE",
+        "CONFLICT",
+        "RATE_LIMITED",
+        "TEAM_BLOCKED",
+        "FORBIDDEN",
+        "INTERNAL",
     ],
     typing.Any,
 ]

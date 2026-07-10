@@ -18,6 +18,8 @@ export namespace Error_ {
             InvalidState: "INVALID_STATE",
             Conflict: "CONFLICT",
             RateLimited: "RATE_LIMITED",
+            TeamBlocked: "TEAM_BLOCKED",
+            Forbidden: "FORBIDDEN",
             Internal: "INTERNAL",
         } as const;
         export type Code = (typeof Code)[keyof typeof Code];

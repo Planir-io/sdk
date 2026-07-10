@@ -29,6 +29,7 @@ export class MetaClient {
      * @param {MetaClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -74,6 +75,8 @@ export class MetaClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(
                         _response.error.body as PlanirApi.Error_,
