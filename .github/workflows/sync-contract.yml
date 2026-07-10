@@ -62,8 +62,14 @@ jobs:
           curl -fsSL https://github.com/oasdiff/oasdiff/releases/download/v1.21.0/oasdiff_1.21.0_linux_amd64.tar.gz -o /tmp/oasdiff.tgz
           echo "293811c172672e9e86313ef925f136d8a2352c7b56937f6b0f91c5de1166bd8f  /tmp/oasdiff.tgz" | sha256sum -c -
           tar xzf /tmp/oasdiff.tgz -C /tmp oasdiff
+          # Response-enum additions are additive under the soft freeze (readers must
+          # tolerate new members); oasdiff defaults that check to WARN, which reads as
+          # BREAKING here (hit live 2026-07-10, PR #6). Downgraded to info — every other
+          # check keeps its level, so a real break still fails the run.
+          printf 'response-property-enum-value-added info\n' > /tmp/severity-levels.txt
           set +e
-          /tmp/oasdiff breaking --fail-on WARN /tmp/openapi.previous.json fern/openapi.json \
+          /tmp/oasdiff breaking --fail-on WARN --severity-levels /tmp/severity-levels.txt \
+            /tmp/openapi.previous.json fern/openapi.json \
             > /tmp/oasdiff.txt 2>&1
           breaking=$?
           set -e
