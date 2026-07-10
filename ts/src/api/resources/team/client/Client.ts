@@ -332,13 +332,14 @@ export class TeamClient {
     }
 
     /**
-     * Creates a new API key for the caller's own team and returns its plaintext exactly once (the `secret` field). The plaintext is never stored, logged, or retrievable again — the server keeps only a one-way digest. A key may mint sibling keys (same privilege level). Refused with 422 when the team already holds its package maximum of active keys; revoke one to free a slot.
+     * Creates a new API key for the caller's own team and returns its plaintext exactly once (the `secret` field). The plaintext is never stored, logged, or retrievable again — the server keeps only a one-way digest. A key may mint sibling keys (same privilege level). Refused with 422 when the team already holds its maximum of active keys; revoke one to free a slot.
      *
      * @param {PlanirApi.ApiKeyMintRequest} request
      * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -397,6 +398,8 @@ export class TeamClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
                         _response.error.body as PlanirApi.Error_,
@@ -426,6 +429,7 @@ export class TeamClient {
      * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -479,6 +483,8 @@ export class TeamClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 429:
@@ -506,6 +512,7 @@ export class TeamClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      * @throws {@link PlanirApi.ServiceUnavailableError}
      *
@@ -568,6 +575,8 @@ export class TeamClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(
                         _response.error.body as PlanirApi.Error_,

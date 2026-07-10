@@ -12,6 +12,7 @@ from ..core.parse_error import ParsingError
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..errors.bad_request_error import BadRequestError
+from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
 from ..errors.service_unavailable_error import ServiceUnavailableError
 from ..errors.too_many_requests_error import TooManyRequestsError
@@ -329,7 +330,7 @@ class RawTeamClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ApiKeyMint]:
         """
-        Creates a new API key for the caller's own team and returns its plaintext exactly once (the `secret` field). The plaintext is never stored, logged, or retrievable again — the server keeps only a one-way digest. A key may mint sibling keys (same privilege level). Refused with 422 when the team already holds its package maximum of active keys; revoke one to free a slot.
+        Creates a new API key for the caller's own team and returns its plaintext exactly once (the `secret` field). The plaintext is never stored, logged, or retrievable again — the server keeps only a one-way digest. A key may mint sibling keys (same privilege level). Refused with 422 when the team already holds its maximum of active keys; revoke one to free a slot.
 
         Parameters
         ----------
@@ -383,6 +384,17 @@ class RawTeamClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         Error,
@@ -458,6 +470,17 @@ class RawTeamClient:
                 return HttpResponse(response=_response, data=_data)
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         Error,
@@ -565,6 +588,17 @@ class RawTeamClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         Error,
@@ -906,7 +940,7 @@ class AsyncRawTeamClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ApiKeyMint]:
         """
-        Creates a new API key for the caller's own team and returns its plaintext exactly once (the `secret` field). The plaintext is never stored, logged, or retrievable again — the server keeps only a one-way digest. A key may mint sibling keys (same privilege level). Refused with 422 when the team already holds its package maximum of active keys; revoke one to free a slot.
+        Creates a new API key for the caller's own team and returns its plaintext exactly once (the `secret` field). The plaintext is never stored, logged, or retrievable again — the server keeps only a one-way digest. A key may mint sibling keys (same privilege level). Refused with 422 when the team already holds its maximum of active keys; revoke one to free a slot.
 
         Parameters
         ----------
@@ -960,6 +994,17 @@ class AsyncRawTeamClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         Error,
@@ -1035,6 +1080,17 @@ class AsyncRawTeamClient:
                 return AsyncHttpResponse(response=_response, data=_data)
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         Error,
@@ -1142,6 +1198,17 @@ class AsyncRawTeamClient:
                 )
             if _response.status_code == 401:
                 raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        Error,
+                        parse_obj_as(
+                            type_=Error,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         Error,

@@ -57,6 +57,7 @@ if typing.TYPE_CHECKING:
     from .errors import (
         BadRequestError,
         ConflictError,
+        ForbiddenError,
         NotFoundError,
         ServiceUnavailableError,
         TooManyRequestsError,
@@ -100,6 +101,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ExecId": ".types",
     "ExecRequest": ".types",
     "ExecResult": ".types",
+    "ForbiddenError": ".errors",
     "GetLogsRuntimesRequestPrevious": ".runtimes",
     "HealthStatus": ".types",
     "HealthStatusStatus": ".types",
@@ -194,6 +196,7 @@ __all__ = [
     "ExecId",
     "ExecRequest",
     "ExecResult",
+    "ForbiddenError",
     "GetLogsRuntimesRequestPrevious",
     "HealthStatus",
     "HealthStatusStatus",

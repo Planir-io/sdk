@@ -33,6 +33,7 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -91,6 +92,11 @@ export class RuntimesClient {
                                 _response.error.body as PlanirApi.Error_,
                                 _response.rawResponse,
                             );
+                        case 403:
+                            throw new PlanirApi.ForbiddenError(
+                                _response.error.body as PlanirApi.Error_,
+                                _response.rawResponse,
+                            );
                         case 429:
                             throw new PlanirApi.TooManyRequestsError(
                                 _response.error.body as PlanirApi.Error_,
@@ -127,6 +133,7 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -190,6 +197,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 422:
@@ -219,6 +228,7 @@ export class RuntimesClient {
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -272,6 +282,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 429:
@@ -296,6 +308,7 @@ export class RuntimesClient {
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -349,6 +362,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 429:
@@ -373,6 +388,7 @@ export class RuntimesClient {
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -427,6 +443,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
@@ -453,6 +471,7 @@ export class RuntimesClient {
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -507,6 +526,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
@@ -533,6 +554,7 @@ export class RuntimesClient {
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -587,6 +609,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
@@ -616,6 +640,7 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -681,6 +706,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
@@ -710,6 +737,7 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -775,6 +803,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
@@ -808,6 +838,7 @@ export class RuntimesClient {
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -862,6 +893,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 429:
@@ -892,6 +925,7 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -955,6 +989,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
@@ -982,6 +1018,7 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -1047,6 +1084,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
@@ -1074,6 +1113,7 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -1137,6 +1177,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
@@ -1164,6 +1206,7 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -1227,6 +1270,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
@@ -1255,6 +1300,7 @@ export class RuntimesClient {
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -1317,6 +1363,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 409:
@@ -1344,6 +1392,7 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -1410,6 +1459,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 429:
@@ -1435,6 +1486,7 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -1500,6 +1552,8 @@ export class RuntimesClient {
                         _response.error.body as PlanirApi.Error_,
                         _response.rawResponse,
                     );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
                 case 429:
