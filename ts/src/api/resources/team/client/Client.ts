@@ -586,4 +586,602 @@ export class TeamClient {
 
         return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/team/topup");
     }
+
+    /**
+     * Every webhook endpoint the caller's team holds, newest first — display metadata only (the signing secret never appears on a read; `prefixHint` identifies it).
+     *
+     * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.team.listTeamWebhooks()
+     */
+    public listTeamWebhooks(
+        requestOptions?: TeamClient.RequestOptions,
+    ): core.HttpResponsePromise<PlanirApi.WebhooksList> {
+        return core.HttpResponsePromise.fromPromise(this.__listTeamWebhooks(requestOptions));
+    }
+
+    private async __listTeamWebhooks(
+        requestOptions?: TeamClient.RequestOptions,
+    ): Promise<core.WithRawResponse<PlanirApi.WebhooksList>> {
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                "v1/team/webhooks",
+            ),
+            method: "GET",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as PlanirApi.WebhooksList, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/v1/team/webhooks");
+    }
+
+    /**
+     * Registers a receiver URL for signed lifecycle event POSTs (at-least-once delivery; deduplicate by the `webhook-id` header / payload `id`). The response carries the signing `secret` exactly once — it is never stored retrievably or shown again. Refused with 422 when the team is at its endpoint cap; delete an endpoint to free a slot.
+     *
+     * @param {PlanirApi.CreateWebhookRequest} request
+     * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.BadRequestError}
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.UnprocessableEntityError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.team.registerTeamWebhook({
+     *         url: "url"
+     *     })
+     */
+    public registerTeamWebhook(
+        request: PlanirApi.CreateWebhookRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): core.HttpResponsePromise<PlanirApi.WebhookMint> {
+        return core.HttpResponsePromise.fromPromise(this.__registerTeamWebhook(request, requestOptions));
+    }
+
+    private async __registerTeamWebhook(
+        request: PlanirApi.CreateWebhookRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): Promise<core.WithRawResponse<PlanirApi.WebhookMint>> {
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                "v1/team/webhooks",
+            ),
+            method: "POST",
+            headers: _headers,
+            contentType: "application/json",
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            requestType: "json",
+            body: request,
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as PlanirApi.WebhookMint, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new PlanirApi.BadRequestError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 422:
+                    throw new PlanirApi.UnprocessableEntityError(
+                        _response.error.body as PlanirApi.PolicyRefusedError,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/team/webhooks");
+    }
+
+    /**
+     * Removes the endpoint and its delivery log; in-flight and pending deliveries stop. An endpoint id that is unknown or belongs to another team is a 404, indistinguishable either way.
+     *
+     * @param {PlanirApi.DeleteTeamWebhookRequest} request
+     * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.team.deleteTeamWebhook({
+     *         id: "id"
+     *     })
+     */
+    public deleteTeamWebhook(
+        request: PlanirApi.DeleteTeamWebhookRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): core.HttpResponsePromise<void> {
+        return core.HttpResponsePromise.fromPromise(this.__deleteTeamWebhook(request, requestOptions));
+    }
+
+    private async __deleteTeamWebhook(
+        request: PlanirApi.DeleteTeamWebhookRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): Promise<core.WithRawResponse<void>> {
+        const { id } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/team/webhooks/${core.url.encodePathParam(id)}`,
+            ),
+            method: "DELETE",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: undefined, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "DELETE", "/v1/team/webhooks/{id}");
+    }
+
+    /**
+     * Mints a replacement signing secret (returned exactly once, like registration). The previous secret keeps verifying for a 24-hour overlap, during which every delivery's `webhook-signature` header carries BOTH signatures space-delimited (the Standard Webhooks rotation mechanism) — roll the consumer at leisure, zero dropped verifications. After the overlap the old secret verifies nothing.
+     *
+     * @param {PlanirApi.RotateTeamWebhookSecretRequest} request
+     * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.team.rotateTeamWebhookSecret({
+     *         id: "id"
+     *     })
+     */
+    public rotateTeamWebhookSecret(
+        request: PlanirApi.RotateTeamWebhookSecretRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): core.HttpResponsePromise<PlanirApi.WebhookMint> {
+        return core.HttpResponsePromise.fromPromise(this.__rotateTeamWebhookSecret(request, requestOptions));
+    }
+
+    private async __rotateTeamWebhookSecret(
+        request: PlanirApi.RotateTeamWebhookSecretRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): Promise<core.WithRawResponse<PlanirApi.WebhookMint>> {
+        const { id } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/team/webhooks/${core.url.encodePathParam(id)}/rotate`,
+            ),
+            method: "POST",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as PlanirApi.WebhookMint, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(
+            _response.error,
+            _response.rawResponse,
+            "POST",
+            "/v1/team/webhooks/{id}/rotate",
+        );
+    }
+
+    /**
+     * The explicit recovery verb after an auto-disable (sustained delivery failure): flips `enabled` back on and resets the failure clock; parked pending deliveries resume. Idempotent on an already-enabled endpoint.
+     *
+     * @param {PlanirApi.EnableTeamWebhookRequest} request
+     * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.team.enableTeamWebhook({
+     *         id: "id"
+     *     })
+     */
+    public enableTeamWebhook(
+        request: PlanirApi.EnableTeamWebhookRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): core.HttpResponsePromise<PlanirApi.WebhookEndpoint> {
+        return core.HttpResponsePromise.fromPromise(this.__enableTeamWebhook(request, requestOptions));
+    }
+
+    private async __enableTeamWebhook(
+        request: PlanirApi.EnableTeamWebhookRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): Promise<core.WithRawResponse<PlanirApi.WebhookEndpoint>> {
+        const { id } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/team/webhooks/${core.url.encodePathParam(id)}/enable`,
+            ),
+            method: "POST",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as PlanirApi.WebhookEndpoint, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(
+            _response.error,
+            _response.rawResponse,
+            "POST",
+            "/v1/team/webhooks/{id}/enable",
+        );
+    }
+
+    /**
+     * The diagnostics lane behind one endpoint: each row is one (event, endpoint) delivery with its attempt state, schedule, and last outcome, newest first. Retention is bounded (settled rows are pruned after ~30 days) — the runtime event log is the durable record.
+     *
+     * @param {PlanirApi.ListTeamWebhookDeliveriesRequest} request
+     * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.BadRequestError}
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.team.listTeamWebhookDeliveries({
+     *         id: "id"
+     *     })
+     */
+    public listTeamWebhookDeliveries(
+        request: PlanirApi.ListTeamWebhookDeliveriesRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): core.HttpResponsePromise<PlanirApi.WebhookDeliveriesList> {
+        return core.HttpResponsePromise.fromPromise(this.__listTeamWebhookDeliveries(request, requestOptions));
+    }
+
+    private async __listTeamWebhookDeliveries(
+        request: PlanirApi.ListTeamWebhookDeliveriesRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): Promise<core.WithRawResponse<PlanirApi.WebhookDeliveriesList>> {
+        const { id, limit } = request;
+        const _queryParams: Record<string, unknown> = {
+            limit,
+        };
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/team/webhooks/${core.url.encodePathParam(id)}/deliveries`,
+            ),
+            method: "GET",
+            headers: _headers,
+            queryString: core.url
+                .queryBuilder()
+                .addMany(_queryParams)
+                .mergeAdditional(requestOptions?.queryParams)
+                .build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as PlanirApi.WebhookDeliveriesList, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new PlanirApi.BadRequestError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(
+            _response.error,
+            _response.rawResponse,
+            "GET",
+            "/v1/team/webhooks/{id}/deliveries",
+        );
+    }
+
+    /**
+     * Resets the delivery to `pending` with a fresh retry schedule — the next dispatcher tick sends it. The replay carries the ORIGINAL event id (`webhook-id` header and payload `id` are unchanged), so consumer-side dedup by event id treats it as the same event. Works on any state, including `exhausted`.
+     *
+     * @param {PlanirApi.RedeliverTeamWebhookDeliveryRequest} request
+     * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.team.redeliverTeamWebhookDelivery({
+     *         id: "id",
+     *         deliveryId: "deliveryId"
+     *     })
+     */
+    public redeliverTeamWebhookDelivery(
+        request: PlanirApi.RedeliverTeamWebhookDeliveryRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): core.HttpResponsePromise<PlanirApi.WebhookDelivery> {
+        return core.HttpResponsePromise.fromPromise(this.__redeliverTeamWebhookDelivery(request, requestOptions));
+    }
+
+    private async __redeliverTeamWebhookDelivery(
+        request: PlanirApi.RedeliverTeamWebhookDeliveryRequest,
+        requestOptions?: TeamClient.RequestOptions,
+    ): Promise<core.WithRawResponse<PlanirApi.WebhookDelivery>> {
+        const { id, deliveryId } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/team/webhooks/${core.url.encodePathParam(id)}/deliveries/${core.url.encodePathParam(deliveryId)}/redeliver`,
+            ),
+            method: "POST",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as PlanirApi.WebhookDelivery, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(
+            _response.error,
+            _response.rawResponse,
+            "POST",
+            "/v1/team/webhooks/{id}/deliveries/{deliveryId}/redeliver",
+        );
+    }
 }

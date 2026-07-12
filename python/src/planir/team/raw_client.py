@@ -30,6 +30,12 @@ from ..types.team_ledger import TeamLedger
 from ..types.team_usage import TeamUsage
 from ..types.topup import Topup
 from ..types.unauthenticated_error import UnauthenticatedError
+from ..types.webhook_deliveries_list import WebhookDeliveriesList
+from ..types.webhook_delivery import WebhookDelivery
+from ..types.webhook_endpoint import WebhookEndpoint
+from ..types.webhook_event_type import WebhookEventType
+from ..types.webhook_mint import WebhookMint
+from ..types.webhooks_list import WebhooksList
 from pydantic import ValidationError
 
 # this is used as the default value for optional parameters
@@ -643,6 +649,611 @@ class RawTeamClient:
             )
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
+    def list_team_webhooks(
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[WebhooksList]:
+        """
+        Every webhook endpoint the caller's team holds, newest first — display metadata only (the signing secret never appears on a read; `prefixHint` identifies it).
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[WebhooksList]
+            The team's webhook endpoints.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "v1/team/webhooks",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhooksList,
+                    parse_obj_as(
+                        type_=WebhooksList,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def register_team_webhook(
+        self,
+        *,
+        url: str,
+        event_types: typing.Optional[typing.Sequence[WebhookEventType]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> HttpResponse[WebhookMint]:
+        """
+        Registers a receiver URL for signed lifecycle event POSTs (at-least-once delivery; deduplicate by the `webhook-id` header / payload `id`). The response carries the signing `secret` exactly once — it is never stored retrievably or shown again. Refused with 422 when the team is at its endpoint cap; delete an endpoint to free a slot.
+
+        Parameters
+        ----------
+        url : str
+            The receiver URL. HTTPS is required (HTTP is accepted only on non-production deployments, for local development). The host must resolve to a public address: deliveries to private, link-local, or platform-internal ranges are refused at send time, re-checked on every attempt.
+
+        event_types : typing.Optional[typing.Sequence[WebhookEventType]]
+            Event-type filter: deliver only these types. Omitted = all lifecycle types, including types added in the future.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[WebhookMint]
+            The registered endpoint — `secret` carries the signing key, shown this once only.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "v1/team/webhooks",
+            method="POST",
+            json={
+                "url": url,
+                "eventTypes": event_types,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhookMint,
+                    parse_obj_as(
+                        type_=WebhookMint,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def delete_team_webhook(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[None]:
+        """
+        Removes the endpoint and its delivery log; in-flight and pending deliveries stop. An endpoint id that is unknown or belongs to another team is a 404, indistinguishable either way.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[None]
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"v1/team/webhooks/{encode_path_param(id)}",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return HttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def rotate_team_webhook_secret(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[WebhookMint]:
+        """
+        Mints a replacement signing secret (returned exactly once, like registration). The previous secret keeps verifying for a 24-hour overlap, during which every delivery's `webhook-signature` header carries BOTH signatures space-delimited (the Standard Webhooks rotation mechanism) — roll the consumer at leisure, zero dropped verifications. After the overlap the old secret verifies nothing.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[WebhookMint]
+            The endpoint with its NEW signing `secret` — shown this once only.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"v1/team/webhooks/{encode_path_param(id)}/rotate",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhookMint,
+                    parse_obj_as(
+                        type_=WebhookMint,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def enable_team_webhook(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[WebhookEndpoint]:
+        """
+        The explicit recovery verb after an auto-disable (sustained delivery failure): flips `enabled` back on and resets the failure clock; parked pending deliveries resume. Idempotent on an already-enabled endpoint.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[WebhookEndpoint]
+            The endpoint's updated metadata.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"v1/team/webhooks/{encode_path_param(id)}/enable",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhookEndpoint,
+                    parse_obj_as(
+                        type_=WebhookEndpoint,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def list_team_webhook_deliveries(
+        self, id: str, *, limit: typing.Optional[int] = None, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[WebhookDeliveriesList]:
+        """
+        The diagnostics lane behind one endpoint: each row is one (event, endpoint) delivery with its attempt state, schedule, and last outcome, newest first. Retention is bounded (settled rows are pruned after ~30 days) — the runtime event log is the durable record.
+
+        Parameters
+        ----------
+        id : str
+
+        limit : typing.Optional[int]
+            Rows returned (newest first). Default 50, max 200.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[WebhookDeliveriesList]
+            The endpoint's delivery log, newest first.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"v1/team/webhooks/{encode_path_param(id)}/deliveries",
+            method="GET",
+            params={
+                "limit": limit,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhookDeliveriesList,
+                    parse_obj_as(
+                        type_=WebhookDeliveriesList,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def redeliver_team_webhook_delivery(
+        self, id: str, delivery_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[WebhookDelivery]:
+        """
+        Resets the delivery to `pending` with a fresh retry schedule — the next dispatcher tick sends it. The replay carries the ORIGINAL event id (`webhook-id` header and payload `id` are unchanged), so consumer-side dedup by event id treats it as the same event. Works on any state, including `exhausted`.
+
+        Parameters
+        ----------
+        id : str
+
+        delivery_id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[WebhookDelivery]
+            Queued — the updated delivery row.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"v1/team/webhooks/{encode_path_param(id)}/deliveries/{encode_path_param(delivery_id)}/redeliver",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhookDelivery,
+                    parse_obj_as(
+                        type_=WebhookDelivery,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
 
 class AsyncRawTeamClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
@@ -1240,6 +1851,611 @@ class AsyncRawTeamClient:
                         PaymentRailUnavailableError,
                         parse_obj_as(
                             type_=PaymentRailUnavailableError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_team_webhooks(
+        self, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[WebhooksList]:
+        """
+        Every webhook endpoint the caller's team holds, newest first — display metadata only (the signing secret never appears on a read; `prefixHint` identifies it).
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[WebhooksList]
+            The team's webhook endpoints.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "v1/team/webhooks",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhooksList,
+                    parse_obj_as(
+                        type_=WebhooksList,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def register_team_webhook(
+        self,
+        *,
+        url: str,
+        event_types: typing.Optional[typing.Sequence[WebhookEventType]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> AsyncHttpResponse[WebhookMint]:
+        """
+        Registers a receiver URL for signed lifecycle event POSTs (at-least-once delivery; deduplicate by the `webhook-id` header / payload `id`). The response carries the signing `secret` exactly once — it is never stored retrievably or shown again. Refused with 422 when the team is at its endpoint cap; delete an endpoint to free a slot.
+
+        Parameters
+        ----------
+        url : str
+            The receiver URL. HTTPS is required (HTTP is accepted only on non-production deployments, for local development). The host must resolve to a public address: deliveries to private, link-local, or platform-internal ranges are refused at send time, re-checked on every attempt.
+
+        event_types : typing.Optional[typing.Sequence[WebhookEventType]]
+            Event-type filter: deliver only these types. Omitted = all lifecycle types, including types added in the future.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[WebhookMint]
+            The registered endpoint — `secret` carries the signing key, shown this once only.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "v1/team/webhooks",
+            method="POST",
+            json={
+                "url": url,
+                "eventTypes": event_types,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhookMint,
+                    parse_obj_as(
+                        type_=WebhookMint,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def delete_team_webhook(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
+        """
+        Removes the endpoint and its delivery log; in-flight and pending deliveries stop. An endpoint id that is unknown or belongs to another team is a 404, indistinguishable either way.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[None]
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"v1/team/webhooks/{encode_path_param(id)}",
+            method="DELETE",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return AsyncHttpResponse(response=_response, data=None)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def rotate_team_webhook_secret(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[WebhookMint]:
+        """
+        Mints a replacement signing secret (returned exactly once, like registration). The previous secret keeps verifying for a 24-hour overlap, during which every delivery's `webhook-signature` header carries BOTH signatures space-delimited (the Standard Webhooks rotation mechanism) — roll the consumer at leisure, zero dropped verifications. After the overlap the old secret verifies nothing.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[WebhookMint]
+            The endpoint with its NEW signing `secret` — shown this once only.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"v1/team/webhooks/{encode_path_param(id)}/rotate",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhookMint,
+                    parse_obj_as(
+                        type_=WebhookMint,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def enable_team_webhook(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[WebhookEndpoint]:
+        """
+        The explicit recovery verb after an auto-disable (sustained delivery failure): flips `enabled` back on and resets the failure clock; parked pending deliveries resume. Idempotent on an already-enabled endpoint.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[WebhookEndpoint]
+            The endpoint's updated metadata.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"v1/team/webhooks/{encode_path_param(id)}/enable",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhookEndpoint,
+                    parse_obj_as(
+                        type_=WebhookEndpoint,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_team_webhook_deliveries(
+        self, id: str, *, limit: typing.Optional[int] = None, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[WebhookDeliveriesList]:
+        """
+        The diagnostics lane behind one endpoint: each row is one (event, endpoint) delivery with its attempt state, schedule, and last outcome, newest first. Retention is bounded (settled rows are pruned after ~30 days) — the runtime event log is the durable record.
+
+        Parameters
+        ----------
+        id : str
+
+        limit : typing.Optional[int]
+            Rows returned (newest first). Default 50, max 200.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[WebhookDeliveriesList]
+            The endpoint's delivery log, newest first.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"v1/team/webhooks/{encode_path_param(id)}/deliveries",
+            method="GET",
+            params={
+                "limit": limit,
+            },
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhookDeliveriesList,
+                    parse_obj_as(
+                        type_=WebhookDeliveriesList,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def redeliver_team_webhook_delivery(
+        self, id: str, delivery_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[WebhookDelivery]:
+        """
+        Resets the delivery to `pending` with a fresh retry schedule — the next dispatcher tick sends it. The replay carries the ORIGINAL event id (`webhook-id` header and payload `id` are unchanged), so consumer-side dedup by event id treats it as the same event. Works on any state, including `exhausted`.
+
+        Parameters
+        ----------
+        id : str
+
+        delivery_id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[WebhookDelivery]
+            Queued — the updated delivery row.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"v1/team/webhooks/{encode_path_param(id)}/deliveries/{encode_path_param(delivery_id)}/redeliver",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    WebhookDelivery,
+                    parse_obj_as(
+                        type_=WebhookDelivery,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
