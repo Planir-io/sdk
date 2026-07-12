@@ -10,16 +10,16 @@ if typing.TYPE_CHECKING:
         CreateRuntimeRequestDesiredState,
         CreateRuntimeRequestNetwork,
         CreateRuntimeRequestReadiness,
-        CreateRuntimeRequestResources,
         GetLogsRuntimesRequestPrevious,
+        ListRuntimesRequestDesiredStateItem,
         ListRuntimesRequestIncludeDestroyed,
     )
 _dynamic_imports: typing.Dict[str, str] = {
     "CreateRuntimeRequestDesiredState": ".types",
     "CreateRuntimeRequestNetwork": ".types",
     "CreateRuntimeRequestReadiness": ".types",
-    "CreateRuntimeRequestResources": ".types",
     "GetLogsRuntimesRequestPrevious": ".types",
+    "ListRuntimesRequestDesiredStateItem": ".types",
     "ListRuntimesRequestIncludeDestroyed": ".types",
 }
 
@@ -49,7 +49,7 @@ __all__ = [
     "CreateRuntimeRequestDesiredState",
     "CreateRuntimeRequestNetwork",
     "CreateRuntimeRequestReadiness",
-    "CreateRuntimeRequestResources",
     "GetLogsRuntimesRequestPrevious",
+    "ListRuntimesRequestDesiredStateItem",
     "ListRuntimesRequestIncludeDestroyed",
 ]

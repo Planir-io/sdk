@@ -21,7 +21,7 @@ class DetachedExec(UniversalBaseModel):
         pydantic.Field(
             alias="exitCode",
             default=None,
-            description="Null while running. After exit: the process exit code, or null when the outcome is unknown (stream cut, or the 30-minute detached ceiling hit — stderr says which in stable words). The ceiling stops output CAPTURE, not the process: it may still be running in the runtime; kill it via exec if that matters.",
+            description="Null while running. After exit: the process exit code, or null when the outcome is unknown (stream cut — stderr says so in stable words) or the capture deadline cut it (`timedOut: true`). A deadline stops output CAPTURE, not the process: it may still be running in the runtime; the remedy for a runaway is stop/start.",
         ),
     ]
     stdout: str = pydantic.Field()
@@ -33,5 +33,14 @@ class DetachedExec(UniversalBaseModel):
     """
     Captured stderr SO FAR (final once exited), truncated at 1 MiB with a marker.
     """
+
+    timed_out: typing_extensions.Annotated[
+        bool,
+        FieldMetadata(alias="timedOut"),
+        pydantic.Field(
+            alias="timedOut",
+            description="True when the capture deadline cut this exec: exitCode is null, the streams hold what was captured up to the cut, and the process MAY STILL BE RUNNING in the runtime (the deadline bounds capture, never the process). False on every other outcome.",
+        ),
+    ]
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

@@ -9,15 +9,15 @@ if typing.TYPE_CHECKING:
     from .create_runtime_request_desired_state import CreateRuntimeRequestDesiredState
     from .create_runtime_request_network import CreateRuntimeRequestNetwork
     from .create_runtime_request_readiness import CreateRuntimeRequestReadiness
-    from .create_runtime_request_resources import CreateRuntimeRequestResources
     from .get_logs_runtimes_request_previous import GetLogsRuntimesRequestPrevious
+    from .list_runtimes_request_desired_state_item import ListRuntimesRequestDesiredStateItem
     from .list_runtimes_request_include_destroyed import ListRuntimesRequestIncludeDestroyed
 _dynamic_imports: typing.Dict[str, str] = {
     "CreateRuntimeRequestDesiredState": ".create_runtime_request_desired_state",
     "CreateRuntimeRequestNetwork": ".create_runtime_request_network",
     "CreateRuntimeRequestReadiness": ".create_runtime_request_readiness",
-    "CreateRuntimeRequestResources": ".create_runtime_request_resources",
     "GetLogsRuntimesRequestPrevious": ".get_logs_runtimes_request_previous",
+    "ListRuntimesRequestDesiredStateItem": ".list_runtimes_request_desired_state_item",
     "ListRuntimesRequestIncludeDestroyed": ".list_runtimes_request_include_destroyed",
 }
 
@@ -47,7 +47,7 @@ __all__ = [
     "CreateRuntimeRequestDesiredState",
     "CreateRuntimeRequestNetwork",
     "CreateRuntimeRequestReadiness",
-    "CreateRuntimeRequestResources",
     "GetLogsRuntimesRequestPrevious",
+    "ListRuntimesRequestDesiredStateItem",
     "ListRuntimesRequestIncludeDestroyed",
 ]

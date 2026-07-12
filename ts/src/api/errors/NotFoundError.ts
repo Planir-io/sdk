@@ -2,10 +2,9 @@
 
 import type * as core from "../../core/index.js";
 import * as errors from "../../errors/index.js";
-import type * as PlanirApi from "../index.js";
 
 export class NotFoundError extends errors.PlanirApiError {
-    constructor(body: PlanirApi.Error_, rawResponse?: core.RawResponse) {
+    constructor(body?: unknown, rawResponse?: core.RawResponse) {
         super({
             message: "NotFoundError",
             statusCode: 404,

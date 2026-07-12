@@ -45,11 +45,16 @@ export class RuntimesClient {
     ): Promise<core.Page<PlanirApi.Runtime, PlanirApi.RuntimesList>> {
         const list = core.HttpResponsePromise.interceptFunction(
             async (request: PlanirApi.ListRuntimesRequest): Promise<core.WithRawResponse<PlanirApi.RuntimesList>> => {
-                const { limit, cursor, includeDestroyed } = request;
+                const { limit, cursor, includeDestroyed, desiredState } = request;
                 const _queryParams: Record<string, unknown> = {
                     limit,
                     cursor,
                     includeDestroyed: includeDestroyed != null ? includeDestroyed : undefined,
+                    desiredState: Array.isArray(desiredState)
+                        ? desiredState.map((item) => item)
+                        : desiredState != null
+                          ? desiredState
+                          : undefined,
                 };
                 const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
                 const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
@@ -84,22 +89,22 @@ export class RuntimesClient {
                     switch (_response.error.statusCode) {
                         case 400:
                             throw new PlanirApi.BadRequestError(
-                                _response.error.body as PlanirApi.Error_,
+                                _response.error.body as PlanirApi.InvalidRequestError,
                                 _response.rawResponse,
                             );
                         case 401:
                             throw new PlanirApi.UnauthorizedError(
-                                _response.error.body as PlanirApi.Error_,
+                                _response.error.body as PlanirApi.UnauthenticatedError,
                                 _response.rawResponse,
                             );
                         case 403:
                             throw new PlanirApi.ForbiddenError(
-                                _response.error.body as PlanirApi.Error_,
+                                _response.error.body as PlanirApi.TeamBlockedError,
                                 _response.rawResponse,
                             );
                         case 429:
                             throw new PlanirApi.TooManyRequestsError(
-                                _response.error.body as PlanirApi.Error_,
+                                _response.error.body as unknown,
                                 _response.rawResponse,
                             );
                         default:
@@ -133,7 +138,9 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.PaymentRequiredError}
      * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
@@ -189,28 +196,35 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 402:
+                    throw new PlanirApi.PaymentRequiredError(
+                        _response.error.body as PlanirApi.InsufficientBalanceError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.PolicyRefusedError,
                         _response.rawResponse,
                     );
                 case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
-                        _response.rawResponse,
-                    );
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -279,18 +293,18 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -359,18 +373,18 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -388,6 +402,7 @@ export class RuntimesClient {
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.PaymentRequiredError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
@@ -440,20 +455,25 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 402:
+                    throw new PlanirApi.PaymentRequiredError(
+                        _response.error.body as PlanirApi.InsufficientBalanceError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -523,20 +543,20 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -606,20 +626,20 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -633,9 +653,91 @@ export class RuntimesClient {
     }
 
     /**
-     * Synchronous: a 30-second wall-clock deadline and 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, which has no sync deadline (30-minute ceiling) and is polled via GET /v1/runtimes/{id}/exec/{execId}.
+     * Detached execs only — sync execs are request-scoped and never listed. Records are in-process: retained briefly after exit (minutes, platform policy), then gone; an engine restart also loses them (the command dies with its stream). Scoped to the runtime exactly like the poll endpoint — another runtime's execIds never appear.
      *
-     * @param {PlanirApi.ExecRuntimesRequest} request
+     * @param {PlanirApi.ListRuntimeExecsRequest} request
+     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.runtimes.listRuntimeExecs({
+     *         id: "id"
+     *     })
+     */
+    public listRuntimeExecs(
+        request: PlanirApi.ListRuntimeExecsRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): core.HttpResponsePromise<PlanirApi.ExecList> {
+        return core.HttpResponsePromise.fromPromise(this.__listRuntimeExecs(request, requestOptions));
+    }
+
+    private async __listRuntimeExecs(
+        request: PlanirApi.ListRuntimeExecsRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): Promise<core.WithRawResponse<PlanirApi.ExecList>> {
+        const { id } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/runtimes/${core.url.encodePathParam(id)}/exec`,
+            ),
+            method: "GET",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as PlanirApi.ExecList, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/v1/runtimes/{id}/exec");
+    }
+
+    /**
+     * Synchronous: `timeoutMs` (default and cap 30 s) bounds output CAPTURE — a deadline cut is a 200 result with `timedOut: true` and the partial streams, never an error, and never stops the process (stop/start the runtime for a runaway). 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, polled via GET /v1/runtimes/{id}/exec/{execId}.
+     *
+     * @param {PlanirApi.ExecRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.BadRequestError}
@@ -643,28 +745,27 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
      *     await client.runtimes.exec({
      *         id: "id",
-     *         body: {
-     *             command: ["command"]
-     *         }
+     *         command: ["command"]
      *     })
      */
     public exec(
-        request: PlanirApi.ExecRuntimesRequest,
+        request: PlanirApi.ExecRequest,
         requestOptions?: RuntimesClient.RequestOptions,
     ): core.HttpResponsePromise<PlanirApi.ExecResult> {
         return core.HttpResponsePromise.fromPromise(this.__exec(request, requestOptions));
     }
 
     private async __exec(
-        request: PlanirApi.ExecRuntimesRequest,
+        request: PlanirApi.ExecRequest,
         requestOptions?: RuntimesClient.RequestOptions,
     ): Promise<core.WithRawResponse<PlanirApi.ExecResult>> {
-        const { id, body: _body } = request;
+        const { id, ..._body } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -698,25 +799,30 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.PayloadTooLargeError,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -730,9 +836,9 @@ export class RuntimesClient {
     }
 
     /**
-     * Returns 202 {execId} immediately; the command runs without the 30-second sync deadline (bounded by a generous 30-minute ceiling instead). Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker).
+     * Returns 202 {execId} immediately; the command runs without the 30-second sync deadline — `timeoutMs` (default and cap 30 min) bounds output CAPTURE; a deadline cut resolves the poll with `timedOut: true` and the partial streams, never an error, and never stops the process. Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker). At most 8 in flight per runtime.
      *
-     * @param {PlanirApi.ExecDetachedRuntimesRequest} request
+     * @param {PlanirApi.DetachedExecRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.BadRequestError}
@@ -740,28 +846,27 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
      *     await client.runtimes.execDetached({
      *         id: "id",
-     *         body: {
-     *             command: ["command"]
-     *         }
+     *         command: ["command"]
      *     })
      */
     public execDetached(
-        request: PlanirApi.ExecDetachedRuntimesRequest,
+        request: PlanirApi.DetachedExecRequest,
         requestOptions?: RuntimesClient.RequestOptions,
     ): core.HttpResponsePromise<PlanirApi.ExecId> {
         return core.HttpResponsePromise.fromPromise(this.__execDetached(request, requestOptions));
     }
 
     private async __execDetached(
-        request: PlanirApi.ExecDetachedRuntimesRequest,
+        request: PlanirApi.DetachedExecRequest,
         requestOptions?: RuntimesClient.RequestOptions,
     ): Promise<core.WithRawResponse<PlanirApi.ExecId>> {
-        const { id, body: _body } = request;
+        const { id, ..._body } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -795,25 +900,30 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.PayloadTooLargeError,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -890,18 +1000,18 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -981,25 +1091,25 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1076,25 +1186,25 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1169,25 +1279,25 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1262,25 +1372,25 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1291,6 +1401,103 @@ export class RuntimesClient {
         }
 
         return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/runtimes/{id}/reach");
+    }
+
+    /**
+     * Whole-map replace, validated identically to create. Labels are NOT desired state: no `generation` bump, no engine interaction, no restart — the new map is visible immediately on reads and list filters. Allowed in every non-destroyed state.
+     *
+     * @param {PlanirApi.MetadataRequest} request
+     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.BadRequestError}
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.runtimes.updateRuntimeMetadata({
+     *         id: "id",
+     *         metadata: {
+     *             "key": "value"
+     *         }
+     *     })
+     */
+    public updateRuntimeMetadata(
+        request: PlanirApi.MetadataRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): core.HttpResponsePromise<PlanirApi.Runtime> {
+        return core.HttpResponsePromise.fromPromise(this.__updateRuntimeMetadata(request, requestOptions));
+    }
+
+    private async __updateRuntimeMetadata(
+        request: PlanirApi.MetadataRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): Promise<core.WithRawResponse<PlanirApi.Runtime>> {
+        const { id, ..._body } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/runtimes/${core.url.encodePathParam(id)}/metadata`,
+            ),
+            method: "PUT",
+            headers: _headers,
+            contentType: "application/json",
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            requestType: "json",
+            body: _body,
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as PlanirApi.Runtime, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new PlanirApi.BadRequestError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "PUT", "/v1/runtimes/{id}/metadata");
     }
 
     /**
@@ -1360,20 +1567,20 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1451,23 +1658,23 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1544,23 +1751,23 @@ export class RuntimesClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,

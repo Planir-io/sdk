@@ -3,9 +3,9 @@
 import typing
 
 from ..core.api_error import ApiError
-from ..types.error import Error
+from ..types.invalid_request_error import InvalidRequestError
 
 
 class BadRequestError(ApiError):
-    def __init__(self, body: Error, headers: typing.Optional[typing.Dict[str, str]] = None):
+    def __init__(self, body: InvalidRequestError, headers: typing.Optional[typing.Dict[str, str]] = None):
         super().__init__(status_code=400, headers=headers, body=body)

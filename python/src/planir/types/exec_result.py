@@ -15,7 +15,7 @@ class ExecResult(UniversalBaseModel):
         pydantic.Field(
             alias="exitCode",
             default=None,
-            description="Process exit code, or null when the outcome is unknown (the command never ran as a process, or the compute died under it before reporting). A null exitCode is terminal for that invocation — the command is never auto-re-run.",
+            description="Process exit code, or null when the outcome is unknown (the command never ran as a process, the compute died under it before reporting, or the capture deadline cut it — `timedOut` says which). A null exitCode is terminal for that invocation — the command is never auto-re-run.",
         ),
     ]
     stdout: str = pydantic.Field()
@@ -27,5 +27,14 @@ class ExecResult(UniversalBaseModel):
     """
     Captured stderr, truncated at 1 MiB (marker appended when truncated).
     """
+
+    timed_out: typing_extensions.Annotated[
+        bool,
+        FieldMetadata(alias="timedOut"),
+        pydantic.Field(
+            alias="timedOut",
+            description="True when the capture deadline cut this exec: exitCode is null, the streams hold what was captured up to the cut, and the process MAY STILL BE RUNNING in the runtime (the deadline bounds capture, never the process). False on every other outcome.",
+        ),
+    ]
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

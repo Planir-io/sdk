@@ -13,7 +13,8 @@ from ..errors.forbidden_error import ForbiddenError
 from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..types.api_version_info import ApiVersionInfo
-from ..types.error import Error
+from ..types.team_blocked_error import TeamBlockedError
+from ..types.unauthenticated_error import UnauthenticatedError
 from pydantic import ValidationError
 
 
@@ -52,9 +53,9 @@ class RawMetaClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -63,9 +64,9 @@ class RawMetaClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -74,9 +75,9 @@ class RawMetaClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -128,9 +129,9 @@ class AsyncRawMetaClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -139,9 +140,9 @@ class AsyncRawMetaClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -150,9 +151,9 @@ class AsyncRawMetaClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

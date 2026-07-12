@@ -5,7 +5,7 @@ import * as errors from "../../errors/index.js";
 import type * as PlanirApi from "../index.js";
 
 export class ServiceUnavailableError extends errors.PlanirApiError {
-    constructor(body: PlanirApi.Error_, rawResponse?: core.RawResponse) {
+    constructor(body: PlanirApi.PaymentRailUnavailableError, rawResponse?: core.RawResponse) {
         super({
             message: "ServiceUnavailableError",
             statusCode: 503,

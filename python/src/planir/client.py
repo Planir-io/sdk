@@ -15,6 +15,7 @@ if typing.TYPE_CHECKING:
     from .presets.client import AsyncPresetsClient, PresetsClient
     from .runtimes.client import AsyncRuntimesClient, RuntimesClient
     from .team.client import AsyncTeamClient, TeamClient
+    from .volumes.client import AsyncVolumesClient, VolumesClient
 
 
 class PlanirClient:
@@ -104,6 +105,7 @@ class PlanirClient:
         self._health: typing.Optional[HealthClient] = None
         self._meta: typing.Optional[MetaClient] = None
         self._runtimes: typing.Optional[RuntimesClient] = None
+        self._volumes: typing.Optional[VolumesClient] = None
         self._presets: typing.Optional[PresetsClient] = None
         self._team: typing.Optional[TeamClient] = None
 
@@ -130,6 +132,14 @@ class PlanirClient:
 
             self._runtimes = RuntimesClient(client_wrapper=self._client_wrapper)
         return self._runtimes
+
+    @property
+    def volumes(self):
+        if self._volumes is None:
+            from .volumes.client import VolumesClient  # noqa: E402
+
+            self._volumes = VolumesClient(client_wrapper=self._client_wrapper)
+        return self._volumes
 
     @property
     def presets(self):
@@ -256,6 +266,7 @@ class AsyncPlanirClient:
         self._health: typing.Optional[AsyncHealthClient] = None
         self._meta: typing.Optional[AsyncMetaClient] = None
         self._runtimes: typing.Optional[AsyncRuntimesClient] = None
+        self._volumes: typing.Optional[AsyncVolumesClient] = None
         self._presets: typing.Optional[AsyncPresetsClient] = None
         self._team: typing.Optional[AsyncTeamClient] = None
 
@@ -282,6 +293,14 @@ class AsyncPlanirClient:
 
             self._runtimes = AsyncRuntimesClient(client_wrapper=self._client_wrapper)
         return self._runtimes
+
+    @property
+    def volumes(self):
+        if self._volumes is None:
+            from .volumes.client import AsyncVolumesClient  # noqa: E402
+
+            self._volumes = AsyncVolumesClient(client_wrapper=self._client_wrapper)
+        return self._volumes
 
     @property
     def presets(self):

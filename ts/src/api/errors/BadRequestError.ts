@@ -5,7 +5,7 @@ import * as errors from "../../errors/index.js";
 import type * as PlanirApi from "../index.js";
 
 export class BadRequestError extends errors.PlanirApiError {
-    constructor(body: PlanirApi.Error_, rawResponse?: core.RawResponse) {
+    constructor(body: PlanirApi.InvalidRequestError, rawResponse?: core.RawResponse) {
         super({
             message: "BadRequestError",
             statusCode: 400,
