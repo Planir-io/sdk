@@ -12,6 +12,12 @@ from ..types.team import Team
 from ..types.team_ledger import TeamLedger
 from ..types.team_usage import TeamUsage
 from ..types.topup import Topup
+from ..types.webhook_deliveries_list import WebhookDeliveriesList
+from ..types.webhook_delivery import WebhookDelivery
+from ..types.webhook_endpoint import WebhookEndpoint
+from ..types.webhook_event_type import WebhookEventType
+from ..types.webhook_mint import WebhookMint
+from ..types.webhooks_list import WebhooksList
 from .raw_client import AsyncRawTeamClient, RawTeamClient
 
 # this is used as the default value for optional parameters
@@ -271,6 +277,237 @@ class TeamClient:
             cancel_url=cancel_url,
             request_options=request_options,
         )
+        return _response.data
+
+    def list_team_webhooks(self, *, request_options: typing.Optional[RequestOptions] = None) -> WebhooksList:
+        """
+        Every webhook endpoint the caller's team holds, newest first — display metadata only (the signing secret never appears on a read; `prefixHint` identifies it).
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhooksList
+            The team's webhook endpoints.
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.team.list_team_webhooks()
+        """
+        _response = self._raw_client.list_team_webhooks(request_options=request_options)
+        return _response.data
+
+    def register_team_webhook(
+        self,
+        *,
+        url: str,
+        event_types: typing.Optional[typing.Sequence[WebhookEventType]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> WebhookMint:
+        """
+        Registers a receiver URL for signed lifecycle event POSTs (at-least-once delivery; deduplicate by the `webhook-id` header / payload `id`). The response carries the signing `secret` exactly once — it is never stored retrievably or shown again. Refused with 422 when the team is at its endpoint cap; delete an endpoint to free a slot.
+
+        Parameters
+        ----------
+        url : str
+            The receiver URL. HTTPS is required (HTTP is accepted only on non-production deployments, for local development). The host must resolve to a public address: deliveries to private, link-local, or platform-internal ranges are refused at send time, re-checked on every attempt.
+
+        event_types : typing.Optional[typing.Sequence[WebhookEventType]]
+            Event-type filter: deliver only these types. Omitted = all lifecycle types, including types added in the future.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhookMint
+            The registered endpoint — `secret` carries the signing key, shown this once only.
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.team.register_team_webhook(
+            url="url",
+        )
+        """
+        _response = self._raw_client.register_team_webhook(
+            url=url, event_types=event_types, request_options=request_options
+        )
+        return _response.data
+
+    def delete_team_webhook(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Removes the endpoint and its delivery log; in-flight and pending deliveries stop. An endpoint id that is unknown or belongs to another team is a 404, indistinguishable either way.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.team.delete_team_webhook(
+            id="id",
+        )
+        """
+        _response = self._raw_client.delete_team_webhook(id, request_options=request_options)
+        return _response.data
+
+    def rotate_team_webhook_secret(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> WebhookMint:
+        """
+        Mints a replacement signing secret (returned exactly once, like registration). The previous secret keeps verifying for a 24-hour overlap, during which every delivery's `webhook-signature` header carries BOTH signatures space-delimited (the Standard Webhooks rotation mechanism) — roll the consumer at leisure, zero dropped verifications. After the overlap the old secret verifies nothing.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhookMint
+            The endpoint with its NEW signing `secret` — shown this once only.
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.team.rotate_team_webhook_secret(
+            id="id",
+        )
+        """
+        _response = self._raw_client.rotate_team_webhook_secret(id, request_options=request_options)
+        return _response.data
+
+    def enable_team_webhook(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> WebhookEndpoint:
+        """
+        The explicit recovery verb after an auto-disable (sustained delivery failure): flips `enabled` back on and resets the failure clock; parked pending deliveries resume. Idempotent on an already-enabled endpoint.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhookEndpoint
+            The endpoint's updated metadata.
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.team.enable_team_webhook(
+            id="id",
+        )
+        """
+        _response = self._raw_client.enable_team_webhook(id, request_options=request_options)
+        return _response.data
+
+    def list_team_webhook_deliveries(
+        self, id: str, *, limit: typing.Optional[int] = None, request_options: typing.Optional[RequestOptions] = None
+    ) -> WebhookDeliveriesList:
+        """
+        The diagnostics lane behind one endpoint: each row is one (event, endpoint) delivery with its attempt state, schedule, and last outcome, newest first. Retention is bounded (settled rows are pruned after ~30 days) — the runtime event log is the durable record.
+
+        Parameters
+        ----------
+        id : str
+
+        limit : typing.Optional[int]
+            Rows returned (newest first). Default 50, max 200.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhookDeliveriesList
+            The endpoint's delivery log, newest first.
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.team.list_team_webhook_deliveries(
+            id="id",
+        )
+        """
+        _response = self._raw_client.list_team_webhook_deliveries(id, limit=limit, request_options=request_options)
+        return _response.data
+
+    def redeliver_team_webhook_delivery(
+        self, id: str, delivery_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> WebhookDelivery:
+        """
+        Resets the delivery to `pending` with a fresh retry schedule — the next dispatcher tick sends it. The replay carries the ORIGINAL event id (`webhook-id` header and payload `id` are unchanged), so consumer-side dedup by event id treats it as the same event. Works on any state, including `exhausted`.
+
+        Parameters
+        ----------
+        id : str
+
+        delivery_id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhookDelivery
+            Queued — the updated delivery row.
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.team.redeliver_team_webhook_delivery(
+            id="id",
+            delivery_id="deliveryId",
+        )
+        """
+        _response = self._raw_client.redeliver_team_webhook_delivery(id, delivery_id, request_options=request_options)
         return _response.data
 
 
@@ -584,5 +821,296 @@ class AsyncTeamClient:
             success_url=success_url,
             cancel_url=cancel_url,
             request_options=request_options,
+        )
+        return _response.data
+
+    async def list_team_webhooks(self, *, request_options: typing.Optional[RequestOptions] = None) -> WebhooksList:
+        """
+        Every webhook endpoint the caller's team holds, newest first — display metadata only (the signing secret never appears on a read; `prefixHint` identifies it).
+
+        Parameters
+        ----------
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhooksList
+            The team's webhook endpoints.
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.team.list_team_webhooks()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_team_webhooks(request_options=request_options)
+        return _response.data
+
+    async def register_team_webhook(
+        self,
+        *,
+        url: str,
+        event_types: typing.Optional[typing.Sequence[WebhookEventType]] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
+    ) -> WebhookMint:
+        """
+        Registers a receiver URL for signed lifecycle event POSTs (at-least-once delivery; deduplicate by the `webhook-id` header / payload `id`). The response carries the signing `secret` exactly once — it is never stored retrievably or shown again. Refused with 422 when the team is at its endpoint cap; delete an endpoint to free a slot.
+
+        Parameters
+        ----------
+        url : str
+            The receiver URL. HTTPS is required (HTTP is accepted only on non-production deployments, for local development). The host must resolve to a public address: deliveries to private, link-local, or platform-internal ranges are refused at send time, re-checked on every attempt.
+
+        event_types : typing.Optional[typing.Sequence[WebhookEventType]]
+            Event-type filter: deliver only these types. Omitted = all lifecycle types, including types added in the future.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhookMint
+            The registered endpoint — `secret` carries the signing key, shown this once only.
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.team.register_team_webhook(
+                url="url",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.register_team_webhook(
+            url=url, event_types=event_types, request_options=request_options
+        )
+        return _response.data
+
+    async def delete_team_webhook(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Removes the endpoint and its delivery log; in-flight and pending deliveries stop. An endpoint id that is unknown or belongs to another team is a 404, indistinguishable either way.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.team.delete_team_webhook(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.delete_team_webhook(id, request_options=request_options)
+        return _response.data
+
+    async def rotate_team_webhook_secret(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> WebhookMint:
+        """
+        Mints a replacement signing secret (returned exactly once, like registration). The previous secret keeps verifying for a 24-hour overlap, during which every delivery's `webhook-signature` header carries BOTH signatures space-delimited (the Standard Webhooks rotation mechanism) — roll the consumer at leisure, zero dropped verifications. After the overlap the old secret verifies nothing.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhookMint
+            The endpoint with its NEW signing `secret` — shown this once only.
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.team.rotate_team_webhook_secret(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.rotate_team_webhook_secret(id, request_options=request_options)
+        return _response.data
+
+    async def enable_team_webhook(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> WebhookEndpoint:
+        """
+        The explicit recovery verb after an auto-disable (sustained delivery failure): flips `enabled` back on and resets the failure clock; parked pending deliveries resume. Idempotent on an already-enabled endpoint.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhookEndpoint
+            The endpoint's updated metadata.
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.team.enable_team_webhook(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.enable_team_webhook(id, request_options=request_options)
+        return _response.data
+
+    async def list_team_webhook_deliveries(
+        self, id: str, *, limit: typing.Optional[int] = None, request_options: typing.Optional[RequestOptions] = None
+    ) -> WebhookDeliveriesList:
+        """
+        The diagnostics lane behind one endpoint: each row is one (event, endpoint) delivery with its attempt state, schedule, and last outcome, newest first. Retention is bounded (settled rows are pruned after ~30 days) — the runtime event log is the durable record.
+
+        Parameters
+        ----------
+        id : str
+
+        limit : typing.Optional[int]
+            Rows returned (newest first). Default 50, max 200.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhookDeliveriesList
+            The endpoint's delivery log, newest first.
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.team.list_team_webhook_deliveries(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_team_webhook_deliveries(
+            id, limit=limit, request_options=request_options
+        )
+        return _response.data
+
+    async def redeliver_team_webhook_delivery(
+        self, id: str, delivery_id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> WebhookDelivery:
+        """
+        Resets the delivery to `pending` with a fresh retry schedule — the next dispatcher tick sends it. The replay carries the ORIGINAL event id (`webhook-id` header and payload `id` are unchanged), so consumer-side dedup by event id treats it as the same event. Works on any state, including `exhausted`.
+
+        Parameters
+        ----------
+        id : str
+
+        delivery_id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        WebhookDelivery
+            Queued — the updated delivery row.
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.team.redeliver_team_webhook_delivery(
+                id="id",
+                delivery_id="deliveryId",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.redeliver_team_webhook_delivery(
+            id, delivery_id, request_options=request_options
         )
         return _response.data
