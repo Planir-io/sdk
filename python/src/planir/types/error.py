@@ -8,6 +8,10 @@ from .error_error import ErrorError
 
 
 class Error(UniversalBaseModel):
+    """
+    The error envelope. `code` is an OPEN enum: new codes are additive under the platform compatibility policy — clients MUST tolerate codes not in this list (treat an unknown code as an unretryable failure of the request). Per-operation responses reference named schemas that narrow `code` to exactly what that operation+status emits; the wire shape is identical everywhere.
+    """
+
     error: ErrorError
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

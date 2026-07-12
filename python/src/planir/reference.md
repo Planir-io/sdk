@@ -167,7 +167,15 @@ client.runtimes.list()
 <dl>
 <dd>
 
-**include_destroyed:** `typing.Optional[ListRuntimesRequestIncludeDestroyed]` — Destroyed runtimes are excluded unless this is `true`.
+**include_destroyed:** `typing.Optional[ListRuntimesRequestIncludeDestroyed]` — Destroyed runtimes are excluded unless this is `true`. Ignored when an explicit `desiredState` filter is present (that filter fully determines state visibility).
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**desired_state:** `typing.Optional[typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]]` — Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`.
     
 </dd>
 </dl>
@@ -282,7 +290,15 @@ client.runtimes.create(
 <dl>
 <dd>
 
-**resources:** `typing.Optional[CreateRuntimeRequestResources]` — Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
+**resources:** `typing.Optional[ResourceSpecInput]` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**volume_id:** `typing.Optional[str]` — Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: attached elsewhere or mid-delete → 409 VOLUME_BUSY; unknown or another team's id → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
     
 </dd>
 </dl>
@@ -645,6 +661,79 @@ client.runtimes.restart(
 </dl>
 </details>
 
+<details><summary><code>client.runtimes.<a href="src/planir/runtimes/client.py">list_runtime_execs</a>(...) -> ExecList</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Detached execs only — sync execs are request-scoped and never listed. Records are in-process: retained briefly after exit (minutes, platform policy), then gone; an engine restart also loses them (the command dies with its stream). Scoped to the runtime exactly like the poll endpoint — another runtime's execIds never appear.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.runtimes.list_runtime_execs(
+    id="id",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 <details><summary><code>client.runtimes.<a href="src/planir/runtimes/client.py">exec</a>(...) -> ExecResult</code></summary>
 <dl>
 <dd>
@@ -657,7 +746,7 @@ client.runtimes.restart(
 <dl>
 <dd>
 
-Synchronous: a 30-second wall-clock deadline and 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, which has no sync deadline (30-minute ceiling) and is polled via GET /v1/runtimes/{id}/exec/{execId}.
+Synchronous: `timeoutMs` (default and cap 30 s) bounds output CAPTURE — a deadline cut is a 200 result with `timedOut: true` and the partial streams, never an error, and never stops the process (stop/start the runtime for a runaway). 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, polled via GET /v1/runtimes/{id}/exec/{execId}.
 </dd>
 </dl>
 </dd>
@@ -709,7 +798,23 @@ client.runtimes.exec(
 <dl>
 <dd>
 
-**request:** `ExecRequest` 
+**command:** `typing.List[str]` — argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**stdin:** `typing.Optional[str]` — Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**timeout_ms:** `typing.Optional[int]` — Capture deadline in milliseconds (1–30000, default 30000 — the edge's connection ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
     
 </dd>
 </dl>
@@ -741,7 +846,7 @@ client.runtimes.exec(
 <dl>
 <dd>
 
-Returns 202 {execId} immediately; the command runs without the 30-second sync deadline (bounded by a generous 30-minute ceiling instead). Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker).
+Returns 202 {execId} immediately; the command runs without the 30-second sync deadline — `timeoutMs` (default and cap 30 min) bounds output CAPTURE; a deadline cut resolves the poll with `timedOut: true` and the partial streams, never an error, and never stops the process. Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker). At most 8 in flight per runtime.
 </dd>
 </dl>
 </dd>
@@ -793,7 +898,23 @@ client.runtimes.exec_detached(
 <dl>
 <dd>
 
-**request:** `ExecRequest` 
+**command:** `typing.List[str]` — argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**stdin:** `typing.Optional[str]` — Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**timeout_ms:** `typing.Optional[int]` — Capture deadline in milliseconds (1–1800000, default 1800000 — the engine's capture ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
     
 </dd>
 </dl>
@@ -1169,6 +1290,90 @@ client.runtimes.reach(
 </dl>
 </details>
 
+<details><summary><code>client.runtimes.<a href="src/planir/runtimes/client.py">update_runtime_metadata</a>(...) -> Runtime</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Whole-map replace, validated identically to create. Labels are NOT desired state: no `generation` bump, no engine interaction, no restart — the new map is visible immediately on reads and list filters. Allowed in every non-destroyed state.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.runtimes.update_runtime_metadata(
+    id="id",
+    metadata={
+        "key": "value"
+    },
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**metadata:** `typing.Dict[str, str]` — Free-form correlation labels. Keys match [A-Za-z0-9._-]+ (max 64 chars), values max 256 chars, at most 32 entries. Echoed on reads; filterable on the list endpoint via `?metadata.<key>=<value>`. Never interpreted by the platform.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 <details><summary><code>client.runtimes.<a href="src/planir/runtimes/client.py">get_logs</a>(...) -> str</code></summary>
 <dl>
 <dd>
@@ -1373,6 +1578,284 @@ client.runtimes.get_events(
 <dd>
 
 **cursor:** `typing.Optional[int]` — Return only events whose cursor is strictly greater than this value.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+## Volumes
+<details><summary><code>client.volumes.<a href="src/planir/volumes/client.py">list_volumes</a>() -> VolumesList</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Every volume the team owns, standalone AND runtime-managed (`deleteWithRuntime: true` rows are the auto-created `/data` volumes, named `data-<runtimeId>`) — one storage model, two lifecycles.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.volumes.list_volumes()
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.volumes.<a href="src/planir/volumes/client.py">create_volume</a>(...) -> Volume</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.volumes.create_volume(
+    name="name",
+    size_bytes=1,
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**name:** `str` — The human handle, unique within the team (duplicate → 409 CONFLICT). Lowercase DNS-label shape: `[a-z0-9]` with interior hyphens, 1–63 chars. Names beginning `data-` are reserved for runtime-managed `/data` volumes (400).
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**size_bytes:** `int` — Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.volumes.<a href="src/planir/volumes/client.py">get_volume</a>(...) -> Volume</code></summary>
+<dl>
+<dd>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.volumes.get_volume(
+    id="id",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.volumes.<a href="src/planir/volumes/client.py">delete_volume</a>(...)</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Removes the backing storage and ends billing at this instant. Only an `available` volume can be deleted: an attached one is held for its runtime's whole life (stopped included) — destroy the runtime first. The data is unrecoverable.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.volumes.delete_volume(
+    id="id",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `str` 
     
 </dd>
 </dl>

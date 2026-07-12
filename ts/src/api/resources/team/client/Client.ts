@@ -68,14 +68,11 @@ export class TeamClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
-                        _response.rawResponse,
-                    );
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -150,19 +147,16 @@ export class TeamClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
-                        _response.rawResponse,
-                    );
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -238,19 +232,16 @@ export class TeamClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
-                        _response.rawResponse,
-                    );
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -311,14 +302,11 @@ export class TeamClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
-                        _response.rawResponse,
-                    );
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -390,26 +378,26 @@ export class TeamClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.PolicyRefusedError,
                         _response.rawResponse,
                     );
                 case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
-                        _response.rawResponse,
-                    );
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -480,18 +468,18 @@ export class TeamClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -567,24 +555,24 @@ export class TeamClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 case 503:
                     throw new PlanirApi.ServiceUnavailableError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.PaymentRailUnavailableError,
                         _response.rawResponse,
                     );
                 default:

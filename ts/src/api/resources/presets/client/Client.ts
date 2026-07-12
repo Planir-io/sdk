@@ -71,16 +71,16 @@ export class PresetsClient {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.Error_,
+                        _response.error.body as PlanirApi.UnauthenticatedError,
                         _response.rawResponse,
                     );
                 case 403:
-                    throw new PlanirApi.ForbiddenError(_response.error.body as PlanirApi.Error_, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(
-                        _response.error.body as PlanirApi.Error_,
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,

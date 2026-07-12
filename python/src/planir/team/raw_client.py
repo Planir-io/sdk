@@ -21,11 +21,15 @@ from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.api_key import ApiKey
 from ..types.api_key_list import ApiKeyList
 from ..types.api_key_mint import ApiKeyMint
-from ..types.error import Error
+from ..types.invalid_request_error import InvalidRequestError
+from ..types.payment_rail_unavailable_error import PaymentRailUnavailableError
+from ..types.policy_refused_error import PolicyRefusedError
 from ..types.team import Team
+from ..types.team_blocked_error import TeamBlockedError
 from ..types.team_ledger import TeamLedger
 from ..types.team_usage import TeamUsage
 from ..types.topup import Topup
+from ..types.unauthenticated_error import UnauthenticatedError
 from pydantic import ValidationError
 
 # this is used as the default value for optional parameters
@@ -69,9 +73,9 @@ class RawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -80,9 +84,9 @@ class RawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -137,9 +141,9 @@ class RawTeamClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -148,9 +152,9 @@ class RawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -159,9 +163,9 @@ class RawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -224,9 +228,9 @@ class RawTeamClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -235,9 +239,9 @@ class RawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -246,9 +250,9 @@ class RawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -295,9 +299,9 @@ class RawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -306,9 +310,9 @@ class RawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -375,9 +379,9 @@ class RawTeamClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -386,9 +390,9 @@ class RawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -397,9 +401,9 @@ class RawTeamClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -408,9 +412,9 @@ class RawTeamClient:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        PolicyRefusedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -419,9 +423,9 @@ class RawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -472,9 +476,9 @@ class RawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -483,9 +487,9 @@ class RawTeamClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -494,9 +498,9 @@ class RawTeamClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -505,9 +509,9 @@ class RawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -579,9 +583,9 @@ class RawTeamClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -590,9 +594,9 @@ class RawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -601,9 +605,9 @@ class RawTeamClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -612,9 +616,9 @@ class RawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -623,9 +627,9 @@ class RawTeamClient:
                 raise ServiceUnavailableError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        PaymentRailUnavailableError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=PaymentRailUnavailableError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -677,9 +681,9 @@ class AsyncRawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -688,9 +692,9 @@ class AsyncRawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -745,9 +749,9 @@ class AsyncRawTeamClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -756,9 +760,9 @@ class AsyncRawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -767,9 +771,9 @@ class AsyncRawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -832,9 +836,9 @@ class AsyncRawTeamClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -843,9 +847,9 @@ class AsyncRawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -854,9 +858,9 @@ class AsyncRawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -905,9 +909,9 @@ class AsyncRawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -916,9 +920,9 @@ class AsyncRawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -985,9 +989,9 @@ class AsyncRawTeamClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -996,9 +1000,9 @@ class AsyncRawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1007,9 +1011,9 @@ class AsyncRawTeamClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1018,9 +1022,9 @@ class AsyncRawTeamClient:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        PolicyRefusedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1029,9 +1033,9 @@ class AsyncRawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1082,9 +1086,9 @@ class AsyncRawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1093,9 +1097,9 @@ class AsyncRawTeamClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1104,9 +1108,9 @@ class AsyncRawTeamClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1115,9 +1119,9 @@ class AsyncRawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1189,9 +1193,9 @@ class AsyncRawTeamClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1200,9 +1204,9 @@ class AsyncRawTeamClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1211,9 +1215,9 @@ class AsyncRawTeamClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1222,9 +1226,9 @@ class AsyncRawTeamClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1233,9 +1237,9 @@ class AsyncRawTeamClient:
                 raise ServiceUnavailableError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        PaymentRailUnavailableError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=PaymentRailUnavailableError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

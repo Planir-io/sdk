@@ -3,8 +3,11 @@
 import typing
 
 import pydantic
+import typing_extensions
 from ..core.pydantic_utilities import UniversalBaseModel
+from ..core.serialization import FieldMetadata
 from .team_usage_totals import TeamUsageTotals
+from .team_usage_volume_window import TeamUsageVolumeWindow
 from .team_usage_window import TeamUsageWindow
 
 
@@ -15,6 +18,14 @@ class TeamUsage(UniversalBaseModel):
     """
 
     windows: typing.List[TeamUsageWindow]
+    volume_windows: typing_extensions.Annotated[
+        typing.List[TeamUsageVolumeWindow],
+        FieldMetadata(alias="volumeWindows"),
+        pydantic.Field(
+            alias="volumeWindows",
+            description="Detached standalone-volume accruals for the month (volumes-v2). A volume attached all month has no line here — its storage billed through the runtime windows above.",
+        ),
+    ]
     totals: TeamUsageTotals = pydantic.Field()
     """
     Sums across the returned windows — this team's month total. Derived from the window rows themselves (the invoice lines); no money is re-computed on read.

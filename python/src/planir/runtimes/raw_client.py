@@ -15,27 +15,36 @@ from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
 from ..errors.conflict_error import ConflictError
+from ..errors.content_too_large_error import ContentTooLargeError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
+from ..errors.payment_required_error import PaymentRequiredError
 from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.detached_exec import DetachedExec
-from ..types.error import Error
 from ..types.events_list import EventsList
 from ..types.exec_id import ExecId
+from ..types.exec_list import ExecList
 from ..types.exec_result import ExecResult
+from ..types.insufficient_balance_error import InsufficientBalanceError
+from ..types.invalid_request_error import InvalidRequestError
 from ..types.network_spec import NetworkSpec
+from ..types.payload_too_large_error import PayloadTooLargeError
+from ..types.policy_refused_error import PolicyRefusedError
 from ..types.reach import Reach
+from ..types.resource_spec_input import ResourceSpecInput
 from ..types.runtime import Runtime
 from ..types.runtime_with_observed import RuntimeWithObserved
 from ..types.runtimes_list import RuntimesList
+from ..types.team_blocked_error import TeamBlockedError
+from ..types.unauthenticated_error import UnauthenticatedError
 from ..types.usage_list import UsageList
 from .types.create_runtime_request_desired_state import CreateRuntimeRequestDesiredState
 from .types.create_runtime_request_network import CreateRuntimeRequestNetwork
 from .types.create_runtime_request_readiness import CreateRuntimeRequestReadiness
-from .types.create_runtime_request_resources import CreateRuntimeRequestResources
 from .types.get_logs_runtimes_request_previous import GetLogsRuntimesRequestPrevious
+from .types.list_runtimes_request_desired_state_item import ListRuntimesRequestDesiredStateItem
 from .types.list_runtimes_request_include_destroyed import ListRuntimesRequestIncludeDestroyed
 from pydantic import ValidationError
 
@@ -53,6 +62,9 @@ class RawRuntimesClient:
         limit: typing.Optional[int] = None,
         cursor: typing.Optional[str] = None,
         include_destroyed: typing.Optional[ListRuntimesRequestIncludeDestroyed] = None,
+        desired_state: typing.Optional[
+            typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]
+        ] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[RuntimesList]:
         """
@@ -67,7 +79,10 @@ class RawRuntimesClient:
             Opaque page cursor — pass the previous page's `nextCursor` verbatim. Omitted = from the start.
 
         include_destroyed : typing.Optional[ListRuntimesRequestIncludeDestroyed]
-            Destroyed runtimes are excluded unless this is `true`.
+            Destroyed runtimes are excluded unless this is `true`. Ignored when an explicit `desiredState` filter is present (that filter fully determines state visibility).
+
+        desired_state : typing.Optional[typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]]
+            Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -84,6 +99,7 @@ class RawRuntimesClient:
                 "limit": limit,
                 "cursor": cursor,
                 "includeDestroyed": include_destroyed,
+                "desiredState": desired_state,
             },
             request_options=request_options,
         )
@@ -101,9 +117,9 @@ class RawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -112,9 +128,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -123,9 +139,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -134,9 +150,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -160,7 +176,8 @@ class RawRuntimesClient:
         env: typing.Optional[typing.Dict[str, str]] = OMIT,
         command: typing.Optional[typing.Sequence[str]] = OMIT,
         entrypoint: typing.Optional[typing.Sequence[str]] = OMIT,
-        resources: typing.Optional[CreateRuntimeRequestResources] = OMIT,
+        resources: typing.Optional[ResourceSpecInput] = OMIT,
+        volume_id: typing.Optional[str] = OMIT,
         ports: typing.Optional[typing.Sequence[int]] = OMIT,
         readiness: typing.Optional[CreateRuntimeRequestReadiness] = OMIT,
         network: typing.Optional[CreateRuntimeRequestNetwork] = OMIT,
@@ -193,8 +210,10 @@ class RawRuntimesClient:
         entrypoint : typing.Optional[typing.Sequence[str]]
             Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb.
 
-        resources : typing.Optional[CreateRuntimeRequestResources]
-            Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
+        resources : typing.Optional[ResourceSpecInput]
+
+        volume_id : typing.Optional[str]
+            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: attached elsewhere or mid-delete → 409 VOLUME_BUSY; unknown or another team's id → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
 
         ports : typing.Optional[typing.Sequence[int]]
             Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.
@@ -233,8 +252,9 @@ class RawRuntimesClient:
                 "command": command,
                 "entrypoint": entrypoint,
                 "resources": convert_and_respect_annotation_metadata(
-                    object_=resources, annotation=CreateRuntimeRequestResources, direction="write"
+                    object_=resources, annotation=ResourceSpecInput, direction="write"
                 ),
+                "volumeId": volume_id,
                 "ports": ports,
                 "readiness": convert_and_respect_annotation_metadata(
                     object_=readiness, annotation=CreateRuntimeRequestReadiness, direction="write"
@@ -267,9 +287,9 @@ class RawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -278,9 +298,20 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 402:
+                raise PaymentRequiredError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InsufficientBalanceError,
+                        parse_obj_as(
+                            type_=InsufficientBalanceError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -289,9 +320,20 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -300,9 +342,9 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -311,9 +353,9 @@ class RawRuntimesClient:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        PolicyRefusedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -322,9 +364,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -373,9 +415,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -384,9 +426,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -395,9 +437,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -406,9 +448,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -455,9 +497,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -466,9 +508,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -477,9 +519,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -488,9 +530,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -537,9 +579,20 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 402:
+                raise PaymentRequiredError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InsufficientBalanceError,
+                        parse_obj_as(
+                            type_=InsufficientBalanceError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -548,9 +601,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -559,9 +612,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -570,9 +623,9 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -581,9 +634,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -630,9 +683,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -641,9 +694,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -652,9 +705,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -663,9 +716,9 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -674,9 +727,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -723,9 +776,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -734,9 +787,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -745,9 +798,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -756,9 +809,9 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -767,9 +820,95 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def list_runtime_execs(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[ExecList]:
+        """
+        Detached execs only — sync execs are request-scoped and never listed. Records are in-process: retained briefly after exit (minutes, platform policy), then gone; an engine restart also loses them (the command dies with its stream). Scoped to the runtime exactly like the poll endpoint — another runtime's execIds never appear.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ExecList]
+            The runtime's detached execs; empty when none are in flight or retained.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"v1/runtimes/{encode_path_param(id)}/exec",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ExecList,
+                    parse_obj_as(
+                        type_=ExecList,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -784,17 +923,29 @@ class RawRuntimesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def exec(
-        self, id: str, *, command: typing.Sequence[str], request_options: typing.Optional[RequestOptions] = None
+        self,
+        id: str,
+        *,
+        command: typing.Sequence[str],
+        stdin: typing.Optional[str] = OMIT,
+        timeout_ms: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ExecResult]:
         """
-        Synchronous: a 30-second wall-clock deadline and 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, which has no sync deadline (30-minute ceiling) and is polled via GET /v1/runtimes/{id}/exec/{execId}.
+        Synchronous: `timeoutMs` (default and cap 30 s) bounds output CAPTURE — a deadline cut is a 200 result with `timedOut: true` and the partial streams, never an error, and never stops the process (stop/start the runtime for a runaway). 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, polled via GET /v1/runtimes/{id}/exec/{execId}.
 
         Parameters
         ----------
         id : str
 
         command : typing.Sequence[str]
-            argv. Run directly — no shell, no env surface.
+            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
+
+        stdin : typing.Optional[str]
+            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
+
+        timeout_ms : typing.Optional[int]
+            Capture deadline in milliseconds (1–30000, default 30000 — the edge's connection ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -802,13 +953,15 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[ExecResult]
-            The command ran (or failed to run); its result is captured.
+            The command ran (or failed to run, or was deadline-cut — `timedOut` says so); its captured result.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/exec",
             method="POST",
             json={
                 "command": command,
+                "stdin": stdin,
+                "timeoutMs": timeout_ms,
             },
             headers={
                 "content-type": "application/json",
@@ -830,9 +983,9 @@ class RawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -841,9 +994,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -852,9 +1005,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -863,9 +1016,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -874,9 +1027,20 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PayloadTooLargeError,
+                        parse_obj_as(
+                            type_=PayloadTooLargeError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -885,9 +1049,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -902,17 +1066,29 @@ class RawRuntimesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def exec_detached(
-        self, id: str, *, command: typing.Sequence[str], request_options: typing.Optional[RequestOptions] = None
+        self,
+        id: str,
+        *,
+        command: typing.Sequence[str],
+        stdin: typing.Optional[str] = OMIT,
+        timeout_ms: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[ExecId]:
         """
-        Returns 202 {execId} immediately; the command runs without the 30-second sync deadline (bounded by a generous 30-minute ceiling instead). Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker).
+        Returns 202 {execId} immediately; the command runs without the 30-second sync deadline — `timeoutMs` (default and cap 30 min) bounds output CAPTURE; a deadline cut resolves the poll with `timedOut: true` and the partial streams, never an error, and never stops the process. Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker). At most 8 in flight per runtime.
 
         Parameters
         ----------
         id : str
 
         command : typing.Sequence[str]
-            argv. Run directly — no shell, no env surface.
+            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
+
+        stdin : typing.Optional[str]
+            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
+
+        timeout_ms : typing.Optional[int]
+            Capture deadline in milliseconds (1–1800000, default 1800000 — the engine's capture ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -927,6 +1103,8 @@ class RawRuntimesClient:
             method="POST",
             json={
                 "command": command,
+                "stdin": stdin,
+                "timeoutMs": timeout_ms,
             },
             headers={
                 "content-type": "application/json",
@@ -948,9 +1126,9 @@ class RawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -959,9 +1137,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -970,9 +1148,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -981,9 +1159,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -992,9 +1170,20 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PayloadTooLargeError,
+                        parse_obj_as(
+                            type_=PayloadTooLargeError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1003,9 +1192,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1058,9 +1247,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1069,9 +1258,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1080,9 +1269,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1091,9 +1280,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1152,9 +1341,9 @@ class RawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1163,9 +1352,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1174,9 +1363,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1185,9 +1374,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1196,9 +1385,9 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1207,9 +1396,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1268,9 +1457,9 @@ class RawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1279,9 +1468,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1290,9 +1479,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1301,9 +1490,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1312,9 +1501,9 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1323,9 +1512,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1385,9 +1574,9 @@ class RawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1396,9 +1585,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1407,9 +1596,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1418,9 +1607,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1429,9 +1618,9 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1440,9 +1629,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1501,9 +1690,9 @@ class RawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1512,9 +1701,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1523,9 +1712,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1534,9 +1723,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1545,9 +1734,9 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1556,9 +1745,127 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def update_runtime_metadata(
+        self, id: str, *, metadata: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[Runtime]:
+        """
+        Whole-map replace, validated identically to create. Labels are NOT desired state: no `generation` bump, no engine interaction, no restart — the new map is visible immediately on reads and list filters. Allowed in every non-destroyed state.
+
+        Parameters
+        ----------
+        id : str
+
+        metadata : typing.Dict[str, str]
+            Free-form correlation labels. Keys match [A-Za-z0-9._-]+ (max 64 chars), values max 256 chars, at most 32 entries. Echoed on reads; filterable on the list endpoint via `?metadata.<key>=<value>`. Never interpreted by the platform.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[Runtime]
+            The runtime handle carrying the replaced metadata map.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"v1/runtimes/{encode_path_param(id)}/metadata",
+            method="PUT",
+            json={
+                "metadata": metadata,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    Runtime,
+                    parse_obj_as(
+                        type_=Runtime,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1612,9 +1919,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1623,9 +1930,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1634,9 +1941,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1645,9 +1952,9 @@ class RawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1656,9 +1963,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1722,9 +2029,9 @@ class RawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1733,9 +2040,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1744,9 +2051,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1755,9 +2062,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1766,9 +2073,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1823,9 +2130,9 @@ class RawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1834,9 +2141,9 @@ class RawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1845,9 +2152,9 @@ class RawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1856,9 +2163,9 @@ class RawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1867,9 +2174,9 @@ class RawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1894,6 +2201,9 @@ class AsyncRawRuntimesClient:
         limit: typing.Optional[int] = None,
         cursor: typing.Optional[str] = None,
         include_destroyed: typing.Optional[ListRuntimesRequestIncludeDestroyed] = None,
+        desired_state: typing.Optional[
+            typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]
+        ] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[RuntimesList]:
         """
@@ -1908,7 +2218,10 @@ class AsyncRawRuntimesClient:
             Opaque page cursor — pass the previous page's `nextCursor` verbatim. Omitted = from the start.
 
         include_destroyed : typing.Optional[ListRuntimesRequestIncludeDestroyed]
-            Destroyed runtimes are excluded unless this is `true`.
+            Destroyed runtimes are excluded unless this is `true`. Ignored when an explicit `desiredState` filter is present (that filter fully determines state visibility).
+
+        desired_state : typing.Optional[typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]]
+            Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1925,6 +2238,7 @@ class AsyncRawRuntimesClient:
                 "limit": limit,
                 "cursor": cursor,
                 "includeDestroyed": include_destroyed,
+                "desiredState": desired_state,
             },
             request_options=request_options,
         )
@@ -1942,9 +2256,9 @@ class AsyncRawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1953,9 +2267,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1964,9 +2278,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1975,9 +2289,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2001,7 +2315,8 @@ class AsyncRawRuntimesClient:
         env: typing.Optional[typing.Dict[str, str]] = OMIT,
         command: typing.Optional[typing.Sequence[str]] = OMIT,
         entrypoint: typing.Optional[typing.Sequence[str]] = OMIT,
-        resources: typing.Optional[CreateRuntimeRequestResources] = OMIT,
+        resources: typing.Optional[ResourceSpecInput] = OMIT,
+        volume_id: typing.Optional[str] = OMIT,
         ports: typing.Optional[typing.Sequence[int]] = OMIT,
         readiness: typing.Optional[CreateRuntimeRequestReadiness] = OMIT,
         network: typing.Optional[CreateRuntimeRequestNetwork] = OMIT,
@@ -2034,8 +2349,10 @@ class AsyncRawRuntimesClient:
         entrypoint : typing.Optional[typing.Sequence[str]]
             Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb.
 
-        resources : typing.Optional[CreateRuntimeRequestResources]
-            Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
+        resources : typing.Optional[ResourceSpecInput]
+
+        volume_id : typing.Optional[str]
+            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: attached elsewhere or mid-delete → 409 VOLUME_BUSY; unknown or another team's id → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
 
         ports : typing.Optional[typing.Sequence[int]]
             Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.
@@ -2074,8 +2391,9 @@ class AsyncRawRuntimesClient:
                 "command": command,
                 "entrypoint": entrypoint,
                 "resources": convert_and_respect_annotation_metadata(
-                    object_=resources, annotation=CreateRuntimeRequestResources, direction="write"
+                    object_=resources, annotation=ResourceSpecInput, direction="write"
                 ),
+                "volumeId": volume_id,
                 "ports": ports,
                 "readiness": convert_and_respect_annotation_metadata(
                     object_=readiness, annotation=CreateRuntimeRequestReadiness, direction="write"
@@ -2108,9 +2426,9 @@ class AsyncRawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2119,9 +2437,20 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 402:
+                raise PaymentRequiredError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InsufficientBalanceError,
+                        parse_obj_as(
+                            type_=InsufficientBalanceError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2130,9 +2459,20 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2141,9 +2481,9 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2152,9 +2492,9 @@ class AsyncRawRuntimesClient:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        PolicyRefusedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2163,9 +2503,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2214,9 +2554,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2225,9 +2565,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2236,9 +2576,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2247,9 +2587,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2298,9 +2638,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2309,9 +2649,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2320,9 +2660,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2331,9 +2671,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2382,9 +2722,20 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 402:
+                raise PaymentRequiredError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InsufficientBalanceError,
+                        parse_obj_as(
+                            type_=InsufficientBalanceError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2393,9 +2744,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2404,9 +2755,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2415,9 +2766,9 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2426,9 +2777,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2477,9 +2828,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2488,9 +2839,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2499,9 +2850,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2510,9 +2861,9 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2521,9 +2872,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2572,9 +2923,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2583,9 +2934,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2594,9 +2945,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2605,9 +2956,9 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2616,9 +2967,95 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def list_runtime_execs(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[ExecList]:
+        """
+        Detached execs only — sync execs are request-scoped and never listed. Records are in-process: retained briefly after exit (minutes, platform policy), then gone; an engine restart also loses them (the command dies with its stream). Scoped to the runtime exactly like the poll endpoint — another runtime's execIds never appear.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ExecList]
+            The runtime's detached execs; empty when none are in flight or retained.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"v1/runtimes/{encode_path_param(id)}/exec",
+            method="GET",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ExecList,
+                    parse_obj_as(
+                        type_=ExecList,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2633,17 +3070,29 @@ class AsyncRawRuntimesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def exec(
-        self, id: str, *, command: typing.Sequence[str], request_options: typing.Optional[RequestOptions] = None
+        self,
+        id: str,
+        *,
+        command: typing.Sequence[str],
+        stdin: typing.Optional[str] = OMIT,
+        timeout_ms: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ExecResult]:
         """
-        Synchronous: a 30-second wall-clock deadline and 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, which has no sync deadline (30-minute ceiling) and is polled via GET /v1/runtimes/{id}/exec/{execId}.
+        Synchronous: `timeoutMs` (default and cap 30 s) bounds output CAPTURE — a deadline cut is a 200 result with `timedOut: true` and the partial streams, never an error, and never stops the process (stop/start the runtime for a runaway). 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, polled via GET /v1/runtimes/{id}/exec/{execId}.
 
         Parameters
         ----------
         id : str
 
         command : typing.Sequence[str]
-            argv. Run directly — no shell, no env surface.
+            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
+
+        stdin : typing.Optional[str]
+            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
+
+        timeout_ms : typing.Optional[int]
+            Capture deadline in milliseconds (1–30000, default 30000 — the edge's connection ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2651,13 +3100,15 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[ExecResult]
-            The command ran (or failed to run); its result is captured.
+            The command ran (or failed to run, or was deadline-cut — `timedOut` says so); its captured result.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/exec",
             method="POST",
             json={
                 "command": command,
+                "stdin": stdin,
+                "timeoutMs": timeout_ms,
             },
             headers={
                 "content-type": "application/json",
@@ -2679,9 +3130,9 @@ class AsyncRawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2690,9 +3141,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2701,9 +3152,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2712,9 +3163,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2723,9 +3174,20 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PayloadTooLargeError,
+                        parse_obj_as(
+                            type_=PayloadTooLargeError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2734,9 +3196,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2751,17 +3213,29 @@ class AsyncRawRuntimesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def exec_detached(
-        self, id: str, *, command: typing.Sequence[str], request_options: typing.Optional[RequestOptions] = None
+        self,
+        id: str,
+        *,
+        command: typing.Sequence[str],
+        stdin: typing.Optional[str] = OMIT,
+        timeout_ms: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[ExecId]:
         """
-        Returns 202 {execId} immediately; the command runs without the 30-second sync deadline (bounded by a generous 30-minute ceiling instead). Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker).
+        Returns 202 {execId} immediately; the command runs without the 30-second sync deadline — `timeoutMs` (default and cap 30 min) bounds output CAPTURE; a deadline cut resolves the poll with `timedOut: true` and the partial streams, never an error, and never stops the process. Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker). At most 8 in flight per runtime.
 
         Parameters
         ----------
         id : str
 
         command : typing.Sequence[str]
-            argv. Run directly — no shell, no env surface.
+            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
+
+        stdin : typing.Optional[str]
+            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
+
+        timeout_ms : typing.Optional[int]
+            Capture deadline in milliseconds (1–1800000, default 1800000 — the engine's capture ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2776,6 +3250,8 @@ class AsyncRawRuntimesClient:
             method="POST",
             json={
                 "command": command,
+                "stdin": stdin,
+                "timeoutMs": timeout_ms,
             },
             headers={
                 "content-type": "application/json",
@@ -2797,9 +3273,9 @@ class AsyncRawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2808,9 +3284,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2819,9 +3295,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2830,9 +3306,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2841,9 +3317,20 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PayloadTooLargeError,
+                        parse_obj_as(
+                            type_=PayloadTooLargeError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2852,9 +3339,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2907,9 +3394,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2918,9 +3405,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2929,9 +3416,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2940,9 +3427,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3001,9 +3488,9 @@ class AsyncRawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3012,9 +3499,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3023,9 +3510,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3034,9 +3521,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3045,9 +3532,9 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3056,9 +3543,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3117,9 +3604,9 @@ class AsyncRawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3128,9 +3615,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3139,9 +3626,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3150,9 +3637,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3161,9 +3648,9 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3172,9 +3659,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3234,9 +3721,9 @@ class AsyncRawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3245,9 +3732,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3256,9 +3743,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3267,9 +3754,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3278,9 +3765,9 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3289,9 +3776,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3350,9 +3837,9 @@ class AsyncRawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3361,9 +3848,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3372,9 +3859,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3383,9 +3870,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3394,9 +3881,9 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3405,9 +3892,127 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def update_runtime_metadata(
+        self, id: str, *, metadata: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[Runtime]:
+        """
+        Whole-map replace, validated identically to create. Labels are NOT desired state: no `generation` bump, no engine interaction, no restart — the new map is visible immediately on reads and list filters. Allowed in every non-destroyed state.
+
+        Parameters
+        ----------
+        id : str
+
+        metadata : typing.Dict[str, str]
+            Free-form correlation labels. Keys match [A-Za-z0-9._-]+ (max 64 chars), values max 256 chars, at most 32 entries. Echoed on reads; filterable on the list endpoint via `?metadata.<key>=<value>`. Never interpreted by the platform.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[Runtime]
+            The runtime handle carrying the replaced metadata map.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"v1/runtimes/{encode_path_param(id)}/metadata",
+            method="PUT",
+            json={
+                "metadata": metadata,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    Runtime,
+                    parse_obj_as(
+                        type_=Runtime,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 400:
+                raise BadRequestError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3461,9 +4066,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3472,9 +4077,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3483,9 +4088,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3494,9 +4099,9 @@ class AsyncRawRuntimesClient:
                 raise ConflictError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3505,9 +4110,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3571,9 +4176,9 @@ class AsyncRawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3582,9 +4187,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3593,9 +4198,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3604,9 +4209,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3615,9 +4220,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3672,9 +4277,9 @@ class AsyncRawRuntimesClient:
                 raise BadRequestError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        InvalidRequestError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3683,9 +4288,9 @@ class AsyncRawRuntimesClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3694,9 +4299,9 @@ class AsyncRawRuntimesClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3705,9 +4310,9 @@ class AsyncRawRuntimesClient:
                 raise NotFoundError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3716,9 +4321,9 @@ class AsyncRawRuntimesClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

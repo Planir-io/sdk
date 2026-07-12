@@ -5,6 +5,7 @@ import { MetaClient } from "./api/resources/meta/client/Client.js";
 import { PresetsClient } from "./api/resources/presets/client/Client.js";
 import { RuntimesClient } from "./api/resources/runtimes/client/Client.js";
 import { TeamClient } from "./api/resources/team/client/Client.js";
+import { VolumesClient } from "./api/resources/volumes/client/Client.js";
 import type { BaseClientOptions, BaseRequestOptions } from "./BaseClient.js";
 import { type NormalizedClientOptionsWithAuth, normalizeClientOptionsWithAuth } from "./BaseClient.js";
 import * as core from "./core/index.js";
@@ -20,6 +21,7 @@ export class PlanirClient {
     protected _health: HealthClient | undefined;
     protected _meta: MetaClient | undefined;
     protected _runtimes: RuntimesClient | undefined;
+    protected _volumes: VolumesClient | undefined;
     protected _presets: PresetsClient | undefined;
     protected _team: TeamClient | undefined;
 
@@ -37,6 +39,10 @@ export class PlanirClient {
 
     public get runtimes(): RuntimesClient {
         return (this._runtimes ??= new RuntimesClient(this._options));
+    }
+
+    public get volumes(): VolumesClient {
+        return (this._volumes ??= new VolumesClient(this._options));
     }
 
     public get presets(): PresetsClient {

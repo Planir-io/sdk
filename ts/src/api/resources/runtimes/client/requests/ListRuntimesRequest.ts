@@ -11,6 +11,8 @@ export interface ListRuntimesRequest {
     limit?: number;
     /** Opaque page cursor — pass the previous page's `nextCursor` verbatim. Omitted = from the start. */
     cursor?: string;
-    /** Destroyed runtimes are excluded unless this is `true`. */
+    /** Destroyed runtimes are excluded unless this is `true`. Ignored when an explicit `desiredState` filter is present (that filter fully determines state visibility). */
     includeDestroyed?: PlanirApi.ListRuntimesRequestIncludeDestroyed;
+    /** Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`. */
+    desiredState?: PlanirApi.ListRuntimesRequestDesiredStateItem | PlanirApi.ListRuntimesRequestDesiredStateItem[];
 }

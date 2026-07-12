@@ -8,9 +8,11 @@ from ..core.request_options import RequestOptions
 from ..types.detached_exec import DetachedExec
 from ..types.events_list import EventsList
 from ..types.exec_id import ExecId
+from ..types.exec_list import ExecList
 from ..types.exec_result import ExecResult
 from ..types.network_spec import NetworkSpec
 from ..types.reach import Reach
+from ..types.resource_spec_input import ResourceSpecInput
 from ..types.runtime import Runtime
 from ..types.runtime_with_observed import RuntimeWithObserved
 from ..types.runtimes_list import RuntimesList
@@ -19,8 +21,8 @@ from .raw_client import AsyncRawRuntimesClient, RawRuntimesClient
 from .types.create_runtime_request_desired_state import CreateRuntimeRequestDesiredState
 from .types.create_runtime_request_network import CreateRuntimeRequestNetwork
 from .types.create_runtime_request_readiness import CreateRuntimeRequestReadiness
-from .types.create_runtime_request_resources import CreateRuntimeRequestResources
 from .types.get_logs_runtimes_request_previous import GetLogsRuntimesRequestPrevious
+from .types.list_runtimes_request_desired_state_item import ListRuntimesRequestDesiredStateItem
 from .types.list_runtimes_request_include_destroyed import ListRuntimesRequestIncludeDestroyed
 
 # this is used as the default value for optional parameters
@@ -48,6 +50,9 @@ class RuntimesClient:
         limit: typing.Optional[int] = None,
         cursor: typing.Optional[str] = None,
         include_destroyed: typing.Optional[ListRuntimesRequestIncludeDestroyed] = None,
+        desired_state: typing.Optional[
+            typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]
+        ] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RuntimesList:
         """
@@ -62,7 +67,10 @@ class RuntimesClient:
             Opaque page cursor — pass the previous page's `nextCursor` verbatim. Omitted = from the start.
 
         include_destroyed : typing.Optional[ListRuntimesRequestIncludeDestroyed]
-            Destroyed runtimes are excluded unless this is `true`.
+            Destroyed runtimes are excluded unless this is `true`. Ignored when an explicit `desiredState` filter is present (that filter fully determines state visibility).
+
+        desired_state : typing.Optional[typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]]
+            Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -82,7 +90,11 @@ class RuntimesClient:
         client.runtimes.list()
         """
         _response = self._raw_client.list(
-            limit=limit, cursor=cursor, include_destroyed=include_destroyed, request_options=request_options
+            limit=limit,
+            cursor=cursor,
+            include_destroyed=include_destroyed,
+            desired_state=desired_state,
+            request_options=request_options,
         )
         return _response.data
 
@@ -96,7 +108,8 @@ class RuntimesClient:
         env: typing.Optional[typing.Dict[str, str]] = OMIT,
         command: typing.Optional[typing.Sequence[str]] = OMIT,
         entrypoint: typing.Optional[typing.Sequence[str]] = OMIT,
-        resources: typing.Optional[CreateRuntimeRequestResources] = OMIT,
+        resources: typing.Optional[ResourceSpecInput] = OMIT,
+        volume_id: typing.Optional[str] = OMIT,
         ports: typing.Optional[typing.Sequence[int]] = OMIT,
         readiness: typing.Optional[CreateRuntimeRequestReadiness] = OMIT,
         network: typing.Optional[CreateRuntimeRequestNetwork] = OMIT,
@@ -129,8 +142,10 @@ class RuntimesClient:
         entrypoint : typing.Optional[typing.Sequence[str]]
             Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb.
 
-        resources : typing.Optional[CreateRuntimeRequestResources]
-            Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
+        resources : typing.Optional[ResourceSpecInput]
+
+        volume_id : typing.Optional[str]
+            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: attached elsewhere or mid-delete → 409 VOLUME_BUSY; unknown or another team's id → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
 
         ports : typing.Optional[typing.Sequence[int]]
             Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.
@@ -178,6 +193,7 @@ class RuntimesClient:
             command=command,
             entrypoint=entrypoint,
             resources=resources,
+            volume_id=volume_id,
             ports=ports,
             readiness=readiness,
             network=network,
@@ -328,18 +344,60 @@ class RuntimesClient:
         _response = self._raw_client.restart(id, request_options=request_options)
         return _response.data
 
+    def list_runtime_execs(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ExecList:
+        """
+        Detached execs only — sync execs are request-scoped and never listed. Records are in-process: retained briefly after exit (minutes, platform policy), then gone; an engine restart also loses them (the command dies with its stream). Scoped to the runtime exactly like the poll endpoint — another runtime's execIds never appear.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ExecList
+            The runtime's detached execs; empty when none are in flight or retained.
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.runtimes.list_runtime_execs(
+            id="id",
+        )
+        """
+        _response = self._raw_client.list_runtime_execs(id, request_options=request_options)
+        return _response.data
+
     def exec(
-        self, id: str, *, command: typing.Sequence[str], request_options: typing.Optional[RequestOptions] = None
+        self,
+        id: str,
+        *,
+        command: typing.Sequence[str],
+        stdin: typing.Optional[str] = OMIT,
+        timeout_ms: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> ExecResult:
         """
-        Synchronous: a 30-second wall-clock deadline and 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, which has no sync deadline (30-minute ceiling) and is polled via GET /v1/runtimes/{id}/exec/{execId}.
+        Synchronous: `timeoutMs` (default and cap 30 s) bounds output CAPTURE — a deadline cut is a 200 result with `timedOut: true` and the partial streams, never an error, and never stops the process (stop/start the runtime for a runaway). 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, polled via GET /v1/runtimes/{id}/exec/{execId}.
 
         Parameters
         ----------
         id : str
 
         command : typing.Sequence[str]
-            argv. Run directly — no shell, no env surface.
+            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
+
+        stdin : typing.Optional[str]
+            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
+
+        timeout_ms : typing.Optional[int]
+            Capture deadline in milliseconds (1–30000, default 30000 — the edge's connection ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -347,7 +405,7 @@ class RuntimesClient:
         Returns
         -------
         ExecResult
-            The command ran (or failed to run); its result is captured.
+            The command ran (or failed to run, or was deadline-cut — `timedOut` says so); its captured result.
 
         Examples
         --------
@@ -361,21 +419,35 @@ class RuntimesClient:
             command=["command"],
         )
         """
-        _response = self._raw_client.exec(id, command=command, request_options=request_options)
+        _response = self._raw_client.exec(
+            id, command=command, stdin=stdin, timeout_ms=timeout_ms, request_options=request_options
+        )
         return _response.data
 
     def exec_detached(
-        self, id: str, *, command: typing.Sequence[str], request_options: typing.Optional[RequestOptions] = None
+        self,
+        id: str,
+        *,
+        command: typing.Sequence[str],
+        stdin: typing.Optional[str] = OMIT,
+        timeout_ms: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> ExecId:
         """
-        Returns 202 {execId} immediately; the command runs without the 30-second sync deadline (bounded by a generous 30-minute ceiling instead). Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker).
+        Returns 202 {execId} immediately; the command runs without the 30-second sync deadline — `timeoutMs` (default and cap 30 min) bounds output CAPTURE; a deadline cut resolves the poll with `timedOut: true` and the partial streams, never an error, and never stops the process. Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker). At most 8 in flight per runtime.
 
         Parameters
         ----------
         id : str
 
         command : typing.Sequence[str]
-            argv. Run directly — no shell, no env surface.
+            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
+
+        stdin : typing.Optional[str]
+            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
+
+        timeout_ms : typing.Optional[int]
+            Capture deadline in milliseconds (1–1800000, default 1800000 — the engine's capture ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -397,7 +469,9 @@ class RuntimesClient:
             command=["command"],
         )
         """
-        _response = self._raw_client.exec_detached(id, command=command, request_options=request_options)
+        _response = self._raw_client.exec_detached(
+            id, command=command, stdin=stdin, timeout_ms=timeout_ms, request_options=request_options
+        )
         return _response.data
 
     def get_exec(
@@ -568,6 +642,42 @@ class RuntimesClient:
         _response = self._raw_client.reach(id, port=port, request_options=request_options)
         return _response.data
 
+    def update_runtime_metadata(
+        self, id: str, *, metadata: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
+    ) -> Runtime:
+        """
+        Whole-map replace, validated identically to create. Labels are NOT desired state: no `generation` bump, no engine interaction, no restart — the new map is visible immediately on reads and list filters. Allowed in every non-destroyed state.
+
+        Parameters
+        ----------
+        id : str
+
+        metadata : typing.Dict[str, str]
+            Free-form correlation labels. Keys match [A-Za-z0-9._-]+ (max 64 chars), values max 256 chars, at most 32 entries. Echoed on reads; filterable on the list endpoint via `?metadata.<key>=<value>`. Never interpreted by the platform.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        Runtime
+            The runtime handle carrying the replaced metadata map.
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.runtimes.update_runtime_metadata(
+            id="id",
+            metadata={"key": "value"},
+        )
+        """
+        _response = self._raw_client.update_runtime_metadata(id, metadata=metadata, request_options=request_options)
+        return _response.data
+
     def get_logs(
         self,
         id: str,
@@ -703,6 +813,9 @@ class AsyncRuntimesClient:
         limit: typing.Optional[int] = None,
         cursor: typing.Optional[str] = None,
         include_destroyed: typing.Optional[ListRuntimesRequestIncludeDestroyed] = None,
+        desired_state: typing.Optional[
+            typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]
+        ] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RuntimesList:
         """
@@ -717,7 +830,10 @@ class AsyncRuntimesClient:
             Opaque page cursor — pass the previous page's `nextCursor` verbatim. Omitted = from the start.
 
         include_destroyed : typing.Optional[ListRuntimesRequestIncludeDestroyed]
-            Destroyed runtimes are excluded unless this is `true`.
+            Destroyed runtimes are excluded unless this is `true`. Ignored when an explicit `desiredState` filter is present (that filter fully determines state visibility).
+
+        desired_state : typing.Optional[typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]]
+            Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -745,7 +861,11 @@ class AsyncRuntimesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.list(
-            limit=limit, cursor=cursor, include_destroyed=include_destroyed, request_options=request_options
+            limit=limit,
+            cursor=cursor,
+            include_destroyed=include_destroyed,
+            desired_state=desired_state,
+            request_options=request_options,
         )
         return _response.data
 
@@ -759,7 +879,8 @@ class AsyncRuntimesClient:
         env: typing.Optional[typing.Dict[str, str]] = OMIT,
         command: typing.Optional[typing.Sequence[str]] = OMIT,
         entrypoint: typing.Optional[typing.Sequence[str]] = OMIT,
-        resources: typing.Optional[CreateRuntimeRequestResources] = OMIT,
+        resources: typing.Optional[ResourceSpecInput] = OMIT,
+        volume_id: typing.Optional[str] = OMIT,
         ports: typing.Optional[typing.Sequence[int]] = OMIT,
         readiness: typing.Optional[CreateRuntimeRequestReadiness] = OMIT,
         network: typing.Optional[CreateRuntimeRequestNetwork] = OMIT,
@@ -792,8 +913,10 @@ class AsyncRuntimesClient:
         entrypoint : typing.Optional[typing.Sequence[str]]
             Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb.
 
-        resources : typing.Optional[CreateRuntimeRequestResources]
-            Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
+        resources : typing.Optional[ResourceSpecInput]
+
+        volume_id : typing.Optional[str]
+            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: attached elsewhere or mid-delete → 409 VOLUME_BUSY; unknown or another team's id → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
 
         ports : typing.Optional[typing.Sequence[int]]
             Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.
@@ -849,6 +972,7 @@ class AsyncRuntimesClient:
             command=command,
             entrypoint=entrypoint,
             resources=resources,
+            volume_id=volume_id,
             ports=ports,
             readiness=readiness,
             network=network,
@@ -1039,18 +1163,68 @@ class AsyncRuntimesClient:
         _response = await self._raw_client.restart(id, request_options=request_options)
         return _response.data
 
+    async def list_runtime_execs(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ExecList:
+        """
+        Detached execs only — sync execs are request-scoped and never listed. Records are in-process: retained briefly after exit (minutes, platform policy), then gone; an engine restart also loses them (the command dies with its stream). Scoped to the runtime exactly like the poll endpoint — another runtime's execIds never appear.
+
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ExecList
+            The runtime's detached execs; empty when none are in flight or retained.
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.runtimes.list_runtime_execs(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.list_runtime_execs(id, request_options=request_options)
+        return _response.data
+
     async def exec(
-        self, id: str, *, command: typing.Sequence[str], request_options: typing.Optional[RequestOptions] = None
+        self,
+        id: str,
+        *,
+        command: typing.Sequence[str],
+        stdin: typing.Optional[str] = OMIT,
+        timeout_ms: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> ExecResult:
         """
-        Synchronous: a 30-second wall-clock deadline and 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, which has no sync deadline (30-minute ceiling) and is polled via GET /v1/runtimes/{id}/exec/{execId}.
+        Synchronous: `timeoutMs` (default and cap 30 s) bounds output CAPTURE — a deadline cut is a 200 result with `timedOut: true` and the partial streams, never an error, and never stops the process (stop/start the runtime for a runaway). 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, polled via GET /v1/runtimes/{id}/exec/{execId}.
 
         Parameters
         ----------
         id : str
 
         command : typing.Sequence[str]
-            argv. Run directly — no shell, no env surface.
+            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
+
+        stdin : typing.Optional[str]
+            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
+
+        timeout_ms : typing.Optional[int]
+            Capture deadline in milliseconds (1–30000, default 30000 — the edge's connection ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1058,7 +1232,7 @@ class AsyncRuntimesClient:
         Returns
         -------
         ExecResult
-            The command ran (or failed to run); its result is captured.
+            The command ran (or failed to run, or was deadline-cut — `timedOut` says so); its captured result.
 
         Examples
         --------
@@ -1080,21 +1254,35 @@ class AsyncRuntimesClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.exec(id, command=command, request_options=request_options)
+        _response = await self._raw_client.exec(
+            id, command=command, stdin=stdin, timeout_ms=timeout_ms, request_options=request_options
+        )
         return _response.data
 
     async def exec_detached(
-        self, id: str, *, command: typing.Sequence[str], request_options: typing.Optional[RequestOptions] = None
+        self,
+        id: str,
+        *,
+        command: typing.Sequence[str],
+        stdin: typing.Optional[str] = OMIT,
+        timeout_ms: typing.Optional[int] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> ExecId:
         """
-        Returns 202 {execId} immediately; the command runs without the 30-second sync deadline (bounded by a generous 30-minute ceiling instead). Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker).
+        Returns 202 {execId} immediately; the command runs without the 30-second sync deadline — `timeoutMs` (default and cap 30 min) bounds output CAPTURE; a deadline cut resolves the poll with `timedOut: true` and the partial streams, never an error, and never stops the process. Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker). At most 8 in flight per runtime.
 
         Parameters
         ----------
         id : str
 
         command : typing.Sequence[str]
-            argv. Run directly — no shell, no env surface.
+            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
+
+        stdin : typing.Optional[str]
+            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
+
+        timeout_ms : typing.Optional[int]
+            Capture deadline in milliseconds (1–1800000, default 1800000 — the engine's capture ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1124,7 +1312,9 @@ class AsyncRuntimesClient:
 
         asyncio.run(main())
         """
-        _response = await self._raw_client.exec_detached(id, command=command, request_options=request_options)
+        _response = await self._raw_client.exec_detached(
+            id, command=command, stdin=stdin, timeout_ms=timeout_ms, request_options=request_options
+        )
         return _response.data
 
     async def get_exec(
@@ -1333,6 +1523,52 @@ class AsyncRuntimesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.reach(id, port=port, request_options=request_options)
+        return _response.data
+
+    async def update_runtime_metadata(
+        self, id: str, *, metadata: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
+    ) -> Runtime:
+        """
+        Whole-map replace, validated identically to create. Labels are NOT desired state: no `generation` bump, no engine interaction, no restart — the new map is visible immediately on reads and list filters. Allowed in every non-destroyed state.
+
+        Parameters
+        ----------
+        id : str
+
+        metadata : typing.Dict[str, str]
+            Free-form correlation labels. Keys match [A-Za-z0-9._-]+ (max 64 chars), values max 256 chars, at most 32 entries. Echoed on reads; filterable on the list endpoint via `?metadata.<key>=<value>`. Never interpreted by the platform.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        Runtime
+            The runtime handle carrying the replaced metadata map.
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.runtimes.update_runtime_metadata(
+                id="id",
+                metadata={"key": "value"},
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.update_runtime_metadata(
+            id, metadata=metadata, request_options=request_options
+        )
         return _response.data
 
     async def get_logs(

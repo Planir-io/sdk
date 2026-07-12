@@ -5,7 +5,7 @@ import * as errors from "../../errors/index.js";
 import type * as PlanirApi from "../index.js";
 
 export class UnprocessableEntityError extends errors.PlanirApiError {
-    constructor(body: PlanirApi.Error_, rawResponse?: core.RawResponse) {
+    constructor(body: PlanirApi.PolicyRefusedError, rawResponse?: core.RawResponse) {
         super({
             message: "UnprocessableEntityError",
             statusCode: 422,

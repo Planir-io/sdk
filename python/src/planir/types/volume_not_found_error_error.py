@@ -4,12 +4,11 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import UniversalBaseModel
+from .volume_not_found_error_error_code import VolumeNotFoundErrorErrorCode
 
 
-class ExecRequest(UniversalBaseModel):
-    command: typing.List[str] = pydantic.Field()
-    """
-    argv. Run directly — no shell, no env surface.
-    """
+class VolumeNotFoundErrorError(UniversalBaseModel):
+    code: VolumeNotFoundErrorErrorCode
+    message: typing.Optional[str] = None
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

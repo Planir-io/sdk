@@ -12,8 +12,9 @@ from ..core.request_options import RequestOptions
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
-from ..types.error import Error
 from ..types.presets_list import PresetsList
+from ..types.team_blocked_error import TeamBlockedError
+from ..types.unauthenticated_error import UnauthenticatedError
 from pydantic import ValidationError
 
 
@@ -54,9 +55,9 @@ class RawPresetsClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -65,9 +66,9 @@ class RawPresetsClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -76,9 +77,9 @@ class RawPresetsClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -132,9 +133,9 @@ class AsyncRawPresetsClient:
                 raise UnauthorizedError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        UnauthenticatedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=UnauthenticatedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -143,9 +144,9 @@ class AsyncRawPresetsClient:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        TeamBlockedError,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -154,9 +155,9 @@ class AsyncRawPresetsClient:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        Error,
+                        typing.Any,
                         parse_obj_as(
-                            type_=Error,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

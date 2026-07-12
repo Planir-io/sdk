@@ -4,11 +4,11 @@ import typing
 
 import pydantic
 import typing_extensions
-from ...core.pydantic_utilities import UniversalBaseModel
-from ...core.serialization import FieldMetadata
+from ..core.pydantic_utilities import UniversalBaseModel
+from ..core.serialization import FieldMetadata
 
 
-class CreateRuntimeRequestResources(UniversalBaseModel):
+class ResourceSpecInput(UniversalBaseModel):
     """
     Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
     """
@@ -27,11 +27,12 @@ class CreateRuntimeRequestResources(UniversalBaseModel):
         pydantic.Field(alias="cpuMillis", description="CPU allocation in millicores (1000 = 1 vCPU)."),
     ]
     storage_bytes: typing_extensions.Annotated[
-        int,
+        typing.Optional[int],
         FieldMetadata(alias="storageBytes"),
         pydantic.Field(
             alias="storageBytes",
-            description="Persistent volume size in bytes. The volume is mounted read-write at `/data` inside the workload; it survives stop/start and follows the runtime for life. Writable by the workload's own user, whatever the image runs as — root or not, no setup needed: the volume root arrives group-writable to a platform group the workload process automatically carries as a supplementary group. Files the workload creates keep their normal ownership. Software that demands strict permissions on its data directory (e.g. PostgreSQL's initdb) should use a subdirectory and set its own mode (`mkdir -m 700 /data/pgdata`). This is the only metered disk.",
+            default=None,
+            description="Persistent volume size in bytes. The volume is mounted read-write at `/data` inside the workload; it survives stop/start and follows the runtime for life. Writable by the workload's own user, whatever the image runs as — root or not, no setup needed: the volume root arrives group-writable to a platform group the workload process automatically carries as a supplementary group. Files the workload creates keep their normal ownership. Software that demands strict permissions on its data directory (e.g. PostgreSQL's initdb) should use a subdirectory and set its own mode (`mkdir -m 700 /data/pgdata`). This is the only metered disk. Optional at create: omitted → the 4 GiB default (4294967296), or — with `volumeId` — the attached volume's own size. Mutually exclusive with `volumeId` (400 when both are present). Reads always echo the effective value.",
         ),
     ]
     ephemeral_storage_bytes: typing_extensions.Annotated[

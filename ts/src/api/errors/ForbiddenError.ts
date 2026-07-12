@@ -5,7 +5,7 @@ import * as errors from "../../errors/index.js";
 import type * as PlanirApi from "../index.js";
 
 export class ForbiddenError extends errors.PlanirApiError {
-    constructor(body: PlanirApi.Error_, rawResponse?: core.RawResponse) {
+    constructor(body: PlanirApi.TeamBlockedError, rawResponse?: core.RawResponse) {
         super({
             message: "ForbiddenError",
             statusCode: 403,

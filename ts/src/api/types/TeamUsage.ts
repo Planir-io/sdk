@@ -6,6 +6,8 @@ export interface TeamUsage {
     /** The UTC calendar month these windows cover, `YYYY-MM`. */
     period: string;
     windows: PlanirApi.TeamUsageWindow[];
+    /** Detached standalone-volume accruals for the month (volumes-v2). A volume attached all month has no line here — its storage billed through the runtime windows above. */
+    volumeWindows: PlanirApi.TeamUsageVolumeWindow[];
     /** Sums across the returned windows — this team's month total. Derived from the window rows themselves (the invoice lines); no money is re-computed on read. */
     totals: TeamUsage.Totals;
 }
@@ -15,8 +17,10 @@ export namespace TeamUsage {
      * Sums across the returned windows — this team's month total. Derived from the window rows themselves (the invoice lines); no money is re-computed on read.
      */
     export interface Totals {
+        /** Runtime windows + volume accruals together — the month total. */
         billedMicrocents: number;
         meteredMs: number;
         wallMs: number;
+        detachedMs: number;
     }
 }
