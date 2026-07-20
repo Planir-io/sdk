@@ -44,6 +44,11 @@ class Volume(UniversalBaseModel):
             description="The holding runtime. Present exactly while `state` is `attached`.",
         ),
     ]
+    region: str = pydantic.Field()
+    """
+    The volume's home location, stamped at create and fixed for its life. A runtime created with this `volumeId` is placed here (runtime-follows-volume).
+    """
+
     created_at: typing_extensions.Annotated[
         dt.datetime, FieldMetadata(alias="createdAt"), pydantic.Field(alias="createdAt")
     ]

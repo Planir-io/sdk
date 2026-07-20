@@ -19,6 +19,7 @@ from ..errors.content_too_large_error import ContentTooLargeError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
 from ..errors.payment_required_error import PaymentRequiredError
+from ..errors.service_unavailable_error import ServiceUnavailableError
 from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
@@ -65,10 +66,11 @@ class RawRuntimesClient:
         desired_state: typing.Optional[
             typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]
         ] = None,
+        region: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[RuntimesList]:
         """
-        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
+        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
 
         Parameters
         ----------
@@ -83,6 +85,9 @@ class RawRuntimesClient:
 
         desired_state : typing.Optional[typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]]
             Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`.
+
+        region : typing.Optional[str]
+            Equality filter on the home location — the `region` every response echoes (ANDs with the other filters). A value no runtime carries returns an empty page, never an error (discovery: GET /v1/regions).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -100,6 +105,7 @@ class RawRuntimesClient:
                 "cursor": cursor,
                 "includeDestroyed": include_destroyed,
                 "desiredState": desired_state,
+                "region": region,
             },
             request_options=request_options,
         )
@@ -184,6 +190,7 @@ class RawRuntimesClient:
         metadata: typing.Optional[typing.Dict[str, str]] = OMIT,
         rootfs_read_only: typing.Optional[bool] = OMIT,
         desired_state: typing.Optional[CreateRuntimeRequestDesiredState] = OMIT,
+        region: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[RuntimeWithObserved]:
         """
@@ -233,6 +240,9 @@ class RawRuntimesClient:
         desired_state : typing.Optional[CreateRuntimeRequestDesiredState]
             Initial desired state (default running). Cannot create destroyed.
 
+        region : typing.Optional[str]
+            Optional location to run in — the public region label (e.g. "brq"), a plain string, NEVER an enum. Discover the offered values via GET /v1/regions. Omitted = the cheapest available location for the chosen preset. A location that exists but does not offer this preset's family → 422; a location that is full or not yet live → 503 NO_CAPACITY. Never a silent cross-location fallback. Echoed on every read.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -265,6 +275,7 @@ class RawRuntimesClient:
                 "metadata": metadata,
                 "rootfsReadOnly": rootfs_read_only,
                 "desiredState": desired_state,
+                "region": region,
             },
             headers={
                 "content-type": "application/json",
@@ -362,6 +373,17 @@ class RawRuntimesClient:
                 )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -2204,10 +2226,11 @@ class AsyncRawRuntimesClient:
         desired_state: typing.Optional[
             typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]
         ] = None,
+        region: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[RuntimesList]:
         """
-        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
+        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
 
         Parameters
         ----------
@@ -2222,6 +2245,9 @@ class AsyncRawRuntimesClient:
 
         desired_state : typing.Optional[typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]]
             Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`.
+
+        region : typing.Optional[str]
+            Equality filter on the home location — the `region` every response echoes (ANDs with the other filters). A value no runtime carries returns an empty page, never an error (discovery: GET /v1/regions).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2239,6 +2265,7 @@ class AsyncRawRuntimesClient:
                 "cursor": cursor,
                 "includeDestroyed": include_destroyed,
                 "desiredState": desired_state,
+                "region": region,
             },
             request_options=request_options,
         )
@@ -2323,6 +2350,7 @@ class AsyncRawRuntimesClient:
         metadata: typing.Optional[typing.Dict[str, str]] = OMIT,
         rootfs_read_only: typing.Optional[bool] = OMIT,
         desired_state: typing.Optional[CreateRuntimeRequestDesiredState] = OMIT,
+        region: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[RuntimeWithObserved]:
         """
@@ -2372,6 +2400,9 @@ class AsyncRawRuntimesClient:
         desired_state : typing.Optional[CreateRuntimeRequestDesiredState]
             Initial desired state (default running). Cannot create destroyed.
 
+        region : typing.Optional[str]
+            Optional location to run in — the public region label (e.g. "brq"), a plain string, NEVER an enum. Discover the offered values via GET /v1/regions. Omitted = the cheapest available location for the chosen preset. A location that exists but does not offer this preset's family → 422; a location that is full or not yet live → 503 NO_CAPACITY. Never a silent cross-location fallback. Echoed on every read.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -2404,6 +2435,7 @@ class AsyncRawRuntimesClient:
                 "metadata": metadata,
                 "rootfsReadOnly": rootfs_read_only,
                 "desiredState": desired_state,
+                "region": region,
             },
             headers={
                 "content-type": "application/json",
@@ -2501,6 +2533,17 @@ class AsyncRawRuntimesClient:
                 )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

@@ -571,10 +571,7 @@ export class TeamClient {
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 case 503:
-                    throw new PlanirApi.ServiceUnavailableError(
-                        _response.error.body as PlanirApi.PaymentRailUnavailableError,
-                        _response.rawResponse,
-                    );
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,

@@ -12,6 +12,8 @@ export interface Volume {
     state: Volume.State;
     /** The holding runtime. Present exactly while `state` is `attached`. */
     runtimeId?: string | undefined;
+    /** The volume's home location, stamped at create and fixed for its life. A runtime created with this `volumeId` is placed here (runtime-follows-volume). */
+    region: string;
     createdAt: string;
 }
 

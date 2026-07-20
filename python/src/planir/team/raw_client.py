@@ -22,7 +22,6 @@ from ..types.api_key import ApiKey
 from ..types.api_key_list import ApiKeyList
 from ..types.api_key_mint import ApiKeyMint
 from ..types.invalid_request_error import InvalidRequestError
-from ..types.payment_rail_unavailable_error import PaymentRailUnavailableError
 from ..types.policy_refused_error import PolicyRefusedError
 from ..types.team import Team
 from ..types.team_blocked_error import TeamBlockedError
@@ -633,9 +632,9 @@ class RawTeamClient:
                 raise ServiceUnavailableError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        PaymentRailUnavailableError,
+                        typing.Any,
                         parse_obj_as(
-                            type_=PaymentRailUnavailableError,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1848,9 +1847,9 @@ class AsyncRawTeamClient:
                 raise ServiceUnavailableError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        PaymentRailUnavailableError,
+                        typing.Any,
                         parse_obj_as(
-                            type_=PaymentRailUnavailableError,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

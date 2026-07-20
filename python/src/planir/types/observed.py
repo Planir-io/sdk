@@ -17,7 +17,7 @@ class Observed(UniversalBaseModel):
 
     phase: ObservedPhase = pydantic.Field()
     """
-    Engine-observed lifecycle phase. Convergence deadline: a runtime that stays `provisioning` for 5 minutes (300 000 ms) without coming healthy flips to `error` — pull failures, crash loops, and workloads that never pass readiness all surface this way. `error` is not terminal: the engine keeps reconciling, and a workload that later comes healthy returns to `running`.
+    Engine-observed lifecycle phase. Convergence deadline: a runtime that stays `provisioning` for 5 minutes (300 000 ms) without coming healthy flips to `error` — pull failures, crash loops, and workloads that never pass readiness all surface this way. `error` is not terminal: the engine keeps reconciling, and a workload that later comes healthy returns to `running`. `unschedulable` means the location is waiting on capacity for this runtime — distinct from `provisioning` (coming up) and `error` (crashed/stuck), exempt from the 5-minute deadline, and self-correcting: when capacity frees it converges to `running` with no client action. Compute bills zero in the span; destroying instead of waiting is the client's call. `stopping` covers the whole stop teardown — from the stop being acted on until the compute is fully released (`stopped`); compute bills zero from the first `stopping` observation. The set is additive over time — treat unknown phases as not-yet-running.
     """
 
     generation: int = pydantic.Field()

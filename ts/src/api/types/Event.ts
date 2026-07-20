@@ -3,7 +3,7 @@
 export interface Event {
     /** Monotonic, append-only position. */
     cursor: number;
-    /** Event vocabulary today: `created`, `desired-state-changed`, `config-updated`, `env-updated`, `network-updated`, plus one event per observed-phase transition (`provisioning`, `running`, `stopped`, `error`, `destroying`, `destroyed`). The set is additive over time — treat unknown types as audit records. Events are the audit/wake-up channel; the authoritative state is always `GET /v1/runtimes/{id}` `observed.phase`. */
+    /** Event vocabulary today: `created`, `desired-state-changed`, `config-updated`, `env-updated`, `network-updated`, plus one event per observed-phase transition (`provisioning`, `unschedulable`, `running`, `stopping`, `stopped`, `error`, `destroying`, `destroyed`). The set is additive over time — treat unknown types as audit records. Events are the audit/wake-up channel; the authoritative state is always `GET /v1/runtimes/{id}` `observed.phase`. */
     type: string;
     /** ISO 8601 UTC timestamp (RFC 3339), e.g. `2026-07-04T19:53:02.497Z`. */
     occurredAt: string;

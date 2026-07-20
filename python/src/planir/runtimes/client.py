@@ -53,10 +53,11 @@ class RuntimesClient:
         desired_state: typing.Optional[
             typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]
         ] = None,
+        region: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RuntimesList:
         """
-        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
+        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
 
         Parameters
         ----------
@@ -71,6 +72,9 @@ class RuntimesClient:
 
         desired_state : typing.Optional[typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]]
             Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`.
+
+        region : typing.Optional[str]
+            Equality filter on the home location — the `region` every response echoes (ANDs with the other filters). A value no runtime carries returns an empty page, never an error (discovery: GET /v1/regions).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -94,6 +98,7 @@ class RuntimesClient:
             cursor=cursor,
             include_destroyed=include_destroyed,
             desired_state=desired_state,
+            region=region,
             request_options=request_options,
         )
         return _response.data
@@ -116,6 +121,7 @@ class RuntimesClient:
         metadata: typing.Optional[typing.Dict[str, str]] = OMIT,
         rootfs_read_only: typing.Optional[bool] = OMIT,
         desired_state: typing.Optional[CreateRuntimeRequestDesiredState] = OMIT,
+        region: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RuntimeWithObserved:
         """
@@ -165,6 +171,9 @@ class RuntimesClient:
         desired_state : typing.Optional[CreateRuntimeRequestDesiredState]
             Initial desired state (default running). Cannot create destroyed.
 
+        region : typing.Optional[str]
+            Optional location to run in — the public region label (e.g. "brq"), a plain string, NEVER an enum. Discover the offered values via GET /v1/regions. Omitted = the cheapest available location for the chosen preset. A location that exists but does not offer this preset's family → 422; a location that is full or not yet live → 503 NO_CAPACITY. Never a silent cross-location fallback. Echoed on every read.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -200,6 +209,7 @@ class RuntimesClient:
             metadata=metadata,
             rootfs_read_only=rootfs_read_only,
             desired_state=desired_state,
+            region=region,
             request_options=request_options,
         )
         return _response.data
@@ -816,10 +826,11 @@ class AsyncRuntimesClient:
         desired_state: typing.Optional[
             typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]
         ] = None,
+        region: typing.Optional[str] = None,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RuntimesList:
         """
-        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
+        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
 
         Parameters
         ----------
@@ -834,6 +845,9 @@ class AsyncRuntimesClient:
 
         desired_state : typing.Optional[typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]]
             Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`.
+
+        region : typing.Optional[str]
+            Equality filter on the home location — the `region` every response echoes (ANDs with the other filters). A value no runtime carries returns an empty page, never an error (discovery: GET /v1/regions).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -865,6 +879,7 @@ class AsyncRuntimesClient:
             cursor=cursor,
             include_destroyed=include_destroyed,
             desired_state=desired_state,
+            region=region,
             request_options=request_options,
         )
         return _response.data
@@ -887,6 +902,7 @@ class AsyncRuntimesClient:
         metadata: typing.Optional[typing.Dict[str, str]] = OMIT,
         rootfs_read_only: typing.Optional[bool] = OMIT,
         desired_state: typing.Optional[CreateRuntimeRequestDesiredState] = OMIT,
+        region: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RuntimeWithObserved:
         """
@@ -936,6 +952,9 @@ class AsyncRuntimesClient:
         desired_state : typing.Optional[CreateRuntimeRequestDesiredState]
             Initial desired state (default running). Cannot create destroyed.
 
+        region : typing.Optional[str]
+            Optional location to run in — the public region label (e.g. "brq"), a plain string, NEVER an enum. Discover the offered values via GET /v1/regions. Omitted = the cheapest available location for the chosen preset. A location that exists but does not offer this preset's family → 422; a location that is full or not yet live → 503 NO_CAPACITY. Never a silent cross-location fallback. Echoed on every read.
+
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
 
@@ -979,6 +998,7 @@ class AsyncRuntimesClient:
             metadata=metadata,
             rootfs_read_only=rootfs_read_only,
             desired_state=desired_state,
+            region=region,
             request_options=request_options,
         )
         return _response.data

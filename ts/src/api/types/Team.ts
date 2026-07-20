@@ -8,6 +8,7 @@ export interface Team {
     /** root = the platform operator; customer = an ordinary tenant. */
     kind: Team.Kind;
     package: PlanirApi.TeamPackageSummary;
+    limits: PlanirApi.TeamLimits;
     /** Current ledger balance in integer microcents (1 USD = 100,000,000) — the sum of every ledger row (topups and bonuses add, usage debits subtract). Metered teams must keep this above zero to create or start runtimes; flat teams (root included) ignore it. Integer over the wire (Stripe-style); exact for every realistic balance (orders of magnitude below 2^53). */
     balanceMicrocents: number;
 }

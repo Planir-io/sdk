@@ -7,6 +7,7 @@ import typing_extensions
 from ..core.pydantic_utilities import UniversalBaseModel
 from ..core.serialization import FieldMetadata
 from .team_kind import TeamKind
+from .team_limits import TeamLimits
 from .team_package_summary import TeamPackageSummary
 
 
@@ -19,6 +20,7 @@ class Team(UniversalBaseModel):
     """
 
     package: TeamPackageSummary
+    limits: TeamLimits
     balance_microcents: typing_extensions.Annotated[
         int,
         FieldMetadata(alias="balanceMicrocents"),
