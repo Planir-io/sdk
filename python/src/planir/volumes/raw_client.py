@@ -15,10 +15,13 @@ from ..errors.conflict_error import ConflictError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
 from ..errors.payment_required_error import PaymentRequiredError
+from ..errors.service_unavailable_error import ServiceUnavailableError
 from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
+from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.insufficient_balance_error import InsufficientBalanceError
 from ..types.invalid_request_error import InvalidRequestError
+from ..types.policy_refused_error import PolicyRefusedError
 from ..types.team_blocked_error import TeamBlockedError
 from ..types.unauthenticated_error import UnauthenticatedError
 from ..types.volume import Volume
@@ -105,10 +108,15 @@ class RawVolumesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     def create_volume(
-        self, *, name: str, size_bytes: int, request_options: typing.Optional[RequestOptions] = None
+        self,
+        *,
+        name: str,
+        size_bytes: int,
+        region: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[Volume]:
         """
-        Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
+        Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
 
         Parameters
         ----------
@@ -117,6 +125,9 @@ class RawVolumesClient:
 
         size_bytes : int
             Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not.
+
+        region : typing.Optional[str]
+            The location to home the volume in — the same choice runtime create takes. Omitted: the default location. A location that is not offered → 422; one with no capacity right now → 503 (nothing provisioned). See `GET /v1/regions`. The home is fixed for the volume's life: a runtime attaching this volume is placed here (data gravity — the runtime follows the volume, never the reverse).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -132,6 +143,7 @@ class RawVolumesClient:
             json={
                 "name": name,
                 "sizeBytes": size_bytes,
+                "region": region,
             },
             headers={
                 "content-type": "application/json",
@@ -204,8 +216,30 @@ class RawVolumesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,
@@ -472,10 +506,15 @@ class AsyncRawVolumesClient:
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
     async def create_volume(
-        self, *, name: str, size_bytes: int, request_options: typing.Optional[RequestOptions] = None
+        self,
+        *,
+        name: str,
+        size_bytes: int,
+        region: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[Volume]:
         """
-        Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
+        Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
 
         Parameters
         ----------
@@ -484,6 +523,9 @@ class AsyncRawVolumesClient:
 
         size_bytes : int
             Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not.
+
+        region : typing.Optional[str]
+            The location to home the volume in — the same choice runtime create takes. Omitted: the default location. A location that is not offered → 422; one with no capacity right now → 503 (nothing provisioned). See `GET /v1/regions`. The home is fixed for the volume's life: a runtime attaching this volume is placed here (data gravity — the runtime follows the volume, never the reverse).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -499,6 +541,7 @@ class AsyncRawVolumesClient:
             json={
                 "name": name,
                 "sizeBytes": size_bytes,
+                "region": region,
             },
             headers={
                 "content-type": "application/json",
@@ -571,8 +614,30 @@ class AsyncRawVolumesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 503:
+                raise ServiceUnavailableError(
                     headers=dict(_response.headers),
                     body=typing.cast(
                         typing.Any,

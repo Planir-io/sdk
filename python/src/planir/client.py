@@ -13,6 +13,7 @@ if typing.TYPE_CHECKING:
     from .health.client import AsyncHealthClient, HealthClient
     from .meta.client import AsyncMetaClient, MetaClient
     from .presets.client import AsyncPresetsClient, PresetsClient
+    from .regions.client import AsyncRegionsClient, RegionsClient
     from .runtimes.client import AsyncRuntimesClient, RuntimesClient
     from .team.client import AsyncTeamClient, TeamClient
     from .volumes.client import AsyncVolumesClient, VolumesClient
@@ -107,6 +108,7 @@ class PlanirClient:
         self._runtimes: typing.Optional[RuntimesClient] = None
         self._volumes: typing.Optional[VolumesClient] = None
         self._presets: typing.Optional[PresetsClient] = None
+        self._regions: typing.Optional[RegionsClient] = None
         self._team: typing.Optional[TeamClient] = None
 
     @property
@@ -148,6 +150,14 @@ class PlanirClient:
 
             self._presets = PresetsClient(client_wrapper=self._client_wrapper)
         return self._presets
+
+    @property
+    def regions(self):
+        if self._regions is None:
+            from .regions.client import RegionsClient  # noqa: E402
+
+            self._regions = RegionsClient(client_wrapper=self._client_wrapper)
+        return self._regions
 
     @property
     def team(self):
@@ -268,6 +278,7 @@ class AsyncPlanirClient:
         self._runtimes: typing.Optional[AsyncRuntimesClient] = None
         self._volumes: typing.Optional[AsyncVolumesClient] = None
         self._presets: typing.Optional[AsyncPresetsClient] = None
+        self._regions: typing.Optional[AsyncRegionsClient] = None
         self._team: typing.Optional[AsyncTeamClient] = None
 
     @property
@@ -309,6 +320,14 @@ class AsyncPlanirClient:
 
             self._presets = AsyncPresetsClient(client_wrapper=self._client_wrapper)
         return self._presets
+
+    @property
+    def regions(self):
+        if self._regions is None:
+            from .regions.client import AsyncRegionsClient  # noqa: E402
+
+            self._regions = AsyncRegionsClient(client_wrapper=self._client_wrapper)
+        return self._regions
 
     @property
     def team(self):

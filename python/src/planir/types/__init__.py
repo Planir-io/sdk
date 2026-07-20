@@ -44,6 +44,9 @@ if typing.TYPE_CHECKING:
     from .limit_exceeded_error_error import LimitExceededErrorError
     from .limit_exceeded_error_error_code import LimitExceededErrorErrorCode
     from .network_spec import NetworkSpec
+    from .no_capacity_error import NoCapacityError
+    from .no_capacity_error_error import NoCapacityErrorError
+    from .no_capacity_error_error_code import NoCapacityErrorErrorCode
     from .observed import Observed
     from .observed_last_exit import ObservedLastExit
     from .observed_phase import ObservedPhase
@@ -64,6 +67,9 @@ if typing.TYPE_CHECKING:
     from .rate_limited_error_error_code import RateLimitedErrorErrorCode
     from .reach import Reach
     from .readiness_spec import ReadinessSpec
+    from .region import Region
+    from .region_family_availability import RegionFamilyAvailability
+    from .regions_list import RegionsList
     from .resource_spec import ResourceSpec
     from .resource_spec_input import ResourceSpecInput
     from .runtime import Runtime
@@ -87,6 +93,8 @@ if typing.TYPE_CHECKING:
     from .team_ledger import TeamLedger
     from .team_ledger_entry import TeamLedgerEntry
     from .team_ledger_entry_kind import TeamLedgerEntryKind
+    from .team_limits import TeamLimits
+    from .team_limits_families_value import TeamLimitsFamiliesValue
     from .team_package_summary import TeamPackageSummary
     from .team_package_summary_billing_mode import TeamPackageSummaryBillingMode
     from .team_usage import TeamUsage
@@ -168,6 +176,9 @@ _dynamic_imports: typing.Dict[str, str] = {
     "LimitExceededErrorError": ".limit_exceeded_error_error",
     "LimitExceededErrorErrorCode": ".limit_exceeded_error_error_code",
     "NetworkSpec": ".network_spec",
+    "NoCapacityError": ".no_capacity_error",
+    "NoCapacityErrorError": ".no_capacity_error_error",
+    "NoCapacityErrorErrorCode": ".no_capacity_error_error_code",
     "Observed": ".observed",
     "ObservedLastExit": ".observed_last_exit",
     "ObservedPhase": ".observed_phase",
@@ -188,6 +199,9 @@ _dynamic_imports: typing.Dict[str, str] = {
     "RateLimitedErrorErrorCode": ".rate_limited_error_error_code",
     "Reach": ".reach",
     "ReadinessSpec": ".readiness_spec",
+    "Region": ".region",
+    "RegionFamilyAvailability": ".region_family_availability",
+    "RegionsList": ".regions_list",
     "ResourceSpec": ".resource_spec",
     "ResourceSpecInput": ".resource_spec_input",
     "Runtime": ".runtime",
@@ -211,6 +225,8 @@ _dynamic_imports: typing.Dict[str, str] = {
     "TeamLedger": ".team_ledger",
     "TeamLedgerEntry": ".team_ledger_entry",
     "TeamLedgerEntryKind": ".team_ledger_entry_kind",
+    "TeamLimits": ".team_limits",
+    "TeamLimitsFamiliesValue": ".team_limits_families_value",
     "TeamPackageSummary": ".team_package_summary",
     "TeamPackageSummaryBillingMode": ".team_package_summary_billing_mode",
     "TeamUsage": ".team_usage",
@@ -316,6 +332,9 @@ __all__ = [
     "LimitExceededErrorError",
     "LimitExceededErrorErrorCode",
     "NetworkSpec",
+    "NoCapacityError",
+    "NoCapacityErrorError",
+    "NoCapacityErrorErrorCode",
     "Observed",
     "ObservedLastExit",
     "ObservedPhase",
@@ -336,6 +355,9 @@ __all__ = [
     "RateLimitedErrorErrorCode",
     "Reach",
     "ReadinessSpec",
+    "Region",
+    "RegionFamilyAvailability",
+    "RegionsList",
     "ResourceSpec",
     "ResourceSpecInput",
     "Runtime",
@@ -359,6 +381,8 @@ __all__ = [
     "TeamLedger",
     "TeamLedgerEntry",
     "TeamLedgerEntryKind",
+    "TeamLimits",
+    "TeamLimitsFamiliesValue",
     "TeamPackageSummary",
     "TeamPackageSummaryBillingMode",
     "TeamUsage",

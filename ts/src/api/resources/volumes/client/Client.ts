@@ -94,7 +94,7 @@ export class VolumesClient {
     }
 
     /**
-     * Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
+     * Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
      *
      * @param {PlanirApi.CreateVolumeRequest} request
      * @param {VolumesClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -104,7 +104,9 @@ export class VolumesClient {
      * @throws {@link PlanirApi.PaymentRequiredError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.volumes.createVolume({
@@ -176,8 +178,15 @@ export class VolumesClient {
                     );
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 422:
+                    throw new PlanirApi.UnprocessableEntityError(
+                        _response.error.body as PlanirApi.PolicyRefusedError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,

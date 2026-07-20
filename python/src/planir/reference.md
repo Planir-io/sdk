@@ -112,7 +112,7 @@ client.meta.get_version()
 <dl>
 <dd>
 
-Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
+Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
 </dd>
 </dl>
 </dd>
@@ -176,6 +176,14 @@ client.runtimes.list()
 <dd>
 
 **desired_state:** `typing.Optional[typing.Union[ListRuntimesRequestDesiredStateItem, typing.Sequence[ListRuntimesRequestDesiredStateItem]]]` — Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**region:** `typing.Optional[str]` — Equality filter on the home location — the `region` every response echoes (ANDs with the other filters). A value no runtime carries returns an empty page, never an error (discovery: GET /v1/regions).
     
 </dd>
 </dl>
@@ -347,6 +355,14 @@ client.runtimes.create(
 <dd>
 
 **desired_state:** `typing.Optional[CreateRuntimeRequestDesiredState]` — Initial desired state (default running). Cannot create destroyed.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**region:** `typing.Optional[str]` — Optional location to run in — the public region label (e.g. "brq"), a plain string, NEVER an enum. Discover the offered values via GET /v1/regions. Omitted = the cheapest available location for the chosen preset. A location that exists but does not offer this preset's family → 422; a location that is full or not yet live → 503 NO_CAPACITY. Never a silent cross-location fallback. Echoed on every read.
     
 </dd>
 </dl>
@@ -1673,7 +1689,7 @@ client.volumes.list_volumes()
 <dl>
 <dd>
 
-Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
+Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
 </dd>
 </dl>
 </dd>
@@ -1724,6 +1740,14 @@ client.volumes.create_volume(
 <dd>
 
 **size_bytes:** `int` — Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**region:** `typing.Optional[str]` — The location to home the volume in — the same choice runtime create takes. Omitted: the default location. A location that is not offered → 422; one with no capacity right now → 503 (nothing provisioned). See `GET /v1/regions`. The home is fixed for the volume's life: a runtime attaching this volume is placed here (data gravity — the runtime follows the volume, never the reverse).
     
 </dd>
 </dl>
@@ -1912,6 +1936,70 @@ client = PlanirClient(
 )
 
 client.presets.list_presets()
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+## Regions
+<details><summary><code>client.regions.<a href="src/planir/regions/client.py">list_regions</a>() -> RegionsList</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Every location on offer, with per-family `available` derived live — the picker's "can I order here now" truth. `region` values are plain strings (e.g. "brq"), never an enum: new locations appear additively; send one as `region` on create. `available` is probed with the family's smallest preset, so a larger preset's create may still refuse 503 at the capacity margin. Unavailable means full, draining, or not yet commissioned — a create naming that location refuses 503 until it flips (re-read rather than remember; no pagination, the list is a menu).
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.regions.list_regions()
 
 ```
 </dd>

@@ -3,5 +3,8 @@
 import typing
 
 ObservedPhase = typing.Union[
-    typing.Literal["provisioning", "running", "stopped", "error", "destroying", "destroyed"], typing.Any
+    typing.Literal[
+        "provisioning", "unschedulable", "running", "stopping", "stopped", "error", "destroying", "destroyed"
+    ],
+    typing.Any,
 ]

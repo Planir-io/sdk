@@ -15,4 +15,6 @@ export interface ListRuntimesRequest {
     includeDestroyed?: PlanirApi.ListRuntimesRequestIncludeDestroyed;
     /** Repeatable desired-state filter (`running|stopped|destroyed`): OR within the repeated values, AND with the metadata filters. When present it fully determines state visibility — `?desiredState=destroyed` returns destroyed runtimes without `includeDestroyed`. Absent = destroyed excluded unless `includeDestroyed=true`. */
     desiredState?: PlanirApi.ListRuntimesRequestDesiredStateItem | PlanirApi.ListRuntimesRequestDesiredStateItem[];
+    /** Equality filter on the home location — the `region` every response echoes (ANDs with the other filters). A value no runtime carries returns an empty page, never an error (discovery: GET /v1/regions). */
+    region?: string;
 }

@@ -38,6 +38,8 @@ export interface CreateRuntimeRequest {
     rootfsReadOnly?: boolean;
     /** Initial desired state (default running). Cannot create destroyed. */
     desiredState?: CreateRuntimeRequest.DesiredState;
+    /** Optional location to run in — the public region label (e.g. "brq"), a plain string, NEVER an enum. Discover the offered values via GET /v1/regions. Omitted = the cheapest available location for the chosen preset. A location that exists but does not offer this preset's family → 422; a location that is full or not yet live → 503 NO_CAPACITY. Never a silent cross-location fallback. Echoed on every read. */
+    region?: string;
 }
 
 export namespace CreateRuntimeRequest {

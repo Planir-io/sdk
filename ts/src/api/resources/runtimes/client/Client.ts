@@ -26,7 +26,7 @@ export class RuntimesClient {
     }
 
     /**
-     * Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
+     * Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
      *
      * @param {PlanirApi.ListRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -45,7 +45,7 @@ export class RuntimesClient {
     ): Promise<core.Page<PlanirApi.Runtime, PlanirApi.RuntimesList>> {
         const list = core.HttpResponsePromise.interceptFunction(
             async (request: PlanirApi.ListRuntimesRequest): Promise<core.WithRawResponse<PlanirApi.RuntimesList>> => {
-                const { limit, cursor, includeDestroyed, desiredState } = request;
+                const { limit, cursor, includeDestroyed, desiredState, region } = request;
                 const _queryParams: Record<string, unknown> = {
                     limit,
                     cursor,
@@ -55,6 +55,7 @@ export class RuntimesClient {
                         : desiredState != null
                           ? desiredState
                           : undefined,
+                    region,
                 };
                 const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
                 const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
@@ -144,6 +145,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.create({
@@ -225,6 +227,8 @@ export class RuntimesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,

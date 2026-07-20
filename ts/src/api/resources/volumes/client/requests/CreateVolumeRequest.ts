@@ -12,4 +12,6 @@ export interface CreateVolumeRequest {
     name: string;
     /** Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not. */
     sizeBytes: number;
+    /** The location to home the volume in — the same choice runtime create takes. Omitted: the default location. A location that is not offered → 422; one with no capacity right now → 503 (nothing provisioned). See `GET /v1/regions`. The home is fixed for the volume's life: a runtime attaching this volume is placed here (data gravity — the runtime follows the volume, never the reverse). */
+    region?: string;
 }

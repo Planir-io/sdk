@@ -54,10 +54,15 @@ class VolumesClient:
         return _response.data
 
     def create_volume(
-        self, *, name: str, size_bytes: int, request_options: typing.Optional[RequestOptions] = None
+        self,
+        *,
+        name: str,
+        size_bytes: int,
+        region: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> Volume:
         """
-        Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
+        Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
 
         Parameters
         ----------
@@ -66,6 +71,9 @@ class VolumesClient:
 
         size_bytes : int
             Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not.
+
+        region : typing.Optional[str]
+            The location to home the volume in — the same choice runtime create takes. Omitted: the default location. A location that is not offered → 422; one with no capacity right now → 503 (nothing provisioned). See `GET /v1/regions`. The home is fixed for the volume's life: a runtime attaching this volume is placed here (data gravity — the runtime follows the volume, never the reverse).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -87,7 +95,9 @@ class VolumesClient:
             size_bytes=1,
         )
         """
-        _response = self._raw_client.create_volume(name=name, size_bytes=size_bytes, request_options=request_options)
+        _response = self._raw_client.create_volume(
+            name=name, size_bytes=size_bytes, region=region, request_options=request_options
+        )
         return _response.data
 
     def get_volume(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Volume:
@@ -198,10 +208,15 @@ class AsyncVolumesClient:
         return _response.data
 
     async def create_volume(
-        self, *, name: str, size_bytes: int, request_options: typing.Optional[RequestOptions] = None
+        self,
+        *,
+        name: str,
+        size_bytes: int,
+        region: typing.Optional[str] = OMIT,
+        request_options: typing.Optional[RequestOptions] = None,
     ) -> Volume:
         """
-        Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
+        Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
 
         Parameters
         ----------
@@ -210,6 +225,9 @@ class AsyncVolumesClient:
 
         size_bytes : int
             Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not.
+
+        region : typing.Optional[str]
+            The location to home the volume in — the same choice runtime create takes. Omitted: the default location. A location that is not offered → 422; one with no capacity right now → 503 (nothing provisioned). See `GET /v1/regions`. The home is fixed for the volume's life: a runtime attaching this volume is placed here (data gravity — the runtime follows the volume, never the reverse).
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -240,7 +258,7 @@ class AsyncVolumesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.create_volume(
-            name=name, size_bytes=size_bytes, request_options=request_options
+            name=name, size_bytes=size_bytes, region=region, request_options=request_options
         )
         return _response.data
 

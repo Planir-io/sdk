@@ -3,6 +3,7 @@
 import { HealthClient } from "./api/resources/health/client/Client.js";
 import { MetaClient } from "./api/resources/meta/client/Client.js";
 import { PresetsClient } from "./api/resources/presets/client/Client.js";
+import { RegionsClient } from "./api/resources/regions/client/Client.js";
 import { RuntimesClient } from "./api/resources/runtimes/client/Client.js";
 import { TeamClient } from "./api/resources/team/client/Client.js";
 import { VolumesClient } from "./api/resources/volumes/client/Client.js";
@@ -23,6 +24,7 @@ export class PlanirClient {
     protected _runtimes: RuntimesClient | undefined;
     protected _volumes: VolumesClient | undefined;
     protected _presets: PresetsClient | undefined;
+    protected _regions: RegionsClient | undefined;
     protected _team: TeamClient | undefined;
 
     constructor(options: PlanirClient.Options = {}) {
@@ -47,6 +49,10 @@ export class PlanirClient {
 
     public get presets(): PresetsClient {
         return (this._presets ??= new PresetsClient(this._options));
+    }
+
+    public get regions(): RegionsClient {
+        return (this._regions ??= new RegionsClient(this._options));
     }
 
     public get team(): TeamClient {

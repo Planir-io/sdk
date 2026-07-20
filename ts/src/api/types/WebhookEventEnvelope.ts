@@ -14,6 +14,8 @@ export interface WebhookEventEnvelope {
     team_id: string;
     /** The runtime the event concerns. */
     runtime_id: string;
+    /** The public location of the runtime the event concerns — the same `region` its API responses echo (read at delivery time). Internal cluster and node names never appear. */
+    region: string;
 }
 
 export namespace WebhookEventEnvelope {

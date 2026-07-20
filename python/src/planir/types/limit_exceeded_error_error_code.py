@@ -2,4 +2,6 @@
 
 import typing
 
-LimitExceededErrorErrorCode = typing.Union[typing.Literal["RATE_LIMITED", "CONCURRENCY_LIMIT"], typing.Any]
+LimitExceededErrorErrorCode = typing.Union[
+    typing.Literal["RATE_LIMITED", "CONCURRENCY_LIMIT", "RESOURCE_QUOTA"], typing.Any
+]
