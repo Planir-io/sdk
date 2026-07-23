@@ -86,6 +86,91 @@ export class TeamClient {
     }
 
     /**
+     * The team's self-service settings — today just `defaultRegion`, the saved location consulted when a create names no `region`. An absent field is left unchanged; `defaultRegion: null` clears it. Future creates only: changing the default never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+     *
+     * @param {PlanirApi.PatchTeamBody} request
+     * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.UnprocessableEntityError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.team.patchTeam()
+     */
+    public patchTeam(
+        request: PlanirApi.PatchTeamBody = {},
+        requestOptions?: TeamClient.RequestOptions,
+    ): core.HttpResponsePromise<PlanirApi.Team> {
+        return core.HttpResponsePromise.fromPromise(this.__patchTeam(request, requestOptions));
+    }
+
+    private async __patchTeam(
+        request: PlanirApi.PatchTeamBody = {},
+        requestOptions?: TeamClient.RequestOptions,
+    ): Promise<core.WithRawResponse<PlanirApi.Team>> {
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                "v1/team",
+            ),
+            method: "PATCH",
+            headers: _headers,
+            contentType: "application/json",
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            requestType: "json",
+            body: request,
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as PlanirApi.Team, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 422:
+                    throw new PlanirApi.UnprocessableEntityError(
+                        _response.error.body as PlanirApi.PolicyRefusedError,
+                        _response.rawResponse,
+                    );
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "PATCH", "/v1/team");
+    }
+
+    /**
      * Every billing window for the caller's team in one UTC calendar month (`?period=YYYY-MM`, default the current month), plus the month totals. Each window is an invoice line: the accrued quantities and the prices it carries. A malformed period is 400.
      *
      * @param {PlanirApi.GetTeamUsageRequest} request
@@ -590,6 +675,7 @@ export class TeamClient {
      * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -635,6 +721,11 @@ export class TeamClient {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
                         _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
                 case 429:
@@ -1008,6 +1099,7 @@ export class TeamClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -1071,6 +1163,11 @@ export class TeamClient {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
                         _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
                 case 404:

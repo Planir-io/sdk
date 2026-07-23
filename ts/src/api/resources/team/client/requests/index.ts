@@ -5,6 +5,7 @@ export type { EnableTeamWebhookRequest } from "./EnableTeamWebhookRequest.js";
 export type { GetTeamLedgerRequest } from "./GetTeamLedgerRequest.js";
 export type { GetTeamUsageRequest } from "./GetTeamUsageRequest.js";
 export type { ListTeamWebhookDeliveriesRequest } from "./ListTeamWebhookDeliveriesRequest.js";
+export type { PatchTeamBody } from "./PatchTeamBody.js";
 export type { RedeliverTeamWebhookDeliveryRequest } from "./RedeliverTeamWebhookDeliveryRequest.js";
 export type { RevokeTeamKeyRequest } from "./RevokeTeamKeyRequest.js";
 export type { RotateTeamWebhookSecretRequest } from "./RotateTeamWebhookSecretRequest.js";

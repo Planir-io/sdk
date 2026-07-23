@@ -105,6 +105,100 @@ class RawTeamClient:
             )
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
+    def patch_team(
+        self, *, default_region: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[Team]:
+        """
+        The team's self-service settings — today just `defaultRegion`, the saved location consulted when a create names no `region`. An absent field is left unchanged; `defaultRegion: null` clears it. Future creates only: changing the default never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+
+        Parameters
+        ----------
+        default_region : typing.Optional[str]
+            The saved default location, consulted when a create names no `region`. Must be a location the catalog offers (see `GET /v1/regions`; anything else is 422). `null` clears it. Future creates only: changing it never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[Team]
+            The updated team (the GET /v1/team shape).
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            "v1/team",
+            method="PATCH",
+            json={
+                "defaultRegion": default_region,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    Team,
+                    parse_obj_as(
+                        type_=Team,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
     def get_team_usage(
         self, *, period: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[TeamUsage]:
@@ -690,6 +784,17 @@ class RawTeamClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -1134,6 +1239,17 @@ class RawTeamClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 404:
                 raise NotFoundError(
                     headers=dict(_response.headers),
@@ -1294,6 +1410,100 @@ class AsyncRawTeamClient:
                         UnauthenticatedError,
                         parse_obj_as(
                             type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def patch_team(
+        self, *, default_region: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[Team]:
+        """
+        The team's self-service settings — today just `defaultRegion`, the saved location consulted when a create names no `region`. An absent field is left unchanged; `defaultRegion: null` clears it. Future creates only: changing the default never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+
+        Parameters
+        ----------
+        default_region : typing.Optional[str]
+            The saved default location, consulted when a create names no `region`. Must be a location the catalog offers (see `GET /v1/regions`; anything else is 422). `null` clears it. Future creates only: changing it never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[Team]
+            The updated team (the GET /v1/team shape).
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            "v1/team",
+            method="PATCH",
+            json={
+                "defaultRegion": default_region,
+            },
+            headers={
+                "content-type": "application/json",
+            },
+            request_options=request_options,
+            omit=OMIT,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    Team,
+                    parse_obj_as(
+                        type_=Team,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1905,6 +2115,17 @@ class AsyncRawTeamClient:
                         ),
                     ),
                 )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -2345,6 +2566,17 @@ class AsyncRawTeamClient:
                         UnauthenticatedError,
                         parse_obj_as(
                             type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

@@ -2091,6 +2091,77 @@ client.team.get_team()
 </dl>
 </details>
 
+<details><summary><code>client.team.<a href="src/planir/team/client.py">patch_team</a>(...) -> Team</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+The team's self-service settings — today just `defaultRegion`, the saved location consulted when a create names no `region`. An absent field is left unchanged; `defaultRegion: null` clears it. Future creates only: changing the default never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.team.patch_team()
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**default_region:** `typing.Optional[str]` — The saved default location, consulted when a create names no `region`. Must be a location the catalog offers (see `GET /v1/regions`; anything else is 422). `null` clears it. Future creates only: changing it never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 <details><summary><code>client.team.<a href="src/planir/team/client.py">get_team_usage</a>(...) -> TeamUsage</code></summary>
 <dl>
 <dd>
