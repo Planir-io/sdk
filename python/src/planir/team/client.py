@@ -65,6 +65,37 @@ class TeamClient:
         _response = self._raw_client.get_team(request_options=request_options)
         return _response.data
 
+    def patch_team(
+        self, *, default_region: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None
+    ) -> Team:
+        """
+        The team's self-service settings — today just `defaultRegion`, the saved location consulted when a create names no `region`. An absent field is left unchanged; `defaultRegion: null` clears it. Future creates only: changing the default never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+
+        Parameters
+        ----------
+        default_region : typing.Optional[str]
+            The saved default location, consulted when a create names no `region`. Must be a location the catalog offers (see `GET /v1/regions`; anything else is 422). `null` clears it. Future creates only: changing it never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        Team
+            The updated team (the GET /v1/team shape).
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.team.patch_team()
+        """
+        _response = self._raw_client.patch_team(default_region=default_region, request_options=request_options)
+        return _response.data
+
     def get_team_usage(
         self, *, period: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None
     ) -> TeamUsage:
@@ -558,6 +589,45 @@ class AsyncTeamClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.get_team(request_options=request_options)
+        return _response.data
+
+    async def patch_team(
+        self, *, default_region: typing.Optional[str] = OMIT, request_options: typing.Optional[RequestOptions] = None
+    ) -> Team:
+        """
+        The team's self-service settings — today just `defaultRegion`, the saved location consulted when a create names no `region`. An absent field is left unchanged; `defaultRegion: null` clears it. Future creates only: changing the default never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+
+        Parameters
+        ----------
+        default_region : typing.Optional[str]
+            The saved default location, consulted when a create names no `region`. Must be a location the catalog offers (see `GET /v1/regions`; anything else is 422). `null` clears it. Future creates only: changing it never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        Team
+            The updated team (the GET /v1/team shape).
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.team.patch_team()
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.patch_team(default_region=default_region, request_options=request_options)
         return _response.data
 
     async def get_team_usage(

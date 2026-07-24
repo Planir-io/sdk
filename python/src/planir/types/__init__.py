@@ -50,6 +50,7 @@ if typing.TYPE_CHECKING:
     from .observed import Observed
     from .observed_last_exit import ObservedLastExit
     from .observed_phase import ObservedPhase
+    from .observed_waiting_reason import ObservedWaitingReason
     from .payload_too_large_error import PayloadTooLargeError
     from .payload_too_large_error_error import PayloadTooLargeErrorError
     from .payload_too_large_error_error_code import PayloadTooLargeErrorErrorCode
@@ -70,6 +71,14 @@ if typing.TYPE_CHECKING:
     from .region import Region
     from .region_family_availability import RegionFamilyAvailability
     from .regions_list import RegionsList
+    from .registry_credential import RegistryCredential
+    from .registry_credential_not_found_error import RegistryCredentialNotFoundError
+    from .registry_credential_not_found_error_error import RegistryCredentialNotFoundErrorError
+    from .registry_credential_not_found_error_error_code import RegistryCredentialNotFoundErrorErrorCode
+    from .registry_credentials_list import RegistryCredentialsList
+    from .registry_host_exists_error import RegistryHostExistsError
+    from .registry_host_exists_error_error import RegistryHostExistsErrorError
+    from .registry_host_exists_error_error_code import RegistryHostExistsErrorErrorCode
     from .resource_spec import ResourceSpec
     from .resource_spec_input import ResourceSpecInput
     from .runtime import Runtime
@@ -182,6 +191,7 @@ _dynamic_imports: typing.Dict[str, str] = {
     "Observed": ".observed",
     "ObservedLastExit": ".observed_last_exit",
     "ObservedPhase": ".observed_phase",
+    "ObservedWaitingReason": ".observed_waiting_reason",
     "PayloadTooLargeError": ".payload_too_large_error",
     "PayloadTooLargeErrorError": ".payload_too_large_error_error",
     "PayloadTooLargeErrorErrorCode": ".payload_too_large_error_error_code",
@@ -202,6 +212,14 @@ _dynamic_imports: typing.Dict[str, str] = {
     "Region": ".region",
     "RegionFamilyAvailability": ".region_family_availability",
     "RegionsList": ".regions_list",
+    "RegistryCredential": ".registry_credential",
+    "RegistryCredentialNotFoundError": ".registry_credential_not_found_error",
+    "RegistryCredentialNotFoundErrorError": ".registry_credential_not_found_error_error",
+    "RegistryCredentialNotFoundErrorErrorCode": ".registry_credential_not_found_error_error_code",
+    "RegistryCredentialsList": ".registry_credentials_list",
+    "RegistryHostExistsError": ".registry_host_exists_error",
+    "RegistryHostExistsErrorError": ".registry_host_exists_error_error",
+    "RegistryHostExistsErrorErrorCode": ".registry_host_exists_error_error_code",
     "ResourceSpec": ".resource_spec",
     "ResourceSpecInput": ".resource_spec_input",
     "Runtime": ".runtime",
@@ -338,6 +356,7 @@ __all__ = [
     "Observed",
     "ObservedLastExit",
     "ObservedPhase",
+    "ObservedWaitingReason",
     "PayloadTooLargeError",
     "PayloadTooLargeErrorError",
     "PayloadTooLargeErrorErrorCode",
@@ -358,6 +377,14 @@ __all__ = [
     "Region",
     "RegionFamilyAvailability",
     "RegionsList",
+    "RegistryCredential",
+    "RegistryCredentialNotFoundError",
+    "RegistryCredentialNotFoundErrorError",
+    "RegistryCredentialNotFoundErrorErrorCode",
+    "RegistryCredentialsList",
+    "RegistryHostExistsError",
+    "RegistryHostExistsErrorError",
+    "RegistryHostExistsErrorErrorCode",
     "ResourceSpec",
     "ResourceSpecInput",
     "Runtime",

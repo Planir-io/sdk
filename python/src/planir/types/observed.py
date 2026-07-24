@@ -8,6 +8,7 @@ from ..core.pydantic_utilities import UniversalBaseModel
 from ..core.serialization import FieldMetadata
 from .observed_last_exit import ObservedLastExit
 from .observed_phase import ObservedPhase
+from .observed_waiting_reason import ObservedWaitingReason
 
 
 class Observed(UniversalBaseModel):
@@ -38,6 +39,15 @@ class Observed(UniversalBaseModel):
             alias="lastExit",
             default=None,
             description="The workload container's last terminal exit. Absent while it has never died. This is the WHY behind a crash loop — read it before filing a provisioning issue.",
+        ),
+    ]
+    waiting_reason: typing_extensions.Annotated[
+        typing.Optional[ObservedWaitingReason],
+        FieldMetadata(alias="waitingReason"),
+        pydantic.Field(
+            alias="waitingReason",
+            default=None,
+            description="Present exactly while the workload container is wedged waiting on its IMAGE — stable vocabulary (the kubelet's image-waiting constants), never registry prose. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff` long before the 5-minute `error` flip — and storing/fixing the credential self-heals within one pull-retry cycle, no verbs needed. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those). The set is additive over time.",
         ),
     ]
 

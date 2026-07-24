@@ -14,6 +14,7 @@ if typing.TYPE_CHECKING:
     from .meta.client import AsyncMetaClient, MetaClient
     from .presets.client import AsyncPresetsClient, PresetsClient
     from .regions.client import AsyncRegionsClient, RegionsClient
+    from .registry_credentials.client import AsyncRegistryCredentialsClient, RegistryCredentialsClient
     from .runtimes.client import AsyncRuntimesClient, RuntimesClient
     from .team.client import AsyncTeamClient, TeamClient
     from .volumes.client import AsyncVolumesClient, VolumesClient
@@ -107,6 +108,7 @@ class PlanirClient:
         self._meta: typing.Optional[MetaClient] = None
         self._runtimes: typing.Optional[RuntimesClient] = None
         self._volumes: typing.Optional[VolumesClient] = None
+        self._registry_credentials: typing.Optional[RegistryCredentialsClient] = None
         self._presets: typing.Optional[PresetsClient] = None
         self._regions: typing.Optional[RegionsClient] = None
         self._team: typing.Optional[TeamClient] = None
@@ -142,6 +144,14 @@ class PlanirClient:
 
             self._volumes = VolumesClient(client_wrapper=self._client_wrapper)
         return self._volumes
+
+    @property
+    def registry_credentials(self):
+        if self._registry_credentials is None:
+            from .registry_credentials.client import RegistryCredentialsClient  # noqa: E402
+
+            self._registry_credentials = RegistryCredentialsClient(client_wrapper=self._client_wrapper)
+        return self._registry_credentials
 
     @property
     def presets(self):
@@ -277,6 +287,7 @@ class AsyncPlanirClient:
         self._meta: typing.Optional[AsyncMetaClient] = None
         self._runtimes: typing.Optional[AsyncRuntimesClient] = None
         self._volumes: typing.Optional[AsyncVolumesClient] = None
+        self._registry_credentials: typing.Optional[AsyncRegistryCredentialsClient] = None
         self._presets: typing.Optional[AsyncPresetsClient] = None
         self._regions: typing.Optional[AsyncRegionsClient] = None
         self._team: typing.Optional[AsyncTeamClient] = None
@@ -312,6 +323,14 @@ class AsyncPlanirClient:
 
             self._volumes = AsyncVolumesClient(client_wrapper=self._client_wrapper)
         return self._volumes
+
+    @property
+    def registry_credentials(self):
+        if self._registry_credentials is None:
+            from .registry_credentials.client import AsyncRegistryCredentialsClient  # noqa: E402
+
+            self._registry_credentials = AsyncRegistryCredentialsClient(client_wrapper=self._client_wrapper)
+        return self._registry_credentials
 
     @property
     def presets(self):

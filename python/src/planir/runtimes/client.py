@@ -128,7 +128,7 @@ class RuntimesClient:
         Parameters
         ----------
         image : str
-            Resolved container image ref the orchestrator pulls. MUST be anonymously pullable: no registry-credential channel exists (private registries are not supported). Echoed back on every Runtime read.
+            Resolved container image ref the orchestrator pulls. Echoed back on every Runtime read. Private images are supported via stored registry credentials (`/v1/registry-credentials`): the pull auto-matches the team's credential for the image's registry host — this field needs nothing extra. Scope: static basic-auth registries (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported (12-hour tokens). The host-wide corollary: a stored credential is used for EVERY pull from its host, public images included — no anonymous fallback while it exists. Deleting a credential is always allowed with latent, tag-dependent effects: a running runtime is untouched, but a `:latest`-class private image re-pulls on its next restart and fails visibly (`observed` waiting reason) once the credential is gone, while digest/fixed tags may start from cache.
 
         idempotency_key : typing.Optional[str]
             Optional client-supplied idempotency key. Same key + same body within the 24-hour replay window → 200 with the original runtime (not a new create); same key + different body → CONFLICT. Replay is the intended recovery path for a client that loses a runtime id after a 201: re-send the identical create and read the id back. Omitted = no idempotency claim — a retried create makes a second runtime.
@@ -909,7 +909,7 @@ class AsyncRuntimesClient:
         Parameters
         ----------
         image : str
-            Resolved container image ref the orchestrator pulls. MUST be anonymously pullable: no registry-credential channel exists (private registries are not supported). Echoed back on every Runtime read.
+            Resolved container image ref the orchestrator pulls. Echoed back on every Runtime read. Private images are supported via stored registry credentials (`/v1/registry-credentials`): the pull auto-matches the team's credential for the image's registry host — this field needs nothing extra. Scope: static basic-auth registries (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported (12-hour tokens). The host-wide corollary: a stored credential is used for EVERY pull from its host, public images included — no anonymous fallback while it exists. Deleting a credential is always allowed with latent, tag-dependent effects: a running runtime is untouched, but a `:latest`-class private image re-pulls on its next restart and fails visibly (`observed` waiting reason) once the credential is gone, while digest/fixed tags may start from cache.
 
         idempotency_key : typing.Optional[str]
             Optional client-supplied idempotency key. Same key + same body within the 24-hour replay window → 200 with the original runtime (not a new create); same key + different body → CONFLICT. Replay is the intended recovery path for a client that loses a runtime id after a 201: re-send the identical create and read the id back. Omitted = no idempotency claim — a retried create makes a second runtime.

@@ -13,7 +13,7 @@ export interface CreateRuntimeRequest {
     "idempotency-key"?: string;
     /** Opaque client correlation handle. No shared id-space, no FK. Optional — the orchestrator generates one when omitted (echoed on reads). */
     clientRef?: string;
-    /** Resolved container image ref the orchestrator pulls. MUST be anonymously pullable: no registry-credential channel exists (private registries are not supported). Echoed back on every Runtime read. */
+    /** Resolved container image ref the orchestrator pulls. Echoed back on every Runtime read. Private images are supported via stored registry credentials (`/v1/registry-credentials`): the pull auto-matches the team's credential for the image's registry host — this field needs nothing extra. Scope: static basic-auth registries (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported (12-hour tokens). The host-wide corollary: a stored credential is used for EVERY pull from its host, public images included — no anonymous fallback while it exists. Deleting a credential is always allowed with latent, tag-dependent effects: a running runtime is untouched, but a `:latest`-class private image re-pulls on its next restart and fails visibly (`observed` waiting reason) once the credential is gone, while digest/fixed tags may start from cache. */
     image: string;
     /** Optional opaque workload config, base64 over the wire (see the config description). Omitted = no config file is mounted at /etc/planir/config. */
     config?: string;
