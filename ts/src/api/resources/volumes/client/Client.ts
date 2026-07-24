@@ -94,7 +94,7 @@ export class VolumesClient {
     }
 
     /**
-     * Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402.
+     * Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every volume is backed up daily to off-cluster object storage — 7-day retention, weekly full backups. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
      *
      * @param {PlanirApi.CreateVolumeRequest} request
      * @param {VolumesClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -280,7 +280,7 @@ export class VolumesClient {
     }
 
     /**
-     * Removes the backing storage and ends billing at this instant. Only an `available` volume can be deleted: an attached one is held for its runtime's whole life (stopped included) — destroy the runtime first. The data is unrecoverable.
+     * Removes the backing storage and ends billing at this instant. Only an `available` volume can be deleted: an attached one is held for its runtime's whole life (stopped included) — destroy the runtime first. The volume and its live data are gone and there is no self-serve way back. Backups already taken persist in backup storage and are removed on request — automatic purge of a deleted volume's backups is not yet implemented.
      *
      * @param {PlanirApi.DeleteVolumeRequest} request
      * @param {VolumesClient.RequestOptions} requestOptions - Request-specific configuration.
