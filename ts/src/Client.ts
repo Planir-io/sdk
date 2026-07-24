@@ -4,6 +4,7 @@ import { HealthClient } from "./api/resources/health/client/Client.js";
 import { MetaClient } from "./api/resources/meta/client/Client.js";
 import { PresetsClient } from "./api/resources/presets/client/Client.js";
 import { RegionsClient } from "./api/resources/regions/client/Client.js";
+import { RegistryCredentialsClient } from "./api/resources/registryCredentials/client/Client.js";
 import { RuntimesClient } from "./api/resources/runtimes/client/Client.js";
 import { TeamClient } from "./api/resources/team/client/Client.js";
 import { VolumesClient } from "./api/resources/volumes/client/Client.js";
@@ -23,6 +24,7 @@ export class PlanirClient {
     protected _meta: MetaClient | undefined;
     protected _runtimes: RuntimesClient | undefined;
     protected _volumes: VolumesClient | undefined;
+    protected _registryCredentials: RegistryCredentialsClient | undefined;
     protected _presets: PresetsClient | undefined;
     protected _regions: RegionsClient | undefined;
     protected _team: TeamClient | undefined;
@@ -45,6 +47,10 @@ export class PlanirClient {
 
     public get volumes(): VolumesClient {
         return (this._volumes ??= new VolumesClient(this._options));
+    }
+
+    public get registryCredentials(): RegistryCredentialsClient {
+        return (this._registryCredentials ??= new RegistryCredentialsClient(this._options));
     }
 
     public get presets(): PresetsClient {

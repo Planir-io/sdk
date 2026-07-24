@@ -242,7 +242,7 @@ client.runtimes.create(
 <dl>
 <dd>
 
-**image:** `str` — Resolved container image ref the orchestrator pulls. MUST be anonymously pullable: no registry-credential channel exists (private registries are not supported). Echoed back on every Runtime read.
+**image:** `str` — Resolved container image ref the orchestrator pulls. Echoed back on every Runtime read. Private images are supported via stored registry credentials (`/v1/registry-credentials`): the pull auto-matches the team's credential for the image's registry host — this field needs nothing extra. Scope: static basic-auth registries (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported (12-hour tokens). The host-wide corollary: a stored credential is used for EVERY pull from its host, public images included — no anonymous fallback while it exists. Deleting a credential is always allowed with latent, tag-dependent effects: a running runtime is untouched, but a `:latest`-class private image re-pulls on its next restart and fails visibly (`observed` waiting reason) once the credential is gone, while digest/fixed tags may start from cache.
     
 </dd>
 </dl>
@@ -1899,6 +1899,370 @@ client.volumes.delete_volume(
 </dl>
 </details>
 
+## RegistryCredentials
+<details><summary><code>client.registry_credentials.<a href="src/planir/registry_credentials/client.py">list_registry_credentials</a>() -> RegistryCredentialsList</code></summary>
+<dl>
+<dd>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.registry_credentials.list_registry_credentials()
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.registry_credentials.<a href="src/planir/registry_credentials/client.py">create_registry_credential</a>(...) -> RegistryCredential</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+From now on, EVERY pull from this host on the team authenticates with it — auto-matched by image host, public images included, no anonymous fallback while it exists (delete restores anonymous pulls). Existing runtimes self-heal: a runtime wedged on `ImagePullBackOff` retries onto the new credential within its backoff cycle, no verbs needed. Static basic-auth registries only (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported — its 12-hour tokens need node machinery this platform does not run yet.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.registry_credentials.create_registry_credential(
+    host="host",
+    username="username",
+    password="password",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**host:** `str` — The registry host this credential authenticates, e.g. `ghcr.io`, `docker.io`, `myregistry.example:8443`. Normalized on write (lowercased, scheme stripped, Docker Hub aliases folded to `docker.io`); a path (`ghcr.io/org`) is refused — credentials are host-scoped. At most ONE credential per host: it is used for EVERY pull from that host, public images included (no anonymous fallback while it exists), so a wrong credential blocks that whole host until rotated or deleted.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**username:** `str` — Registry username — provider-specific (`_json_key` for GAR, `org+robot` for quay).
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**password:** `str` — Registry password / token (write-only — no read ever returns it). Use a scoped, long-lived pull secret: Docker Hub PAT, GHCR PAT (`read:packages`), GitLab deploy token, quay robot token, GAR service-account JSON, ACR service-principal password.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.registry_credentials.<a href="src/planir/registry_credentials/client.py">get_registry_credential</a>(...) -> RegistryCredential</code></summary>
+<dl>
+<dd>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.registry_credentials.get_registry_credential(
+    id="id",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.registry_credentials.<a href="src/planir/registry_credentials/client.py">rotate_registry_credential</a>(...) -> RegistryCredential</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Running pods are untouched — pulls read credentials at pull time, so the next pull simply uses the new secret. The host cannot change: it is the credential's identity (one per host) — re-pointing to a different registry is delete + create. A WRONG rotation blocks every pull from this host (public images included) until fixed — visible as the runtime's `observed` waiting reason.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.registry_credentials.rotate_registry_credential(
+    id="id",
+    username="username",
+    password="password",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**username:** `str` — The replacement username (may be unchanged).
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**password:** `str` — The replacement password / token (write-only). Running pods are untouched; the next pull uses it.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.registry_credentials.<a href="src/planir/registry_credentials/client.py">delete_registry_credential</a>(...)</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Nothing references a credential (binding is by host match), so delete never 409s. Running pods keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image (tag defaults make Kubernetes re-pull on start) will fail its next start visibly — with a tagged or digest-pinned image, cached layers let it start.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.registry_credentials.delete_registry_credential(
+    id="id",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 ## Presets
 <details><summary><code>client.presets.<a href="src/planir/presets/client.py">list_presets</a>() -> PresetsList</code></summary>
 <dl>
@@ -2075,6 +2439,77 @@ client.team.get_team()
 
 <dl>
 <dd>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.team.<a href="src/planir/team/client.py">patch_team</a>(...) -> Team</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+The team's self-service settings — today just `defaultRegion`, the saved location consulted when a create names no `region`. An absent field is left unchanged; `defaultRegion: null` clears it. Future creates only: changing the default never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.team.patch_team()
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**default_region:** `typing.Optional[str]` — The saved default location, consulted when a create names no `region`. Must be a location the catalog offers (see `GET /v1/regions`; anything else is 422). `null` clears it. Future creates only: changing it never moves an existing runtime or volume, and an explicit per-call `region` always beats it.
+    
+</dd>
+</dl>
 
 <dl>
 <dd>

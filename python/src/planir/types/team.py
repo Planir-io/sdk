@@ -21,6 +21,15 @@ class Team(UniversalBaseModel):
 
     package: TeamPackageSummary
     limits: TeamLimits
+    default_region: typing_extensions.Annotated[
+        typing.Optional[str],
+        FieldMetadata(alias="defaultRegion"),
+        pydantic.Field(
+            alias="defaultRegion",
+            default=None,
+            description="The saved default location (`PATCH /v1/team`): where a create that names no `region` places, consumed exactly as if the call had sent it — an explicit per-call `region` always wins, and a default whose location stops offering the preset refuses with 422 rather than silently re-routing. Null = no default (a region-less create places cheapest-available).",
+        ),
+    ]
     balance_microcents: typing_extensions.Annotated[
         int,
         FieldMetadata(alias="balanceMicrocents"),

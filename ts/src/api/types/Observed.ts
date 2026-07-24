@@ -13,6 +13,8 @@ export interface Observed {
     restarts?: number | undefined;
     /** The workload container's last terminal exit. Absent while it has never died. This is the WHY behind a crash loop — read it before filing a provisioning issue. */
     lastExit?: Observed.LastExit | undefined;
+    /** Present exactly while the workload container is wedged waiting on its IMAGE — stable vocabulary (the kubelet's image-waiting constants), never registry prose. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff` long before the 5-minute `error` flip — and storing/fixing the credential self-heals within one pull-retry cycle, no verbs needed. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those). The set is additive over time. */
+    waitingReason?: Observed.WaitingReason | undefined;
 }
 
 export namespace Observed {
@@ -39,4 +41,14 @@ export namespace Observed {
         /** When the container last exited (ISO-8601), if known. */
         at: string | null;
     }
+
+    /** Present exactly while the workload container is wedged waiting on its IMAGE — stable vocabulary (the kubelet's image-waiting constants), never registry prose. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff` long before the 5-minute `error` flip — and storing/fixing the credential self-heals within one pull-retry cycle, no verbs needed. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those). The set is additive over time. */
+    export const WaitingReason = {
+        ErrImagePull: "ErrImagePull",
+        ImagePullBackOff: "ImagePullBackOff",
+        ImageInspectError: "ImageInspectError",
+        ErrImageNeverPull: "ErrImageNeverPull",
+        InvalidImageName: "InvalidImageName",
+    } as const;
+    export type WaitingReason = (typeof WaitingReason)[keyof typeof WaitingReason];
 }
