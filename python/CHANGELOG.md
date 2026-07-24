@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.2](https://github.com/Planir-io/sdk/compare/python-v0.1.0-beta.1...python-v0.1.0-beta.2) (2026-07-24)
+
+
+### Features
+
+* add registry-credentials resource ([3946290](https://github.com/Planir-io/sdk/commit/3946290d9a5e60c694bf77df7aba97fb47308b45))
+
 ## [0.1.0-beta.1](https://github.com/Planir-io/sdk/compare/python-v0.1.0-beta.0...python-v0.1.0-beta.1) (2026-07-05)
 
 
