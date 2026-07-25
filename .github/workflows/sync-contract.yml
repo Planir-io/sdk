@@ -107,8 +107,13 @@ jobs:
         with:
           token: ${{ secrets.SYNC_BOT_TOKEN || github.token }}
           branch: sync/contract
-          title: "chore: sync published contract + regenerate SDKs (${{ steps.oasdiff.outputs.verdict }})"
-          commit-message: "chore: sync published contract + regenerate SDKs"
+          # feat:, NOT chore: — release-please does not bump on a chore, so every chore-titled sync
+          # regenerated the SDKs onto main and they NEVER reached npm/PyPI. Proven 2026-07-25: the
+          # published tarball carried none of the contract's durability text, the manifest sat at
+          # 0.1.0-beta.2, and the last release came off a feat:. A regenerated client IS a feature to
+          # consumers. Do not "tidy" this back to chore:.
+          title: "feat: sync published contract + regenerate SDKs (${{ steps.oasdiff.outputs.verdict }})"
+          commit-message: "feat: sync published contract + regenerate SDKs"
           author: "planir-bot <300069359+planir-bot@users.noreply.github.com>"
           committer: "planir-bot <300069359+planir-bot@users.noreply.github.com>"
           body-path: /tmp/pr-body.md
