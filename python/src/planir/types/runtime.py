@@ -77,7 +77,7 @@ class Runtime(UniversalBaseModel):
 
     region: str = pydantic.Field()
     """
-    The public location this runtime runs in (e.g. "brq") — the resolved value, always present (the client's choice, or the default when omitted). The internal cluster and node are never exposed.
+    The public location this runtime runs in (e.g. "brq") — the resolved value, always present (the client's choice, or the default when omitted). No narrower placement detail is exposed.
     """
 
     client_ref: typing_extensions.Annotated[str, FieldMetadata(alias="clientRef"), pydantic.Field(alias="clientRef")]

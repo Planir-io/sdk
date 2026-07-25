@@ -4,7 +4,7 @@ export interface Volume {
     id: string;
     /** The human handle, unique within the team. */
     name: string;
-    /** Provisioned size in bytes — the hard device-enforced cap. Durability: every volume is backed up daily to off-cluster object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated. */
+    /** Provisioned size in bytes — the hard device-enforced cap. Durability: every volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated. */
     sizeBytes: number;
     /** true = a runtime-managed `/data` volume (auto-created at runtime create, deleted with its runtime); false = standalone (runtime destroy detaches it instead — the volume and its data outlive the runtime). */
     deleteWithRuntime: boolean;

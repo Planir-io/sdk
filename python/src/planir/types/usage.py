@@ -29,7 +29,7 @@ class Usage(UniversalBaseModel):
         FieldMetadata(alias="egressBytes"),
         pydantic.Field(
             alias="egressBytes",
-            description='NOT YET METERED — always "0". Placeholder until per-runtime CNI egress metering lands; a biller MUST NOT treat this as a measured value.',
+            description='NOT YET METERED — always "0". Placeholder until per-runtime egress metering lands; a biller MUST NOT treat this as a measured value.',
         ),
     ]
 

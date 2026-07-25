@@ -578,7 +578,7 @@ export class RuntimesClient {
     }
 
     /**
-     * A bounce, never a commit: the pod is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them (design D12). `/data` is intact.
+     * A bounce, never a commit: the workload is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them. `/data` is intact.
      *
      * @param {PlanirApi.RestartRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.

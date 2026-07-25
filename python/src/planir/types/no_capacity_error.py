@@ -9,7 +9,7 @@ from .no_capacity_error_error import NoCapacityErrorError
 
 class NoCapacityError(UniversalBaseModel):
     """
-    The requested location cannot take this runtime right now — its cluster is full, draining, or not yet live. No row, PVC, or charge is created; retry later or pick another region (GET /v1/regions). Never a silent cross-location fallback.
+    The requested location cannot take this resource right now — it is full, draining, or not yet live. Nothing is provisioned and nothing is charged; retry later or pick another region (GET /v1/regions). Never a silent cross-location fallback.
     """
 
     error: NoCapacityErrorError

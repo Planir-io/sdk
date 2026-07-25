@@ -587,7 +587,7 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[Runtime]
-            Desired state → running; the engine will converge.
+            Desired state → running; the runtime comes up shortly.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/start",
@@ -693,7 +693,7 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[Runtime]
-            Desired state → stopped (release compute, retain volume).
+            Desired state → stopped (release compute; retain the volume, and with `preserveRootfs` the committed rootfs).
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/stop",
@@ -776,7 +776,7 @@ class RawRuntimesClient:
 
     def restart(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[Runtime]:
         """
-        A bounce, never a commit: the pod is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them (design D12). `/data` is intact.
+        A bounce, never a commit: the workload is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them. `/data` is intact.
 
         Parameters
         ----------
@@ -788,7 +788,7 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[Runtime]
-            Pod recreated on the same volume; desired state unchanged.
+            Workload recreated on the same volume; desired state unchanged.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/restart",
@@ -1121,7 +1121,7 @@ class RawRuntimesClient:
             Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
 
         timeout_ms : typing.Optional[int]
-            Capture deadline in milliseconds (1–1800000, default 1800000 — the engine's capture ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
+            Capture deadline in milliseconds (1–1800000, default 1800000 — the platform ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1346,7 +1346,7 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[Runtime]
-            Config replaced; the engine rolls the pod.
+            Config replaced; the workload restarts to pick it up.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/config",
@@ -1462,7 +1462,7 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[Runtime]
-            Env replaced; the engine re-materializes the dedicated env Secret and rolls the pod via the shared spec checksum. A canonically-identical map is a no-op (still 202, no restart).
+            Env replaced; the workload restarts to pick it up. A canonically-identical map is a no-op (still 202, no restart).
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/env",
@@ -1577,7 +1577,7 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[Runtime]
-            Posture replaced; the engine swaps the network policy on the RUNNING runtime (no pod roll — the workload keeps running through the change). `{}` clears to the open-egress default. A canonically-identical posture is a no-op (still 202).
+            Posture replaced; it takes effect on the RUNNING runtime with no restart — the workload keeps running through the change. `{}` clears to the open-egress default. A canonically-identical posture is a no-op (still 202).
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/network",
@@ -2139,7 +2139,7 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[EventsList]
-            Events after the given cursor, in ascending cursor order. Consistency, honestly stated: cursor values are assigned in insert order, but visibility is transactional — two writers (a client mutation and the engine’s observer) can commit out of order, so an event with a LOWER cursor can become visible momentarily after a higher one has already been served. The skew window is bounded by writer transaction lifetime (milliseconds in practice; single-digit seconds is a safe ceiling). A consumer that persists a resume cursor should therefore re-read a short trailing window and dedupe by cursor — delivery is at-least-once under that discipline, and no event is ever mutated or deleted once visible.
+            Events after the given cursor, in ascending cursor order. Consistency, honestly stated: cursor values are assigned in insert order, but visibility is transactional — two writers (your own mutations and the platform’s observations) can commit out of order, so an event with a LOWER cursor can become visible momentarily after a higher one has already been served. The skew window is bounded by writer transaction lifetime (milliseconds in practice; single-digit seconds is a safe ceiling). A consumer that persists a resume cursor should therefore re-read a short trailing window and dedupe by cursor — delivery is at-least-once under that discipline, and no event is ever mutated or deleted once visible.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/events",
@@ -2762,7 +2762,7 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[Runtime]
-            Desired state → running; the engine will converge.
+            Desired state → running; the runtime comes up shortly.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/start",
@@ -2870,7 +2870,7 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[Runtime]
-            Desired state → stopped (release compute, retain volume).
+            Desired state → stopped (release compute; retain the volume, and with `preserveRootfs` the committed rootfs).
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/stop",
@@ -2955,7 +2955,7 @@ class AsyncRawRuntimesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Runtime]:
         """
-        A bounce, never a commit: the pod is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them (design D12). `/data` is intact.
+        A bounce, never a commit: the workload is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them. `/data` is intact.
 
         Parameters
         ----------
@@ -2967,7 +2967,7 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[Runtime]
-            Pod recreated on the same volume; desired state unchanged.
+            Workload recreated on the same volume; desired state unchanged.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/restart",
@@ -3300,7 +3300,7 @@ class AsyncRawRuntimesClient:
             Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
 
         timeout_ms : typing.Optional[int]
-            Capture deadline in milliseconds (1–1800000, default 1800000 — the engine's capture ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
+            Capture deadline in milliseconds (1–1800000, default 1800000 — the platform ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -3525,7 +3525,7 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[Runtime]
-            Config replaced; the engine rolls the pod.
+            Config replaced; the workload restarts to pick it up.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/config",
@@ -3641,7 +3641,7 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[Runtime]
-            Env replaced; the engine re-materializes the dedicated env Secret and rolls the pod via the shared spec checksum. A canonically-identical map is a no-op (still 202, no restart).
+            Env replaced; the workload restarts to pick it up. A canonically-identical map is a no-op (still 202, no restart).
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/env",
@@ -3756,7 +3756,7 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[Runtime]
-            Posture replaced; the engine swaps the network policy on the RUNNING runtime (no pod roll — the workload keeps running through the change). `{}` clears to the open-egress default. A canonically-identical posture is a no-op (still 202).
+            Posture replaced; it takes effect on the RUNNING runtime with no restart — the workload keeps running through the change. `{}` clears to the open-egress default. A canonically-identical posture is a no-op (still 202).
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/network",
@@ -4318,7 +4318,7 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[EventsList]
-            Events after the given cursor, in ascending cursor order. Consistency, honestly stated: cursor values are assigned in insert order, but visibility is transactional — two writers (a client mutation and the engine’s observer) can commit out of order, so an event with a LOWER cursor can become visible momentarily after a higher one has already been served. The skew window is bounded by writer transaction lifetime (milliseconds in practice; single-digit seconds is a safe ceiling). A consumer that persists a resume cursor should therefore re-read a short trailing window and dedupe by cursor — delivery is at-least-once under that discipline, and no event is ever mutated or deleted once visible.
+            Events after the given cursor, in ascending cursor order. Consistency, honestly stated: cursor values are assigned in insert order, but visibility is transactional — two writers (your own mutations and the platform’s observations) can commit out of order, so an event with a LOWER cursor can become visible momentarily after a higher one has already been served. The skew window is bounded by writer transaction lifetime (milliseconds in practice; single-digit seconds is a safe ceiling). A consumer that persists a resume cursor should therefore re-read a short trailing window and dedupe by cursor — delivery is at-least-once under that discipline, and no event is ever mutated or deleted once visible.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/events",

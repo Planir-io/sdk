@@ -13,6 +13,6 @@ export interface DetachedExecRequest {
     command: string[];
     /** Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead. */
     stdin?: string;
-    /** Capture deadline in milliseconds (1–1800000, default 1800000 — the engine's capture ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped. */
+    /** Capture deadline in milliseconds (1–1800000, default 1800000 — the platform ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped. */
     timeoutMs?: number;
 }
