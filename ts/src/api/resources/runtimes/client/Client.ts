@@ -402,6 +402,8 @@ export class RuntimesClient {
     }
 
     /**
+     * Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm on the origin node, colder elsewhere (the latency class).
+     *
      * @param {PlanirApi.StartRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -491,6 +493,8 @@ export class RuntimesClient {
     }
 
     /**
+     * Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the committed image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until the commit is durable, then `stopped`.
+     *
      * @param {PlanirApi.StopRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -574,6 +578,8 @@ export class RuntimesClient {
     }
 
     /**
+     * A bounce, never a commit: the pod is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them (design D12). `/data` is intact.
+     *
      * @param {PlanirApi.RestartRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
