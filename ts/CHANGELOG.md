@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.5](https://github.com/Planir-io/sdk/compare/ts-v0.1.0-beta.4...ts-v0.1.0-beta.5) (2026-07-25)
+
+
+### Features
+
+* sync published contract + regenerate SDKs ([#20](https://github.com/Planir-io/sdk/issues/20)) ([9d9fc29](https://github.com/Planir-io/sdk/commit/9d9fc29cb60b3f14d169eda1e8935e79ebeb9a0a))
+
 ## [0.1.0-beta.4](https://github.com/Planir-io/sdk/compare/ts-v0.1.0-beta.3...ts-v0.1.0-beta.4) (2026-07-25)
 
 
