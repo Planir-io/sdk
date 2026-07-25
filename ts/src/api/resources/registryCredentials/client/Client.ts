@@ -94,7 +94,7 @@ export class RegistryCredentialsClient {
     }
 
     /**
-     * From now on, EVERY pull from this host on the team authenticates with it — auto-matched by image host, public images included, no anonymous fallback while it exists (delete restores anonymous pulls). Existing runtimes self-heal: a runtime wedged on `ImagePullBackOff` retries onto the new credential within its backoff cycle, no verbs needed. Static basic-auth registries only (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported — its 12-hour tokens need node machinery this platform does not run yet.
+     * From now on, EVERY pull from this host on the team authenticates with it — auto-matched by image host, public images included, no anonymous fallback while it exists (delete restores anonymous pulls). Existing runtimes self-heal: a runtime wedged on `ImagePullBackOff` retries onto the new credential within its backoff cycle, no verbs needed. Static basic-auth registries only (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported — its 12-hour tokens need token-refresh machinery this platform does not run yet.
      *
      * @param {PlanirApi.CreateRegistryCredentialRequest} request
      * @param {RegistryCredentialsClient.RequestOptions} requestOptions - Request-specific configuration.

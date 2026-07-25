@@ -402,7 +402,7 @@ export class RuntimesClient {
     }
 
     /**
-     * Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm on the origin node, colder elsewhere (the latency class).
+     * Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm where it last ran, colder elsewhere (the latency class).
      *
      * @param {PlanirApi.StartRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.

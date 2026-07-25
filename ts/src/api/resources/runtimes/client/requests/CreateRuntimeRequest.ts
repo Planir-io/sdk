@@ -36,7 +36,7 @@ export interface CreateRuntimeRequest {
     metadata?: Record<string, string>;
     /** Hardening knob, default false. false (default): the rootfs is writable — a standard machine; writes land in the ephemeral scratch budget. true: the rootfs is the image verbatim, read-only, with writable /tmp and /run scratch mounts (funded by the same budget); anything durable belongs on `/data`. */
     rootfsReadOnly?: boolean;
-    /** Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held off node disk in object storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override. */
+    /** Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held in durable storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override. */
     preserveRootfs?: boolean;
     /** Initial desired state (default running). Cannot create destroyed. */
     desiredState?: CreateRuntimeRequest.DesiredState;

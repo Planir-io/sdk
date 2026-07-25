@@ -354,7 +354,7 @@ client.runtimes.create(
 <dl>
 <dd>
 
-**preserve_rootfs:** `typing.Optional[bool]` — Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held off node disk in object storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
+**preserve_rootfs:** `typing.Optional[bool]` — Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held in durable storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
     
 </dd>
 </dl>
@@ -520,7 +520,7 @@ client.runtimes.destroy(
 <dl>
 <dd>
 
-Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm on the origin node, colder elsewhere (the latency class).
+Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm where it last ran, colder elsewhere (the latency class).
 </dd>
 </dl>
 </dd>
@@ -2011,7 +2011,7 @@ client.registry_credentials.list_registry_credentials()
 <dl>
 <dd>
 
-From now on, EVERY pull from this host on the team authenticates with it — auto-matched by image host, public images included, no anonymous fallback while it exists (delete restores anonymous pulls). Existing runtimes self-heal: a runtime wedged on `ImagePullBackOff` retries onto the new credential within its backoff cycle, no verbs needed. Static basic-auth registries only (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported — its 12-hour tokens need node machinery this platform does not run yet.
+From now on, EVERY pull from this host on the team authenticates with it — auto-matched by image host, public images included, no anonymous fallback while it exists (delete restores anonymous pulls). Existing runtimes self-heal: a runtime wedged on `ImagePullBackOff` retries onto the new credential within its backoff cycle, no verbs needed. Static basic-auth registries only (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported — its 12-hour tokens need token-refresh machinery this platform does not run yet.
 </dd>
 </dl>
 </dd>
