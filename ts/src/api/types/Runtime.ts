@@ -28,7 +28,7 @@ export interface Runtime {
     network?: PlanirApi.NetworkSpec | undefined;
     /** Correlation labels, echoed in full ({} when none). */
     metadata: Record<string, string>;
-    /** The public location this runtime runs in (e.g. "brq") — the resolved value, always present (the client's choice, or the default when omitted). The internal cluster and node are never exposed. */
+    /** The public location this runtime runs in (e.g. "brq") — the resolved value, always present (the client's choice, or the default when omitted). No narrower placement detail is exposed. */
     region: string;
     clientRef: string;
 }

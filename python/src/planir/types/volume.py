@@ -22,7 +22,7 @@ class Volume(UniversalBaseModel):
         FieldMetadata(alias="sizeBytes"),
         pydantic.Field(
             alias="sizeBytes",
-            description="Provisioned size in bytes — the hard device-enforced cap. Durability: every volume is backed up daily to off-cluster object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.",
+            description="Provisioned size in bytes — the hard device-enforced cap. Durability: every volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.",
         ),
     ]
     delete_with_runtime: typing_extensions.Annotated[

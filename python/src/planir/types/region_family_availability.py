@@ -14,7 +14,7 @@ class RegionFamilyAvailability(UniversalBaseModel):
 
     available: bool = pydantic.Field()
     """
-    Whether at least one cluster at this location can take the family's smallest preset right now. `false` = full, draining, or not yet commissioned — a create naming this location refuses 503 until it flips. Derived live on every read; re-read rather than remember.
+    Whether this location can take the family's smallest preset right now. `false` = full, draining, or not yet commissioned — a create naming this location refuses 503 until it flips. Derived live on every read; re-read rather than remember.
     """
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

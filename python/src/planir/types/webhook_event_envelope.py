@@ -38,7 +38,7 @@ class WebhookEventEnvelope(UniversalBaseModel):
 
     region: str = pydantic.Field()
     """
-    The public location of the runtime the event concerns — the same `region` its API responses echo (read at delivery time). Internal cluster and node names never appear.
+    The public location of the runtime the event concerns — the same `region` its API responses echo (read at delivery time). No narrower placement detail ever appears.
     """
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

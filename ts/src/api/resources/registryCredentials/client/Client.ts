@@ -266,7 +266,7 @@ export class RegistryCredentialsClient {
     }
 
     /**
-     * Running pods are untouched — pulls read credentials at pull time, so the next pull simply uses the new secret. The host cannot change: it is the credential's identity (one per host) — re-pointing to a different registry is delete + create. A WRONG rotation blocks every pull from this host (public images included) until fixed — visible as the runtime's `observed` waiting reason.
+     * Running runtimes are untouched — pulls read credentials at pull time, so the next pull simply uses the new secret. The host cannot change: it is the credential's identity (one per host) — re-pointing to a different registry is delete + create. A WRONG rotation blocks every pull from this host (public images included) until fixed — visible as the runtime's `observed` waiting reason.
      *
      * @param {PlanirApi.RotateRegistryCredentialRequest} request
      * @param {RegistryCredentialsClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -359,7 +359,7 @@ export class RegistryCredentialsClient {
     }
 
     /**
-     * Nothing references a credential (binding is by host match), so delete never 409s. Running pods keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image (tag defaults make Kubernetes re-pull on start) will fail its next start visibly — with a tagged or digest-pinned image, cached layers let it start.
+     * Nothing references a credential (binding is by host match), so delete never 409s. Running runtimes keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image is re-pulled on its next start, so that start fails visibly — pinned to any other tag, or to a digest, it starts from cached layers.
      *
      * @param {PlanirApi.DeleteRegistryCredentialRequest} request
      * @param {RegistryCredentialsClient.RequestOptions} requestOptions - Request-specific configuration.

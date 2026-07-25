@@ -666,7 +666,7 @@ client.runtimes.stop(
 <dl>
 <dd>
 
-A bounce, never a commit: the pod is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them (design D12). `/data` is intact.
+A bounce, never a commit: the workload is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them. `/data` is intact.
 </dd>
 </dl>
 </dd>
@@ -980,7 +980,7 @@ client.runtimes.exec_detached(
 <dl>
 <dd>
 
-**timeout_ms:** `typing.Optional[int]` — Capture deadline in milliseconds (1–1800000, default 1800000 — the engine's capture ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
+**timeout_ms:** `typing.Optional[int]` — Capture deadline in milliseconds (1–1800000, default 1800000 — the platform ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
     
 </dd>
 </dl>
@@ -1739,7 +1739,7 @@ client.volumes.list_volumes()
 <dl>
 <dd>
 
-Provisions the backing storage fully or leaves nothing (create saga) — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every volume is backed up daily to off-cluster object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+Provisions the backing storage fully or leaves nothing behind — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
 </dd>
 </dl>
 </dd>
@@ -1789,7 +1789,7 @@ client.volumes.create_volume(
 <dl>
 <dd>
 
-**size_bytes:** `int` — Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not. Durability: every volume is backed up daily to off-cluster object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+**size_bytes:** `int` — Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not. Durability: every volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
     
 </dd>
 </dl>
@@ -2161,7 +2161,7 @@ client.registry_credentials.get_registry_credential(
 <dl>
 <dd>
 
-Running pods are untouched — pulls read credentials at pull time, so the next pull simply uses the new secret. The host cannot change: it is the credential's identity (one per host) — re-pointing to a different registry is delete + create. A WRONG rotation blocks every pull from this host (public images included) until fixed — visible as the runtime's `observed` waiting reason.
+Running runtimes are untouched — pulls read credentials at pull time, so the next pull simply uses the new secret. The host cannot change: it is the credential's identity (one per host) — re-pointing to a different registry is delete + create. A WRONG rotation blocks every pull from this host (public images included) until fixed — visible as the runtime's `observed` waiting reason.
 </dd>
 </dl>
 </dd>
@@ -2220,7 +2220,7 @@ client.registry_credentials.rotate_registry_credential(
 <dl>
 <dd>
 
-**password:** `str` — The replacement password / token (write-only). Running pods are untouched; the next pull uses it.
+**password:** `str` — The replacement password / token (write-only). Running runtimes are untouched; the next pull uses it.
     
 </dd>
 </dl>
@@ -2252,7 +2252,7 @@ client.registry_credentials.rotate_registry_credential(
 <dl>
 <dd>
 
-Nothing references a credential (binding is by host match), so delete never 409s. Running pods keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image (tag defaults make Kubernetes re-pull on start) will fail its next start visibly — with a tagged or digest-pinned image, cached layers let it start.
+Nothing references a credential (binding is by host match), so delete never 409s. Running runtimes keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image is re-pulled on its next start, so that start fails visibly — pinned to any other tag, or to a digest, it starts from cached layers.
 </dd>
 </dl>
 </dd>

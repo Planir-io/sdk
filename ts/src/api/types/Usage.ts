@@ -7,6 +7,6 @@ export interface Usage {
     cpuSeconds: string;
     memoryByteSeconds: string;
     storageByteSeconds: string;
-    /** NOT YET METERED — always "0". Placeholder until per-runtime CNI egress metering lands; a biller MUST NOT treat this as a measured value. */
+    /** NOT YET METERED — always "0". Placeholder until per-runtime egress metering lands; a biller MUST NOT treat this as a measured value. */
     egressBytes: string;
 }

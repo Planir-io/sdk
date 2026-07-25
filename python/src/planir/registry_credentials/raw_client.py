@@ -303,7 +303,7 @@ class RawRegistryCredentialsClient:
         self, id: str, *, username: str, password: str, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RegistryCredential]:
         """
-        Running pods are untouched — pulls read credentials at pull time, so the next pull simply uses the new secret. The host cannot change: it is the credential's identity (one per host) — re-pointing to a different registry is delete + create. A WRONG rotation blocks every pull from this host (public images included) until fixed — visible as the runtime's `observed` waiting reason.
+        Running runtimes are untouched — pulls read credentials at pull time, so the next pull simply uses the new secret. The host cannot change: it is the credential's identity (one per host) — re-pointing to a different registry is delete + create. A WRONG rotation blocks every pull from this host (public images included) until fixed — visible as the runtime's `observed` waiting reason.
 
         Parameters
         ----------
@@ -313,7 +313,7 @@ class RawRegistryCredentialsClient:
             The replacement username (may be unchanged).
 
         password : str
-            The replacement password / token (write-only). Running pods are untouched; the next pull uses it.
+            The replacement password / token (write-only). Running runtimes are untouched; the next pull uses it.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -414,7 +414,7 @@ class RawRegistryCredentialsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[None]:
         """
-        Nothing references a credential (binding is by host match), so delete never 409s. Running pods keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image (tag defaults make Kubernetes re-pull on start) will fail its next start visibly — with a tagged or digest-pinned image, cached layers let it start.
+        Nothing references a credential (binding is by host match), so delete never 409s. Running runtimes keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image is re-pulled on its next start, so that start fails visibly — pinned to any other tag, or to a digest, it starts from cached layers.
 
         Parameters
         ----------
@@ -765,7 +765,7 @@ class AsyncRawRegistryCredentialsClient:
         self, id: str, *, username: str, password: str, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RegistryCredential]:
         """
-        Running pods are untouched — pulls read credentials at pull time, so the next pull simply uses the new secret. The host cannot change: it is the credential's identity (one per host) — re-pointing to a different registry is delete + create. A WRONG rotation blocks every pull from this host (public images included) until fixed — visible as the runtime's `observed` waiting reason.
+        Running runtimes are untouched — pulls read credentials at pull time, so the next pull simply uses the new secret. The host cannot change: it is the credential's identity (one per host) — re-pointing to a different registry is delete + create. A WRONG rotation blocks every pull from this host (public images included) until fixed — visible as the runtime's `observed` waiting reason.
 
         Parameters
         ----------
@@ -775,7 +775,7 @@ class AsyncRawRegistryCredentialsClient:
             The replacement username (may be unchanged).
 
         password : str
-            The replacement password / token (write-only). Running pods are untouched; the next pull uses it.
+            The replacement password / token (write-only). Running runtimes are untouched; the next pull uses it.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -876,7 +876,7 @@ class AsyncRawRegistryCredentialsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[None]:
         """
-        Nothing references a credential (binding is by host match), so delete never 409s. Running pods keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image (tag defaults make Kubernetes re-pull on start) will fail its next start visibly — with a tagged or digest-pinned image, cached layers let it start.
+        Nothing references a credential (binding is by host match), so delete never 409s. Running runtimes keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image is re-pulled on its next start, so that start fails visibly — pinned to any other tag, or to a digest, it starts from cached layers.
 
         Parameters
         ----------
