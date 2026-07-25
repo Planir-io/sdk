@@ -8,6 +8,8 @@ WebhookEventType = typing.Union[
         "runtime.lifecycle.running",
         "runtime.lifecycle.error",
         "runtime.lifecycle.destroyed",
+        "runtime.lifecycle.stopped",
+        "runtime.lifecycle.stop_failed",
     ],
     typing.Any,
 ]

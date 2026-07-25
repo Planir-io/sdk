@@ -18,6 +18,8 @@ export interface Runtime {
     resources: PlanirApi.ResourceSpec;
     /** The rootfs hardening knob as set at create (default false). */
     rootfsReadOnly: boolean;
+    /** Rootfs preservation at stop as set at create (default true) — false = the throwaway stop (rootfs discarded, `/data` survives). */
+    preserveRootfs: boolean;
     /** Exposed ports the client declared at create (echoed back as bare integers). */
     ports: number[];
     /** Reach handle per declared port, keyed by the port number as a string ({} when no ports are declared). The same opaque, placement-free handle POST /v1/runtimes/{id}/reach returns — the client parses nothing out of it. The handle exists from create; it serves traffic once the workload passes readiness (before that the edge answers with an error status). */

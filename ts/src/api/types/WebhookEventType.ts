@@ -6,5 +6,7 @@ export const WebhookEventType = {
     RuntimeLifecycleRunning: "runtime.lifecycle.running",
     RuntimeLifecycleError: "runtime.lifecycle.error",
     RuntimeLifecycleDestroyed: "runtime.lifecycle.destroyed",
+    RuntimeLifecycleStopped: "runtime.lifecycle.stopped",
+    RuntimeLifecycleStopFailed: "runtime.lifecycle.stop_failed",
 } as const;
 export type WebhookEventType = (typeof WebhookEventType)[keyof typeof WebhookEventType];

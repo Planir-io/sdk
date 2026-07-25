@@ -189,6 +189,7 @@ class RawRuntimesClient:
         network: typing.Optional[CreateRuntimeRequestNetwork] = OMIT,
         metadata: typing.Optional[typing.Dict[str, str]] = OMIT,
         rootfs_read_only: typing.Optional[bool] = OMIT,
+        preserve_rootfs: typing.Optional[bool] = OMIT,
         desired_state: typing.Optional[CreateRuntimeRequestDesiredState] = OMIT,
         region: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -237,6 +238,9 @@ class RawRuntimesClient:
         rootfs_read_only : typing.Optional[bool]
             Hardening knob, default false. false (default): the rootfs is writable — a standard machine; writes land in the ephemeral scratch budget. true: the rootfs is the image verbatim, read-only, with writable /tmp and /run scratch mounts (funded by the same budget); anything durable belongs on `/data`.
 
+        preserve_rootfs : typing.Optional[bool]
+            Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held off node disk in object storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
+
         desired_state : typing.Optional[CreateRuntimeRequestDesiredState]
             Initial desired state (default running). Cannot create destroyed.
 
@@ -274,6 +278,7 @@ class RawRuntimesClient:
                 ),
                 "metadata": metadata,
                 "rootfsReadOnly": rootfs_read_only,
+                "preserveRootfs": preserve_rootfs,
                 "desiredState": desired_state,
                 "region": region,
             },
@@ -570,6 +575,8 @@ class RawRuntimesClient:
 
     def start(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[Runtime]:
         """
+        Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm on the origin node, colder elsewhere (the latency class).
+
         Parameters
         ----------
         id : str
@@ -674,6 +681,8 @@ class RawRuntimesClient:
 
     def stop(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[Runtime]:
         """
+        Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the committed image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until the commit is durable, then `stopped`.
+
         Parameters
         ----------
         id : str
@@ -767,6 +776,8 @@ class RawRuntimesClient:
 
     def restart(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[Runtime]:
         """
+        A bounce, never a commit: the pod is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them (design D12). `/data` is intact.
+
         Parameters
         ----------
         id : str
@@ -2349,6 +2360,7 @@ class AsyncRawRuntimesClient:
         network: typing.Optional[CreateRuntimeRequestNetwork] = OMIT,
         metadata: typing.Optional[typing.Dict[str, str]] = OMIT,
         rootfs_read_only: typing.Optional[bool] = OMIT,
+        preserve_rootfs: typing.Optional[bool] = OMIT,
         desired_state: typing.Optional[CreateRuntimeRequestDesiredState] = OMIT,
         region: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
@@ -2397,6 +2409,9 @@ class AsyncRawRuntimesClient:
         rootfs_read_only : typing.Optional[bool]
             Hardening knob, default false. false (default): the rootfs is writable — a standard machine; writes land in the ephemeral scratch budget. true: the rootfs is the image verbatim, read-only, with writable /tmp and /run scratch mounts (funded by the same budget); anything durable belongs on `/data`.
 
+        preserve_rootfs : typing.Optional[bool]
+            Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held off node disk in object storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
+
         desired_state : typing.Optional[CreateRuntimeRequestDesiredState]
             Initial desired state (default running). Cannot create destroyed.
 
@@ -2434,6 +2449,7 @@ class AsyncRawRuntimesClient:
                 ),
                 "metadata": metadata,
                 "rootfsReadOnly": rootfs_read_only,
+                "preserveRootfs": preserve_rootfs,
                 "desiredState": desired_state,
                 "region": region,
             },
@@ -2734,6 +2750,8 @@ class AsyncRawRuntimesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Runtime]:
         """
+        Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm on the origin node, colder elsewhere (the latency class).
+
         Parameters
         ----------
         id : str
@@ -2840,6 +2858,8 @@ class AsyncRawRuntimesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Runtime]:
         """
+        Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the committed image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until the commit is durable, then `stopped`.
+
         Parameters
         ----------
         id : str
@@ -2935,6 +2955,8 @@ class AsyncRawRuntimesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Runtime]:
         """
+        A bounce, never a commit: the pod is recreated with the same image selection as `start` and desired state is unchanged, so rootfs changes since the last commit are lost — `stop` is the lever that preserves them (design D12). `/data` is intact.
+
         Parameters
         ----------
         id : str

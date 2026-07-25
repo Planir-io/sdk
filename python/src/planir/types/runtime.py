@@ -50,6 +50,14 @@ class Runtime(UniversalBaseModel):
             alias="rootfsReadOnly", description="The rootfs hardening knob as set at create (default false)."
         ),
     ]
+    preserve_rootfs: typing_extensions.Annotated[
+        bool,
+        FieldMetadata(alias="preserveRootfs"),
+        pydantic.Field(
+            alias="preserveRootfs",
+            description="Rootfs preservation at stop as set at create (default true) — false = the throwaway stop (rootfs discarded, `/data` survives).",
+        ),
+    ]
     ports: typing.List[int] = pydantic.Field()
     """
     Exposed ports the client declared at create (echoed back as bare integers).
