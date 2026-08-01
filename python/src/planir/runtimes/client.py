@@ -152,7 +152,7 @@ class RuntimesClient:
         resources : typing.Optional[ResourceSpecInput]
 
         volume_id : typing.Optional[str]
-            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: attached elsewhere or mid-delete → 409 VOLUME_BUSY; unknown or another team's id → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
+            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
 
         ports : typing.Optional[typing.Sequence[int]]
             Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.
@@ -944,7 +944,7 @@ class AsyncRuntimesClient:
         resources : typing.Optional[ResourceSpecInput]
 
         volume_id : typing.Optional[str]
-            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: attached elsewhere or mid-delete → 409 VOLUME_BUSY; unknown or another team's id → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
+            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
 
         ports : typing.Optional[typing.Sequence[int]]
             Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.

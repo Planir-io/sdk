@@ -306,7 +306,7 @@ client.runtimes.create(
 <dl>
 <dd>
 
-**volume_id:** `typing.Optional[str]` — Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: attached elsewhere or mid-delete → 409 VOLUME_BUSY; unknown or another team's id → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
+**volume_id:** `typing.Optional[str]` — Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
     
 </dd>
 </dl>
@@ -1739,7 +1739,7 @@ client.volumes.list_volumes()
 <dl>
 <dd>
 
-Provisions the backing storage fully or leaves nothing behind — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+Starts backing-storage provisioning — a 201 returns the volume in `creating`; it becomes `available` after the backing storage binds. Attach it by creating a runtime with `volumeId` once available. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
 </dd>
 </dl>
 </dd>
@@ -1789,7 +1789,7 @@ client.volumes.create_volume(
 <dl>
 <dd>
 
-**size_bytes:** `int` — Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not. Durability: every volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+**size_bytes:** `int` — Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
     
 </dd>
 </dl>
@@ -1888,7 +1888,7 @@ client.volumes.get_volume(
 <dl>
 <dd>
 
-Removes the backing storage and ends billing at this instant. Only an `available` volume can be deleted: an attached one is held for its runtime's whole life (stopped included) — destroy the runtime first. The volume and its live data are gone and there is no self-serve way back. Backups already taken persist in backup storage and are removed on request — automatic purge of a deleted volume's backups is not yet implemented.
+Accepts irreversible deletion and ends billing at this instant. A `creating` or `available` volume can be deleted; an attached one is held for its runtime's whole life (stopped included) — destroy the runtime first. The volume and its backups cannot be recovered. Physical cleanup continues internally; no fixed completion deadline is promised.
 </dd>
 </dl>
 </dd>

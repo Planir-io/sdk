@@ -9,7 +9,7 @@ from .idempotency_conflict_error_error import IdempotencyConflictErrorError
 
 class IdempotencyConflictError(UniversalBaseModel):
     """
-    Create refused by a conflict — `code` names which. CONFLICT: the Idempotency-Key was reused with a DIFFERENT effective request (same key + same request replays idempotently; a different request needs a fresh key). VOLUME_BUSY: the volume named by `volumeId` is attached elsewhere or mid-delete — destroy the holding runtime first.
+    Create refused by a conflict — `code` names which. CONFLICT: the Idempotency-Key was reused with a DIFFERENT effective request (same key + same request replays idempotently; a different request needs a fresh key). VOLUME_BUSY: the volume named by `volumeId` is attached elsewhere — destroy the holding runtime first. INVALID_STATE: the volume is still creating; retry when it is available.
     """
 
     error: IdempotencyConflictErrorError
