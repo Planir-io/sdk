@@ -62,7 +62,7 @@ class VolumesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> Volume:
         """
-        Provisions the backing storage fully or leaves nothing behind — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+        Starts backing-storage provisioning — a 201 returns the volume in `creating`; it becomes `available` after the backing storage binds. Attach it by creating a runtime with `volumeId` once available. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
 
         Parameters
         ----------
@@ -70,7 +70,7 @@ class VolumesClient:
             The human handle, unique within the team (duplicate → 409 CONFLICT). Lowercase DNS-label shape: `[a-z0-9]` with interior hyphens, 1–63 chars. Names beginning `data-` are reserved for runtime-managed `/data` volumes (400).
 
         size_bytes : int
-            Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not. Durability: every volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+            Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
 
         region : typing.Optional[str]
             The location to home the volume in — the same choice runtime create takes. Omitted: the default location. A location that is not offered → 422; one with no capacity right now → 503 (nothing provisioned). See `GET /v1/regions`. The home is fixed for the volume's life: a runtime attaching this volume is placed here (data gravity — the runtime follows the volume, never the reverse).
@@ -81,7 +81,7 @@ class VolumesClient:
         Returns
         -------
         Volume
-            The volume, born `available`.
+            The volume, born `creating` while backing storage provisions.
 
         Examples
         --------
@@ -130,7 +130,7 @@ class VolumesClient:
 
     def delete_volume(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Removes the backing storage and ends billing at this instant. Only an `available` volume can be deleted: an attached one is held for its runtime's whole life (stopped included) — destroy the runtime first. The volume and its live data are gone and there is no self-serve way back. Backups already taken persist in backup storage and are removed on request — automatic purge of a deleted volume's backups is not yet implemented.
+        Accepts irreversible deletion and ends billing at this instant. A `creating` or `available` volume can be deleted; an attached one is held for its runtime's whole life (stopped included) — destroy the runtime first. The volume and its backups cannot be recovered. Physical cleanup continues internally; no fixed completion deadline is promised.
 
         Parameters
         ----------
@@ -216,7 +216,7 @@ class AsyncVolumesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> Volume:
         """
-        Provisions the backing storage fully or leaves nothing behind — a 201 means the volume exists and its size is the device-enforced hard cap. Born `available`; attach it by creating a runtime with `volumeId`. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+        Starts backing-storage provisioning — a 201 returns the volume in `creating`; it becomes `available` after the backing storage binds. Attach it by creating a runtime with `volumeId` once available. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
 
         Parameters
         ----------
@@ -224,7 +224,7 @@ class AsyncVolumesClient:
             The human handle, unique within the team (duplicate → 409 CONFLICT). Lowercase DNS-label shape: `[a-z0-9]` with interior hyphens, 1–63 chars. Names beginning `data-` are reserved for runtime-managed `/data` volumes (400).
 
         size_bytes : int
-            Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not. Durability: every volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. Restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+            Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
 
         region : typing.Optional[str]
             The location to home the volume in — the same choice runtime create takes. Omitted: the default location. A location that is not offered → 422; one with no capacity right now → 503 (nothing provisioned). See `GET /v1/regions`. The home is fixed for the volume's life: a runtime attaching this volume is placed here (data gravity — the runtime follows the volume, never the reverse).
@@ -235,7 +235,7 @@ class AsyncVolumesClient:
         Returns
         -------
         Volume
-            The volume, born `available`.
+            The volume, born `creating` while backing storage provisions.
 
         Examples
         --------
@@ -300,7 +300,7 @@ class AsyncVolumesClient:
 
     async def delete_volume(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
         """
-        Removes the backing storage and ends billing at this instant. Only an `available` volume can be deleted: an attached one is held for its runtime's whole life (stopped included) — destroy the runtime first. The volume and its live data are gone and there is no self-serve way back. Backups already taken persist in backup storage and are removed on request — automatic purge of a deleted volume's backups is not yet implemented.
+        Accepts irreversible deletion and ends billing at this instant. A `creating` or `available` volume can be deleted; an attached one is held for its runtime's whole life (stopped included) — destroy the runtime first. The volume and its backups cannot be recovered. Physical cleanup continues internally; no fixed completion deadline is promised.
 
         Parameters
         ----------

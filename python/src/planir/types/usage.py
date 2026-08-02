@@ -24,6 +24,14 @@ class Usage(UniversalBaseModel):
     storage_byte_seconds: typing_extensions.Annotated[
         str, FieldMetadata(alias="storageByteSeconds"), pydantic.Field(alias="storageByteSeconds")
     ]
+    preserved_rootfs_byte_seconds: typing_extensions.Annotated[
+        str,
+        FieldMetadata(alias="preservedRootfsByteSeconds"),
+        pydantic.Field(
+            alias="preservedRootfsByteSeconds",
+            description="Counter, not money: compressed runtime-layer bytes recorded for committed rootfs images integrated over billable presence. Excludes allocated rootfs tiers, shared base-image layers, volume capacity, and storage-system overhead.",
+        ),
+    ]
     egress_bytes: typing_extensions.Annotated[
         str,
         FieldMetadata(alias="egressBytes"),

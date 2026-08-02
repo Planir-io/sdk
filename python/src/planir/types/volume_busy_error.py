@@ -9,7 +9,7 @@ from .volume_busy_error_error import VolumeBusyErrorError
 
 class VolumeBusyError(UniversalBaseModel):
     """
-    The volume is attached (or mid-delete): attachment spans the holding runtime's whole life — stop does not release it. Destroy the runtime first; no force-detach exists in v1.
+    The volume is attached: attachment spans the holding runtime's whole life — stop does not release it. Destroy the runtime first; no force-detach exists in v1.
     """
 
     error: VolumeBusyErrorError

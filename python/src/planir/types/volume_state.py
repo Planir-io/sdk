@@ -2,4 +2,4 @@
 
 import typing
 
-VolumeState = typing.Union[typing.Literal["available", "attached", "deleting"], typing.Any]
+VolumeState = typing.Union[typing.Literal["creating", "available", "attached"], typing.Any]

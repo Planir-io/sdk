@@ -2,4 +2,4 @@
 
 import typing
 
-IdempotencyConflictErrorErrorCode = typing.Union[typing.Literal["CONFLICT", "VOLUME_BUSY"], typing.Any]
+IdempotencyConflictErrorErrorCode = typing.Union[typing.Literal["CONFLICT", "VOLUME_BUSY", "INVALID_STATE"], typing.Any]

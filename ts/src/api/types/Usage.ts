@@ -7,6 +7,8 @@ export interface Usage {
     cpuSeconds: string;
     memoryByteSeconds: string;
     storageByteSeconds: string;
+    /** Counter, not money: compressed runtime-layer bytes recorded for committed rootfs images integrated over billable presence. Excludes allocated rootfs tiers, shared base-image layers, volume capacity, and storage-system overhead. */
+    preservedRootfsByteSeconds: string;
     /** NOT YET METERED — always "0". Placeholder until per-runtime egress metering lands; a biller MUST NOT treat this as a measured value. */
     egressBytes: string;
 }
