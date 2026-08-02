@@ -23,6 +23,7 @@ from ..errors.service_unavailable_error import ServiceUnavailableError
 from ..errors.too_many_requests_error import TooManyRequestsError
 from ..errors.unauthorized_error import UnauthorizedError
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
+from ..types.api_key import ApiKey
 from ..types.detached_exec import DetachedExec
 from ..types.events_list import EventsList
 from ..types.exec_id import ExecId
@@ -180,6 +181,7 @@ class RawRuntimesClient:
         client_ref: typing.Optional[str] = OMIT,
         config: typing.Optional[str] = OMIT,
         env: typing.Optional[typing.Dict[str, str]] = OMIT,
+        spawn: typing.Optional[bool] = OMIT,
         command: typing.Optional[typing.Sequence[str]] = OMIT,
         entrypoint: typing.Optional[typing.Sequence[str]] = OMIT,
         resources: typing.Optional[ResourceSpecInput] = OMIT,
@@ -211,6 +213,9 @@ class RawRuntimesClient:
 
         env : typing.Optional[typing.Dict[str, str]]
             Optional env vars (default {}). See the EnvMap description.
+
+        spawn : typing.Optional[bool]
+            Issue one runtime-bound credential for depth-one child runtime management.
 
         command : typing.Optional[typing.Sequence[str]]
             Optional CMD override, Docker semantics (argv array, no shell). Omitted = the image's own CMD. Create-time only — there is no replace verb; recreate to change it.
@@ -263,6 +268,7 @@ class RawRuntimesClient:
                 "image": image,
                 "config": config,
                 "env": env,
+                "spawn": spawn,
                 "command": command,
                 "entrypoint": entrypoint,
                 "resources": convert_and_respect_annotation_metadata(
@@ -801,6 +807,101 @@ class RawRuntimesClient:
                     Runtime,
                     parse_obj_as(
                         type_=Runtime,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return HttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    def rotate_runtime_key(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> HttpResponse[ApiKey]:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[ApiKey]
+            Successor key display metadata; plaintext is never returned.
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"v1/runtimes/{encode_path_param(id)}/key",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ApiKey,
+                    parse_obj_as(
+                        type_=ApiKey,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -1537,6 +1638,17 @@ class RawRuntimesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2351,6 +2463,7 @@ class AsyncRawRuntimesClient:
         client_ref: typing.Optional[str] = OMIT,
         config: typing.Optional[str] = OMIT,
         env: typing.Optional[typing.Dict[str, str]] = OMIT,
+        spawn: typing.Optional[bool] = OMIT,
         command: typing.Optional[typing.Sequence[str]] = OMIT,
         entrypoint: typing.Optional[typing.Sequence[str]] = OMIT,
         resources: typing.Optional[ResourceSpecInput] = OMIT,
@@ -2382,6 +2495,9 @@ class AsyncRawRuntimesClient:
 
         env : typing.Optional[typing.Dict[str, str]]
             Optional env vars (default {}). See the EnvMap description.
+
+        spawn : typing.Optional[bool]
+            Issue one runtime-bound credential for depth-one child runtime management.
 
         command : typing.Optional[typing.Sequence[str]]
             Optional CMD override, Docker semantics (argv array, no shell). Omitted = the image's own CMD. Create-time only — there is no replace verb; recreate to change it.
@@ -2434,6 +2550,7 @@ class AsyncRawRuntimesClient:
                 "image": image,
                 "config": config,
                 "env": env,
+                "spawn": spawn,
                 "command": command,
                 "entrypoint": entrypoint,
                 "resources": convert_and_respect_annotation_metadata(
@@ -2980,6 +3097,101 @@ class AsyncRawRuntimesClient:
                     Runtime,
                     parse_obj_as(
                         type_=Runtime,  # type: ignore
+                        object_=_response.json(),
+                    ),
+                )
+                return AsyncHttpResponse(response=_response, data=_data)
+            if _response.status_code == 401:
+                raise UnauthorizedError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        UnauthenticatedError,
+                        parse_obj_as(
+                            type_=UnauthenticatedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 403:
+                raise ForbiddenError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        TeamBlockedError,
+                        parse_obj_as(
+                            type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 404:
+                raise NotFoundError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 409:
+                raise ConflictError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 429:
+                raise TooManyRequestsError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        typing.Any,
+                        parse_obj_as(
+                            type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def rotate_runtime_key(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[ApiKey]:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[ApiKey]
+            Successor key display metadata; plaintext is never returned.
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"v1/runtimes/{encode_path_param(id)}/key",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                _data = typing.cast(
+                    ApiKey,
+                    parse_obj_as(
+                        type_=ApiKey,  # type: ignore
                         object_=_response.json(),
                     ),
                 )
@@ -3716,6 +3928,17 @@ class AsyncRawRuntimesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

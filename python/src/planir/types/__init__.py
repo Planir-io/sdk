@@ -86,6 +86,9 @@ if typing.TYPE_CHECKING:
     from .runtime_destroyed_error import RuntimeDestroyedError
     from .runtime_destroyed_error_error import RuntimeDestroyedErrorError
     from .runtime_destroyed_error_error_code import RuntimeDestroyedErrorErrorCode
+    from .runtime_key_unavailable_error import RuntimeKeyUnavailableError
+    from .runtime_key_unavailable_error_error import RuntimeKeyUnavailableErrorError
+    from .runtime_key_unavailable_error_error_code import RuntimeKeyUnavailableErrorErrorCode
     from .runtime_not_found_error import RuntimeNotFoundError
     from .runtime_not_found_error_error import RuntimeNotFoundErrorError
     from .runtime_not_found_error_error_code import RuntimeNotFoundErrorErrorCode
@@ -227,6 +230,9 @@ _dynamic_imports: typing.Dict[str, str] = {
     "RuntimeDestroyedError": ".runtime_destroyed_error",
     "RuntimeDestroyedErrorError": ".runtime_destroyed_error_error",
     "RuntimeDestroyedErrorErrorCode": ".runtime_destroyed_error_error_code",
+    "RuntimeKeyUnavailableError": ".runtime_key_unavailable_error",
+    "RuntimeKeyUnavailableErrorError": ".runtime_key_unavailable_error_error",
+    "RuntimeKeyUnavailableErrorErrorCode": ".runtime_key_unavailable_error_error_code",
     "RuntimeNotFoundError": ".runtime_not_found_error",
     "RuntimeNotFoundErrorError": ".runtime_not_found_error_error",
     "RuntimeNotFoundErrorErrorCode": ".runtime_not_found_error_error_code",
@@ -392,6 +398,9 @@ __all__ = [
     "RuntimeDestroyedError",
     "RuntimeDestroyedErrorError",
     "RuntimeDestroyedErrorErrorCode",
+    "RuntimeKeyUnavailableError",
+    "RuntimeKeyUnavailableErrorError",
+    "RuntimeKeyUnavailableErrorErrorCode",
     "RuntimeNotFoundError",
     "RuntimeNotFoundErrorError",
     "RuntimeNotFoundErrorErrorCode",

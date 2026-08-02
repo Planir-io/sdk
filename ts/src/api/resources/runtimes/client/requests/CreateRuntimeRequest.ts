@@ -19,6 +19,8 @@ export interface CreateRuntimeRequest {
     config?: string;
     /** Optional env vars (default {}). See the EnvMap description. */
     env?: Record<string, string>;
+    /** Issue one runtime-bound credential for depth-one child runtime management. */
+    spawn?: boolean;
     /** Optional CMD override, Docker semantics (argv array, no shell). Omitted = the image's own CMD. Create-time only — there is no replace verb; recreate to change it. */
     command?: string[];
     /** Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb. */

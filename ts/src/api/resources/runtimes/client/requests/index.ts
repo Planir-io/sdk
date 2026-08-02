@@ -15,5 +15,6 @@ export type { MetadataRequest } from "./MetadataRequest.js";
 export type { NetworkRequest } from "./NetworkRequest.js";
 export type { ReachRequest } from "./ReachRequest.js";
 export type { RestartRuntimesRequest } from "./RestartRuntimesRequest.js";
+export type { RotateRuntimeKeyRequest } from "./RotateRuntimeKeyRequest.js";
 export type { StartRuntimesRequest } from "./StartRuntimesRequest.js";
 export type { StopRuntimesRequest } from "./StopRuntimesRequest.js";

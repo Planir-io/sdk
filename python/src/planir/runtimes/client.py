@@ -5,6 +5,7 @@ import typing
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
+from ..types.api_key import ApiKey
 from ..types.detached_exec import DetachedExec
 from ..types.events_list import EventsList
 from ..types.exec_id import ExecId
@@ -111,6 +112,7 @@ class RuntimesClient:
         client_ref: typing.Optional[str] = OMIT,
         config: typing.Optional[str] = OMIT,
         env: typing.Optional[typing.Dict[str, str]] = OMIT,
+        spawn: typing.Optional[bool] = OMIT,
         command: typing.Optional[typing.Sequence[str]] = OMIT,
         entrypoint: typing.Optional[typing.Sequence[str]] = OMIT,
         resources: typing.Optional[ResourceSpecInput] = OMIT,
@@ -142,6 +144,9 @@ class RuntimesClient:
 
         env : typing.Optional[typing.Dict[str, str]]
             Optional env vars (default {}). See the EnvMap description.
+
+        spawn : typing.Optional[bool]
+            Issue one runtime-bound credential for depth-one child runtime management.
 
         command : typing.Optional[typing.Sequence[str]]
             Optional CMD override, Docker semantics (argv array, no shell). Omitted = the image's own CMD. Create-time only — there is no replace verb; recreate to change it.
@@ -203,6 +208,7 @@ class RuntimesClient:
             client_ref=client_ref,
             config=config,
             env=env,
+            spawn=spawn,
             command=command,
             entrypoint=entrypoint,
             resources=resources,
@@ -363,6 +369,34 @@ class RuntimesClient:
         )
         """
         _response = self._raw_client.restart(id, request_options=request_options)
+        return _response.data
+
+    def rotate_runtime_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApiKey:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ApiKey
+            Successor key display metadata; plaintext is never returned.
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.runtimes.rotate_runtime_key(
+            id="id",
+        )
+        """
+        _response = self._raw_client.rotate_runtime_key(id, request_options=request_options)
         return _response.data
 
     def list_runtime_execs(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ExecList:
@@ -903,6 +937,7 @@ class AsyncRuntimesClient:
         client_ref: typing.Optional[str] = OMIT,
         config: typing.Optional[str] = OMIT,
         env: typing.Optional[typing.Dict[str, str]] = OMIT,
+        spawn: typing.Optional[bool] = OMIT,
         command: typing.Optional[typing.Sequence[str]] = OMIT,
         entrypoint: typing.Optional[typing.Sequence[str]] = OMIT,
         resources: typing.Optional[ResourceSpecInput] = OMIT,
@@ -934,6 +969,9 @@ class AsyncRuntimesClient:
 
         env : typing.Optional[typing.Dict[str, str]]
             Optional env vars (default {}). See the EnvMap description.
+
+        spawn : typing.Optional[bool]
+            Issue one runtime-bound credential for depth-one child runtime management.
 
         command : typing.Optional[typing.Sequence[str]]
             Optional CMD override, Docker semantics (argv array, no shell). Omitted = the image's own CMD. Create-time only — there is no replace verb; recreate to change it.
@@ -1003,6 +1041,7 @@ class AsyncRuntimesClient:
             client_ref=client_ref,
             config=config,
             env=env,
+            spawn=spawn,
             command=command,
             entrypoint=entrypoint,
             resources=resources,
@@ -1203,6 +1242,42 @@ class AsyncRuntimesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.restart(id, request_options=request_options)
+        return _response.data
+
+    async def rotate_runtime_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApiKey:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        ApiKey
+            Successor key display metadata; plaintext is never returned.
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.runtimes.rotate_runtime_key(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.rotate_runtime_key(id, request_options=request_options)
         return _response.data
 
     async def list_runtime_execs(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ExecList:

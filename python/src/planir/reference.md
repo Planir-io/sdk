@@ -282,6 +282,14 @@ client.runtimes.create(
 <dl>
 <dd>
 
+**spawn:** `typing.Optional[bool]` — Issue one runtime-bound credential for depth-one child runtime management.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
 **command:** `typing.Optional[typing.List[str]]` — Optional CMD override, Docker semantics (argv array, no shell). Omitted = the image's own CMD. Create-time only — there is no replace verb; recreate to change it.
     
 </dd>
@@ -690,6 +698,65 @@ client = PlanirClient(
 )
 
 client.runtimes.restart(
+    id="id",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.runtimes.<a href="src/planir/runtimes/client.py">rotate_runtime_key</a>(...) -> ApiKey</code></summary>
+<dl>
+<dd>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.runtimes.rotate_runtime_key(
     id="id",
 )
 
