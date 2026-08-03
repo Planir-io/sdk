@@ -663,6 +663,89 @@ export class RuntimesClient {
     }
 
     /**
+     * @param {PlanirApi.RotateRuntimeKeyRequest} request
+     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.runtimes.rotateRuntimeKey({
+     *         id: "id"
+     *     })
+     */
+    public rotateRuntimeKey(
+        request: PlanirApi.RotateRuntimeKeyRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): core.HttpResponsePromise<PlanirApi.ApiKey> {
+        return core.HttpResponsePromise.fromPromise(this.__rotateRuntimeKey(request, requestOptions));
+    }
+
+    private async __rotateRuntimeKey(
+        request: PlanirApi.RotateRuntimeKeyRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): Promise<core.WithRawResponse<PlanirApi.ApiKey>> {
+        const { id } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/runtimes/${core.url.encodePathParam(id)}/key`,
+            ),
+            method: "POST",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: _response.body as PlanirApi.ApiKey, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/runtimes/{id}/key");
+    }
+
+    /**
      * Detached execs only — sync execs are request-scoped and never listed. Records are in-process: retained briefly after exit (minutes, platform policy), then gone; an engine restart also loses them (the command dies with its stream). Scoped to the runtime exactly like the poll endpoint — another runtime's execIds never appear.
      *
      * @param {PlanirApi.ListRuntimeExecsRequest} request
@@ -1141,6 +1224,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -1213,6 +1297,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 422:
+                    throw new PlanirApi.UnprocessableEntityError(
+                        _response.error.body as PlanirApi.PolicyRefusedError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:

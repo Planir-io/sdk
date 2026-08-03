@@ -22,6 +22,11 @@ class Runtime(UniversalBaseModel):
     Bumped on each desired-state change.
     """
 
+    spawn: bool = pydantic.Field()
+    """
+    Whether runtime-bound child management is enabled.
+    """
+
     image: str = pydantic.Field()
     """
     The image ref this runtime runs (echoed from create).

@@ -7,6 +7,8 @@ export interface Runtime {
     desiredState: Runtime.DesiredState;
     /** Bumped on each desired-state change. */
     generation: number;
+    /** Whether runtime-bound child management is enabled. */
+    spawn: boolean;
     /** The image ref this runtime runs (echoed from create). */
     image: string;
     /** The env map, echoed in full ({} when none) — env is configuration, not a secret store. */

@@ -38,6 +38,7 @@ export * from "./ResourceSpec.js";
 export * from "./ResourceSpecInput.js";
 export * from "./Runtime.js";
 export * from "./RuntimeDestroyedError.js";
+export * from "./RuntimeKeyUnavailableError.js";
 export * from "./RuntimeNotFoundError.js";
 export * from "./RuntimeNotRunningError.js";
 export * from "./RuntimesList.js";
