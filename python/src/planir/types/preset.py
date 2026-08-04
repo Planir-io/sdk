@@ -23,12 +23,15 @@ class Preset(UniversalBaseModel):
     cpu_millis: typing_extensions.Annotated[
         int,
         FieldMetadata(alias="cpuMillis"),
-        pydantic.Field(alias="cpuMillis", description="CPU allocation in millicores (1000 = 1 vCPU)."),
+        pydantic.Field(
+            alias="cpuMillis",
+            description="Customer workload container CPU quota in millicores (1000 = 1 vCPU of quota).",
+        ),
     ]
     memory_bytes: typing_extensions.Annotated[
         int,
         FieldMetadata(alias="memoryBytes"),
-        pydantic.Field(alias="memoryBytes", description="RAM allocation in bytes."),
+        pydantic.Field(alias="memoryBytes", description="Customer workload container hard memory limit in bytes."),
     ]
     hourly_microcents: typing_extensions.Annotated[
         int,
