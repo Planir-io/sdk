@@ -5,9 +5,9 @@ export interface Preset {
     id: string;
     /** Display grouping (`co` = Cost Optimized, shared vCPU; `gp` = General Purpose, dedicated vCPU). Grouping only — availability is not decided by family. */
     family: Preset.Family;
-    /** CPU allocation in millicores (1000 = 1 vCPU). */
+    /** Customer workload container CPU quota in millicores (1000 = 1 vCPU of quota). */
     cpuMillis: number;
-    /** RAM allocation in bytes. */
+    /** Customer workload container hard memory limit in bytes. */
     memoryBytes: number;
     /** Metered compute rate per hour, in microcents (1 USD = 100,000,000). */
     hourlyMicrocents: number;

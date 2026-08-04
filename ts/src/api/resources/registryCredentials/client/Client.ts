@@ -359,7 +359,7 @@ export class RegistryCredentialsClient {
     }
 
     /**
-     * Nothing references a credential (binding is by host match), so delete never 409s. Running runtimes keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image is re-pulled on its next start, so that start fails visibly — pinned to any other tag, or to a digest, it starts from cached layers.
+     * Nothing references a credential (binding is by host match), so delete never 409s. Deletion takes effect asynchronously and running containers continue. After deletion takes effect, the next pull authenticates normally: anonymous access resumes for public images, while private images fail visibly without another valid credential. Cached content does not bypass authentication.
      *
      * @param {PlanirApi.DeleteRegistryCredentialRequest} request
      * @param {RegistryCredentialsClient.RequestOptions} requestOptions - Request-specific configuration.

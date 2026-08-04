@@ -24,7 +24,7 @@ class TeamLimits(UniversalBaseModel):
         pydantic.Field(
             alias="allowedPresetIds",
             default=None,
-            description="Gate A — exactly these presets are creatable, regardless of billing mode; null = no explicit set (a metered team must still match SOME public preset; see GET /v1/presets). Breach = 422 INVALID_REQUEST.",
+            description="Gate A — exactly these public presets are creatable, regardless of billing mode. A private preset owned by the package is creatable without appearing in this list. Null = no explicit public set. A metered team must still match a public preset or a private preset owned by its package; see GET /v1/presets. Breach = 422 INVALID_REQUEST.",
         ),
     ]
     families: typing.Dict[str, TeamLimitsFamiliesValue] = pydantic.Field()

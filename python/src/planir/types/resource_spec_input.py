@@ -10,7 +10,7 @@ from ..core.serialization import FieldMetadata
 
 class ResourceSpecInput(UniversalBaseModel):
     """
-    Optional resource allocation. Omitted = the published defaults: 1 vCPU (cpuMillis 1000), 2 GiB memoryBytes (2147483648), 4 GiB storageBytes (4294967296). Reads always echo the effective (defaults-applied) values.
+    Optional resource allocation. Omitted = the published defaults: workload CPU quota cpuMillis 1000, workload memory limit memoryBytes 2147483648 (2 GiB), and storageBytes 4294967296 (4 GiB). Reads always echo the effective values.
     """
 
     memory_bytes: typing_extensions.Annotated[
@@ -18,13 +18,16 @@ class ResourceSpecInput(UniversalBaseModel):
         FieldMetadata(alias="memoryBytes"),
         pydantic.Field(
             alias="memoryBytes",
-            description="RAM allocation in bytes. Minimum 134217728 (128 MiB) — below that no real image starts, so sub-floor requests are rejected here instead of surfacing as a confusing in-guest OOM after boot.",
+            description="Customer workload container hard memory limit in bytes. Minimum 134217728 (128 MiB) — below that no real image starts, so sub-floor requests are rejected here instead of surfacing as a confusing workload failure after boot.",
         ),
     ]
     cpu_millis: typing_extensions.Annotated[
         int,
         FieldMetadata(alias="cpuMillis"),
-        pydantic.Field(alias="cpuMillis", description="CPU allocation in millicores (1000 = 1 vCPU)."),
+        pydantic.Field(
+            alias="cpuMillis",
+            description="Customer workload container CPU quota in millicores (1000 = 1 vCPU of quota).",
+        ),
     ]
     storage_bytes: typing_extensions.Annotated[
         typing.Optional[int],

@@ -14,13 +14,16 @@ class ResourceSpec(UniversalBaseModel):
         FieldMetadata(alias="memoryBytes"),
         pydantic.Field(
             alias="memoryBytes",
-            description="RAM allocation in bytes. Minimum 134217728 (128 MiB) — below that no real image starts, so sub-floor requests are rejected here instead of surfacing as a confusing in-guest OOM after boot.",
+            description="Customer workload container hard memory limit in bytes. Minimum 134217728 (128 MiB) — below that no real image starts, so sub-floor requests are rejected here instead of surfacing as a confusing workload failure after boot.",
         ),
     ]
     cpu_millis: typing_extensions.Annotated[
         int,
         FieldMetadata(alias="cpuMillis"),
-        pydantic.Field(alias="cpuMillis", description="CPU allocation in millicores (1000 = 1 vCPU)."),
+        pydantic.Field(
+            alias="cpuMillis",
+            description="Customer workload container CPU quota in millicores (1000 = 1 vCPU of quota).",
+        ),
     ]
     storage_bytes: typing_extensions.Annotated[
         int,

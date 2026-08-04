@@ -242,7 +242,7 @@ client.runtimes.create(
 <dl>
 <dd>
 
-**image:** `str` — Resolved container image ref the orchestrator pulls. Echoed back on every Runtime read. Private images are supported via stored registry credentials (`/v1/registry-credentials`): the pull auto-matches the team's credential for the image's registry host — this field needs nothing extra. Scope: static basic-auth registries (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported (12-hour tokens). The host-wide corollary: a stored credential is used for EVERY pull from its host, public images included — no anonymous fallback while it exists. Deleting a credential is always allowed with latent, tag-dependent effects: a running runtime is untouched, but a `:latest`-class private image re-pulls on its next restart and fails visibly (`observed` waiting reason) once the credential is gone, while digest/fixed tags may start from cache.
+**image:** `str` — Resolved container image ref the orchestrator pulls. Echoed back on every Runtime read. Private images are supported via stored registry credentials (`/v1/registry-credentials`): the pull auto-matches the team's credential for the image's registry host — this field needs nothing extra. Scope: static basic-auth registries (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported (12-hour tokens). The host-wide corollary: a stored credential is used for EVERY pull from its host, public images included — no anonymous fallback while it exists. Deleting a credential is always allowed with asynchronous effects; running containers continue. Every start resolves and authenticates through the registry, while cached blobs remain reusable. Mutable tags can change on restart; digest references provide reproducible identity.
     
 </dd>
 </dl>
@@ -2319,7 +2319,7 @@ client.registry_credentials.rotate_registry_credential(
 <dl>
 <dd>
 
-Nothing references a credential (binding is by host match), so delete never 409s. Running runtimes keep running; anonymous pulls from the host resume at the next pull. The latent edge: a stopped runtime on a `:latest`-class private image is re-pulled on its next start, so that start fails visibly — pinned to any other tag, or to a digest, it starts from cached layers.
+Nothing references a credential (binding is by host match), so delete never 409s. Deletion takes effect asynchronously and running containers continue. After deletion takes effect, the next pull authenticates normally: anonymous access resumes for public images, while private images fail visibly without another valid credential. Cached content does not bypass authentication.
 </dd>
 </dl>
 </dd>
