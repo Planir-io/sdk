@@ -23,7 +23,7 @@ for runtime in page.runtimes:
     print(runtime.id)
 
 # Create a runtime
-runtime = client.runtimes.create(image="ghcr.io/acme/agent:latest")
+runtime = client.runtimes.create(request={"image": "ghcr.io/acme/agent:latest"})
 print(runtime.urls)
 ```
 
