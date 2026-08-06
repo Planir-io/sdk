@@ -19,14 +19,16 @@ WORK="$(mktemp -d)"
 MOCK_PID=""
 trap '[ -n "$MOCK_PID" ] && kill "$MOCK_PID" 2>/dev/null; rm -rf "$WORK"' EXIT
 
-# One surgical edit to the spec Prism serves: drop RuntimesList.nextCursor. Prism emits a
-# value for every schema property, so the mock would hand a cursor on EVERY page and the
-# TS quickstart's auto-pagination (`for await`) would loop forever by construction.
-# Deleting the property makes every list response a last page. Everything else stays
-# derived from the pinned contract — no hand-written fixtures.
-jq 'del(.components.schemas.RuntimesList.properties.nextCursor)' \
+# Surgical mock-only edits: drop nextCursor so auto-pagination terminates, and drop the
+# Runtime constraint-only oneOf blocks because Prism otherwise emits only a timeout-state
+# branch and omits the required base object. The client still builds from the unmodified
+# pinned contract; this transform supplies no hand-written response fields.
+jq -e '.components.schemas.RuntimesList.properties.nextCursor and
+  .components.schemas.Runtime.oneOf and .components.schemas.RuntimeWithObserved.oneOf' \
+  "$ROOT/fern/openapi.json" >/dev/null || { echo "FAIL: README mock transform targets changed shape"; exit 1; }
+jq 'del(.components.schemas.RuntimesList.properties.nextCursor,
+  .components.schemas.Runtime.oneOf, .components.schemas.RuntimeWithObserved.oneOf)' \
   "$ROOT/fern/openapi.json" > "$WORK/openapi.mock.json"
-cmp -s "$WORK/openapi.mock.json" <(jq . "$ROOT/fern/openapi.json") && { echo "FAIL: nextCursor deletion matched nothing — RuntimesList schema changed shape"; exit 1; }
 
 npx --yes "@stoplight/prism-cli@${PRISM_VERSION}" mock "$WORK/openapi.mock.json" -p 8787 &
 MOCK_PID=$!

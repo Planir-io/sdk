@@ -22,7 +22,9 @@ for await (const runtime of await client.runtimes.list()) {
 }
 
 // Create a runtime
-const runtime = await client.runtimes.create({ image: "ghcr.io/acme/agent:latest" });
+const runtime = await client.runtimes.create({
+  body: { image: "ghcr.io/acme/agent:latest" },
+});
 console.log(runtime.urls);
 ```
 
