@@ -6,6 +6,7 @@ import typing
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from ..types.api_key import ApiKey
+from ..types.create_runtime_request import CreateRuntimeRequest
 from ..types.detached_exec import DetachedExec
 from ..types.events_list import EventsList
 from ..types.exec_id import ExecId
@@ -13,15 +14,12 @@ from ..types.exec_list import ExecList
 from ..types.exec_result import ExecResult
 from ..types.network_spec import NetworkSpec
 from ..types.reach import Reach
-from ..types.resource_spec_input import ResourceSpecInput
 from ..types.runtime import Runtime
 from ..types.runtime_with_observed import RuntimeWithObserved
 from ..types.runtimes_list import RuntimesList
+from ..types.set_runtime_timeout_request import SetRuntimeTimeoutRequest
 from ..types.usage_list import UsageList
 from .raw_client import AsyncRawRuntimesClient, RawRuntimesClient
-from .types.create_runtime_request_desired_state import CreateRuntimeRequestDesiredState
-from .types.create_runtime_request_network import CreateRuntimeRequestNetwork
-from .types.create_runtime_request_readiness import CreateRuntimeRequestReadiness
 from .types.get_logs_runtimes_request_previous import GetLogsRuntimesRequestPrevious
 from .types.list_runtimes_request_desired_state_item import ListRuntimesRequestDesiredStateItem
 from .types.list_runtimes_request_include_destroyed import ListRuntimesRequestIncludeDestroyed
@@ -107,81 +105,17 @@ class RuntimesClient:
     def create(
         self,
         *,
-        image: str,
+        request: CreateRuntimeRequest,
         idempotency_key: typing.Optional[str] = None,
-        client_ref: typing.Optional[str] = OMIT,
-        config: typing.Optional[str] = OMIT,
-        env: typing.Optional[typing.Dict[str, str]] = OMIT,
-        spawn: typing.Optional[bool] = OMIT,
-        command: typing.Optional[typing.Sequence[str]] = OMIT,
-        entrypoint: typing.Optional[typing.Sequence[str]] = OMIT,
-        resources: typing.Optional[ResourceSpecInput] = OMIT,
-        volume_id: typing.Optional[str] = OMIT,
-        ports: typing.Optional[typing.Sequence[int]] = OMIT,
-        readiness: typing.Optional[CreateRuntimeRequestReadiness] = OMIT,
-        network: typing.Optional[CreateRuntimeRequestNetwork] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, str]] = OMIT,
-        rootfs_read_only: typing.Optional[bool] = OMIT,
-        preserve_rootfs: typing.Optional[bool] = OMIT,
-        desired_state: typing.Optional[CreateRuntimeRequestDesiredState] = OMIT,
-        region: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RuntimeWithObserved:
         """
         Parameters
         ----------
-        image : str
-            Resolved container image ref the orchestrator pulls. Echoed back on every Runtime read. Private images are supported via stored registry credentials (`/v1/registry-credentials`): the pull auto-matches the team's credential for the image's registry host — this field needs nothing extra. Scope: static basic-auth registries (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported (12-hour tokens). The host-wide corollary: a stored credential is used for EVERY pull from its host, public images included — no anonymous fallback while it exists. Deleting a credential is always allowed with asynchronous effects; running containers continue. Every start resolves and authenticates through the registry, while cached blobs remain reusable. Mutable tags can change on restart; digest references provide reproducible identity.
+        request : CreateRuntimeRequest
 
         idempotency_key : typing.Optional[str]
             Optional client-supplied idempotency key. Same key + same body within the 24-hour replay window → 200 with the original runtime (not a new create); same key + different body → CONFLICT. Replay is the intended recovery path for a client that loses a runtime id after a 201: re-send the identical create and read the id back. Omitted = no idempotency claim — a retried create makes a second runtime.
-
-        client_ref : typing.Optional[str]
-            Opaque client correlation handle. No shared id-space, no FK. Optional — the orchestrator generates one when omitted (echoed on reads).
-
-        config : typing.Optional[str]
-            Optional opaque workload config, base64 over the wire (see the config description). Omitted = no config file is mounted at /etc/planir/config.
-
-        env : typing.Optional[typing.Dict[str, str]]
-            Optional env vars (default {}). See the EnvMap description.
-
-        spawn : typing.Optional[bool]
-            Issue one runtime-bound credential for depth-one child runtime management.
-
-        command : typing.Optional[typing.Sequence[str]]
-            Optional CMD override, Docker semantics (argv array, no shell). Omitted = the image's own CMD. Create-time only — there is no replace verb; recreate to change it.
-
-        entrypoint : typing.Optional[typing.Sequence[str]]
-            Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb.
-
-        resources : typing.Optional[ResourceSpecInput]
-
-        volume_id : typing.Optional[str]
-            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
-
-        ports : typing.Optional[typing.Sequence[int]]
-            Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.
-
-        readiness : typing.Optional[CreateRuntimeRequestReadiness]
-            Optional explicit HTTP readiness gate — `observed: running` then means this path answered. Omitted = a TCP probe on the FIRST declared port (or, with no declared ports, running = the container started). Exactly ONE probe ever. Create-time only — there is no replace verb.
-
-        network : typing.Optional[CreateRuntimeRequestNetwork]
-            Optional egress posture (see NetworkSpec). Omitted = open egress minus the standing SSRF/private deny. Replaceable later via PUT /network (applies live, no restart).
-
-        metadata : typing.Optional[typing.Dict[str, str]]
-            Optional correlation labels (default {}). See the metadata description.
-
-        rootfs_read_only : typing.Optional[bool]
-            Hardening knob, default false. false (default): the rootfs is writable — a standard machine; writes land in the ephemeral scratch budget. true: the rootfs is the image verbatim, read-only, with writable /tmp and /run scratch mounts (funded by the same budget); anything durable belongs on `/data`.
-
-        preserve_rootfs : typing.Optional[bool]
-            Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held in durable storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
-
-        desired_state : typing.Optional[CreateRuntimeRequestDesiredState]
-            Initial desired state (default running). Cannot create destroyed.
-
-        region : typing.Optional[str]
-            Optional location to run in — the public region label (e.g. "brq"), a plain string, NEVER an enum. Discover the offered values via GET /v1/regions. Omitted = the cheapest available location for the chosen preset. A location that exists but does not offer this preset's family → 422; a location that is full or not yet live → 503 NO_CAPACITY. Never a silent cross-location fallback. Echoed on every read.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -199,29 +133,11 @@ class RuntimesClient:
             token="YOUR_TOKEN",
         )
         client.runtimes.create(
-            image="image",
+            request={"key": "value"},
         )
         """
         _response = self._raw_client.create(
-            image=image,
-            idempotency_key=idempotency_key,
-            client_ref=client_ref,
-            config=config,
-            env=env,
-            spawn=spawn,
-            command=command,
-            entrypoint=entrypoint,
-            resources=resources,
-            volume_id=volume_id,
-            ports=ports,
-            readiness=readiness,
-            network=network,
-            metadata=metadata,
-            rootfs_read_only=rootfs_read_only,
-            preserve_rootfs=preserve_rootfs,
-            desired_state=desired_state,
-            region=region,
-            request_options=request_options,
+            request=request, idempotency_key=idempotency_key, request_options=request_options
         )
         return _response.data
 
@@ -279,6 +195,42 @@ class RuntimesClient:
         )
         """
         _response = self._raw_client.destroy(id, request_options=request_options)
+        return _response.data
+
+    def set_runtime_timeout(
+        self, id: str, *, request: SetRuntimeTimeoutRequest, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
+        """
+        Every positive success reanchors the deadline from the post-lock instant; retrying a positive request moves the deadline.
+
+        Parameters
+        ----------
+        id : str
+
+        request : SetRuntimeTimeoutRequest
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from planir import PlanirClient, SetRuntimeTimeoutRequestZero
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.runtimes.set_runtime_timeout(
+            id="id",
+            request=SetRuntimeTimeoutRequestZero(
+                timeout=1,
+            ),
+        )
+        """
+        _response = self._raw_client.set_runtime_timeout(id, request=request, request_options=request_options)
         return _response.data
 
     def start(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Runtime:
@@ -932,81 +884,17 @@ class AsyncRuntimesClient:
     async def create(
         self,
         *,
-        image: str,
+        request: CreateRuntimeRequest,
         idempotency_key: typing.Optional[str] = None,
-        client_ref: typing.Optional[str] = OMIT,
-        config: typing.Optional[str] = OMIT,
-        env: typing.Optional[typing.Dict[str, str]] = OMIT,
-        spawn: typing.Optional[bool] = OMIT,
-        command: typing.Optional[typing.Sequence[str]] = OMIT,
-        entrypoint: typing.Optional[typing.Sequence[str]] = OMIT,
-        resources: typing.Optional[ResourceSpecInput] = OMIT,
-        volume_id: typing.Optional[str] = OMIT,
-        ports: typing.Optional[typing.Sequence[int]] = OMIT,
-        readiness: typing.Optional[CreateRuntimeRequestReadiness] = OMIT,
-        network: typing.Optional[CreateRuntimeRequestNetwork] = OMIT,
-        metadata: typing.Optional[typing.Dict[str, str]] = OMIT,
-        rootfs_read_only: typing.Optional[bool] = OMIT,
-        preserve_rootfs: typing.Optional[bool] = OMIT,
-        desired_state: typing.Optional[CreateRuntimeRequestDesiredState] = OMIT,
-        region: typing.Optional[str] = OMIT,
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RuntimeWithObserved:
         """
         Parameters
         ----------
-        image : str
-            Resolved container image ref the orchestrator pulls. Echoed back on every Runtime read. Private images are supported via stored registry credentials (`/v1/registry-credentials`): the pull auto-matches the team's credential for the image's registry host — this field needs nothing extra. Scope: static basic-auth registries (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported (12-hour tokens). The host-wide corollary: a stored credential is used for EVERY pull from its host, public images included — no anonymous fallback while it exists. Deleting a credential is always allowed with asynchronous effects; running containers continue. Every start resolves and authenticates through the registry, while cached blobs remain reusable. Mutable tags can change on restart; digest references provide reproducible identity.
+        request : CreateRuntimeRequest
 
         idempotency_key : typing.Optional[str]
             Optional client-supplied idempotency key. Same key + same body within the 24-hour replay window → 200 with the original runtime (not a new create); same key + different body → CONFLICT. Replay is the intended recovery path for a client that loses a runtime id after a 201: re-send the identical create and read the id back. Omitted = no idempotency claim — a retried create makes a second runtime.
-
-        client_ref : typing.Optional[str]
-            Opaque client correlation handle. No shared id-space, no FK. Optional — the orchestrator generates one when omitted (echoed on reads).
-
-        config : typing.Optional[str]
-            Optional opaque workload config, base64 over the wire (see the config description). Omitted = no config file is mounted at /etc/planir/config.
-
-        env : typing.Optional[typing.Dict[str, str]]
-            Optional env vars (default {}). See the EnvMap description.
-
-        spawn : typing.Optional[bool]
-            Issue one runtime-bound credential for depth-one child runtime management.
-
-        command : typing.Optional[typing.Sequence[str]]
-            Optional CMD override, Docker semantics (argv array, no shell). Omitted = the image's own CMD. Create-time only — there is no replace verb; recreate to change it.
-
-        entrypoint : typing.Optional[typing.Sequence[str]]
-            Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb.
-
-        resources : typing.Optional[ResourceSpecInput]
-
-        volume_id : typing.Optional[str]
-            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
-
-        ports : typing.Optional[typing.Sequence[int]]
-            Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.
-
-        readiness : typing.Optional[CreateRuntimeRequestReadiness]
-            Optional explicit HTTP readiness gate — `observed: running` then means this path answered. Omitted = a TCP probe on the FIRST declared port (or, with no declared ports, running = the container started). Exactly ONE probe ever. Create-time only — there is no replace verb.
-
-        network : typing.Optional[CreateRuntimeRequestNetwork]
-            Optional egress posture (see NetworkSpec). Omitted = open egress minus the standing SSRF/private deny. Replaceable later via PUT /network (applies live, no restart).
-
-        metadata : typing.Optional[typing.Dict[str, str]]
-            Optional correlation labels (default {}). See the metadata description.
-
-        rootfs_read_only : typing.Optional[bool]
-            Hardening knob, default false. false (default): the rootfs is writable — a standard machine; writes land in the ephemeral scratch budget. true: the rootfs is the image verbatim, read-only, with writable /tmp and /run scratch mounts (funded by the same budget); anything durable belongs on `/data`.
-
-        preserve_rootfs : typing.Optional[bool]
-            Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held in durable storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
-
-        desired_state : typing.Optional[CreateRuntimeRequestDesiredState]
-            Initial desired state (default running). Cannot create destroyed.
-
-        region : typing.Optional[str]
-            Optional location to run in — the public region label (e.g. "brq"), a plain string, NEVER an enum. Discover the offered values via GET /v1/regions. Omitted = the cheapest available location for the chosen preset. A location that exists but does not offer this preset's family → 422; a location that is full or not yet live → 503 NO_CAPACITY. Never a silent cross-location fallback. Echoed on every read.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1029,32 +917,14 @@ class AsyncRuntimesClient:
 
         async def main() -> None:
             await client.runtimes.create(
-                image="image",
+                request={"key": "value"},
             )
 
 
         asyncio.run(main())
         """
         _response = await self._raw_client.create(
-            image=image,
-            idempotency_key=idempotency_key,
-            client_ref=client_ref,
-            config=config,
-            env=env,
-            spawn=spawn,
-            command=command,
-            entrypoint=entrypoint,
-            resources=resources,
-            volume_id=volume_id,
-            ports=ports,
-            readiness=readiness,
-            network=network,
-            metadata=metadata,
-            rootfs_read_only=rootfs_read_only,
-            preserve_rootfs=preserve_rootfs,
-            desired_state=desired_state,
-            region=region,
-            request_options=request_options,
+            request=request, idempotency_key=idempotency_key, request_options=request_options
         )
         return _response.data
 
@@ -1128,6 +998,50 @@ class AsyncRuntimesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.destroy(id, request_options=request_options)
+        return _response.data
+
+    async def set_runtime_timeout(
+        self, id: str, *, request: SetRuntimeTimeoutRequest, request_options: typing.Optional[RequestOptions] = None
+    ) -> None:
+        """
+        Every positive success reanchors the deadline from the post-lock instant; retrying a positive request moves the deadline.
+
+        Parameters
+        ----------
+        id : str
+
+        request : SetRuntimeTimeoutRequest
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient, SetRuntimeTimeoutRequestZero
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.runtimes.set_runtime_timeout(
+                id="id",
+                request=SetRuntimeTimeoutRequestZero(
+                    timeout=1,
+                ),
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.set_runtime_timeout(id, request=request, request_options=request_options)
         return _response.data
 
     async def start(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Runtime:

@@ -1,5 +1,5 @@
 export type { ConfigRequest } from "./ConfigRequest.js";
-export { CreateRuntimeRequest } from "./CreateRuntimeRequest.js";
+export type { CreateRuntimesRequest } from "./CreateRuntimesRequest.js";
 export type { DestroyRuntimesRequest } from "./DestroyRuntimesRequest.js";
 export type { DetachedExecRequest } from "./DetachedExecRequest.js";
 export type { EnvRequest } from "./EnvRequest.js";
@@ -16,5 +16,6 @@ export type { NetworkRequest } from "./NetworkRequest.js";
 export type { ReachRequest } from "./ReachRequest.js";
 export type { RestartRuntimesRequest } from "./RestartRuntimesRequest.js";
 export type { RotateRuntimeKeyRequest } from "./RotateRuntimeKeyRequest.js";
+export type { SetRuntimeTimeoutBody } from "./SetRuntimeTimeoutBody.js";
 export type { StartRuntimesRequest } from "./StartRuntimesRequest.js";
 export type { StopRuntimesRequest } from "./StopRuntimesRequest.js";

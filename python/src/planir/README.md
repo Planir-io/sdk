@@ -43,7 +43,7 @@ client = PlanirClient(
 )
 
 client.runtimes.create(
-    image="image",
+    request={"key": "value"},
 )
 ```
 
@@ -76,7 +76,7 @@ client = AsyncPlanirClient(
 
 async def main() -> None:
     await client.runtimes.create(
-        image="image",
+        request={"key": "value"},
     )
 
 

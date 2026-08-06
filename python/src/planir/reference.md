@@ -225,7 +225,7 @@ client = PlanirClient(
 )
 
 client.runtimes.create(
-    image="image",
+    request={"key": "value"},
 )
 
 ```
@@ -242,7 +242,7 @@ client.runtimes.create(
 <dl>
 <dd>
 
-**image:** `str` — Resolved container image ref the orchestrator pulls. Echoed back on every Runtime read. Private images are supported via stored registry credentials (`/v1/registry-credentials`): the pull auto-matches the team's credential for the image's registry host — this field needs nothing extra. Scope: static basic-auth registries (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported (12-hour tokens). The host-wide corollary: a stored credential is used for EVERY pull from its host, public images included — no anonymous fallback while it exists. Deleting a credential is always allowed with asynchronous effects; running containers continue. Every start resolves and authenticates through the registry, while cached blobs remain reusable. Mutable tags can change on restart; digest references provide reproducible identity.
+**request:** `CreateRuntimeRequest` 
     
 </dd>
 </dl>
@@ -251,134 +251,6 @@ client.runtimes.create(
 <dd>
 
 **idempotency_key:** `typing.Optional[str]` — Optional client-supplied idempotency key. Same key + same body within the 24-hour replay window → 200 with the original runtime (not a new create); same key + different body → CONFLICT. Replay is the intended recovery path for a client that loses a runtime id after a 201: re-send the identical create and read the id back. Omitted = no idempotency claim — a retried create makes a second runtime.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**client_ref:** `typing.Optional[str]` — Opaque client correlation handle. No shared id-space, no FK. Optional — the orchestrator generates one when omitted (echoed on reads).
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**config:** `typing.Optional[str]` — Optional opaque workload config, base64 over the wire (see the config description). Omitted = no config file is mounted at /etc/planir/config.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**env:** `typing.Optional[typing.Dict[str, str]]` — Optional env vars (default {}). See the EnvMap description.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**spawn:** `typing.Optional[bool]` — Issue one runtime-bound credential for depth-one child runtime management.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**command:** `typing.Optional[typing.List[str]]` — Optional CMD override, Docker semantics (argv array, no shell). Omitted = the image's own CMD. Create-time only — there is no replace verb; recreate to change it.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**entrypoint:** `typing.Optional[typing.List[str]]` — Optional ENTRYPOINT override, Docker semantics (argv array, no shell). Omitted = the image's own ENTRYPOINT. Create-time only — there is no replace verb.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**resources:** `typing.Optional[ResourceSpecInput]` 
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**volume_id:** `typing.Optional[str]` — Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**ports:** `typing.Optional[typing.List[int]]` — Exposed ports the orchestrator routes the public handle to, as bare integers (e.g. [8080]). Omitted or [] = no public surface; never inferred from the image. Port numbers must be unique.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**readiness:** `typing.Optional[CreateRuntimeRequestReadiness]` — Optional explicit HTTP readiness gate — `observed: running` then means this path answered. Omitted = a TCP probe on the FIRST declared port (or, with no declared ports, running = the container started). Exactly ONE probe ever. Create-time only — there is no replace verb.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**network:** `typing.Optional[CreateRuntimeRequestNetwork]` — Optional egress posture (see NetworkSpec). Omitted = open egress minus the standing SSRF/private deny. Replaceable later via PUT /network (applies live, no restart).
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**metadata:** `typing.Optional[typing.Dict[str, str]]` — Optional correlation labels (default {}). See the metadata description.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**rootfs_read_only:** `typing.Optional[bool]` — Hardening knob, default false. false (default): the rootfs is writable — a standard machine; writes land in the ephemeral scratch budget. true: the rootfs is the image verbatim, read-only, with writable /tmp and /run scratch mounts (funded by the same budget); anything durable belongs on `/data`.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**preserve_rootfs:** `typing.Optional[bool]` — Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held in durable storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**desired_state:** `typing.Optional[CreateRuntimeRequestDesiredState]` — Initial desired state (default running). Cannot create destroyed.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**region:** `typing.Optional[str]` — Optional location to run in — the public region label (e.g. "brq"), a plain string, NEVER an enum. Discover the offered values via GET /v1/regions. Omitted = the cheapest available location for the chosen preset. A location that exists but does not offer this preset's family → 422; a location that is full or not yet live → 503 NO_CAPACITY. Never a silent cross-location fallback. Echoed on every read.
     
 </dd>
 </dl>
@@ -497,6 +369,90 @@ client.runtimes.destroy(
 <dd>
 
 **id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.runtimes.<a href="src/planir/runtimes/client.py">set_runtime_timeout</a>(...)</code></summary>
+<dl>
+<dd>
+
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+Every positive success reanchors the deadline from the post-lock instant; retrying a positive request moves the deadline.
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient, SetRuntimeTimeoutRequestZero
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.runtimes.set_runtime_timeout(
+    id="id",
+    request=SetRuntimeTimeoutRequestZero(
+        timeout=1,
+    ),
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request:** `SetRuntimeTimeoutRequest` 
     
 </dd>
 </dl>

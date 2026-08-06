@@ -134,7 +134,7 @@ export class RuntimesClient {
     }
 
     /**
-     * @param {PlanirApi.CreateRuntimeRequest} request
+     * @param {PlanirApi.CreateRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.BadRequestError}
@@ -149,21 +149,23 @@ export class RuntimesClient {
      *
      * @example
      *     await client.runtimes.create({
-     *         image: "image"
+     *         body: {
+     *             "key": "value"
+     *         }
      *     })
      */
     public create(
-        request: PlanirApi.CreateRuntimeRequest,
+        request: PlanirApi.CreateRuntimesRequest,
         requestOptions?: RuntimesClient.RequestOptions,
     ): core.HttpResponsePromise<PlanirApi.RuntimeWithObserved> {
         return core.HttpResponsePromise.fromPromise(this.__create(request, requestOptions));
     }
 
     private async __create(
-        request: PlanirApi.CreateRuntimeRequest,
+        request: PlanirApi.CreateRuntimesRequest,
         requestOptions?: RuntimesClient.RequestOptions,
     ): Promise<core.WithRawResponse<PlanirApi.RuntimeWithObserved>> {
-        const { "idempotency-key": idempotencyKey, ..._body } = request;
+        const { "idempotency-key": idempotencyKey, body: _body } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -399,6 +401,103 @@ export class RuntimesClient {
         }
 
         return handleNonStatusCodeError(_response.error, _response.rawResponse, "DELETE", "/v1/runtimes/{id}");
+    }
+
+    /**
+     * Every positive success reanchors the deadline from the post-lock instant; retrying a positive request moves the deadline.
+     *
+     * @param {PlanirApi.SetRuntimeTimeoutBody} request
+     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @throws {@link PlanirApi.BadRequestError}
+     * @throws {@link PlanirApi.UnauthorizedError}
+     * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.TooManyRequestsError}
+     *
+     * @example
+     *     await client.runtimes.setRuntimeTimeout({
+     *         id: "id",
+     *         body: {
+     *             timeout: 1
+     *         }
+     *     })
+     */
+    public setRuntimeTimeout(
+        request: PlanirApi.SetRuntimeTimeoutBody,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): core.HttpResponsePromise<void> {
+        return core.HttpResponsePromise.fromPromise(this.__setRuntimeTimeout(request, requestOptions));
+    }
+
+    private async __setRuntimeTimeout(
+        request: PlanirApi.SetRuntimeTimeoutBody,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): Promise<core.WithRawResponse<void>> {
+        const { id, body: _body } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/runtimes/${core.url.encodePathParam(id)}/timeout`,
+            ),
+            method: "POST",
+            headers: _headers,
+            contentType: "application/json",
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            requestType: "json",
+            body: _body,
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: undefined, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            switch (_response.error.statusCode) {
+                case 400:
+                    throw new PlanirApi.BadRequestError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
+                case 401:
+                    throw new PlanirApi.UnauthorizedError(
+                        _response.error.body as PlanirApi.UnauthenticatedError,
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new PlanirApi.ForbiddenError(
+                        _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 404:
+                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 409:
+                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 429:
+                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                default:
+                    throw new errors.PlanirApiError({
+                        statusCode: _response.error.statusCode,
+                        body: _response.error.body,
+                        rawResponse: _response.rawResponse,
+                    });
+            }
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/runtimes/{id}/timeout");
     }
 
     /**
