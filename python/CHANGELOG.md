@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0-beta.7](https://github.com/Planir-io/sdk/compare/python-v0.1.0-beta.6...python-v0.1.0-beta.7) (2026-08-05)
+
+
+### Features
+
+* sync published contract + regenerate SDKs ([#26](https://github.com/Planir-io/sdk/issues/26)) ([ac9e884](https://github.com/Planir-io/sdk/commit/ac9e88449cc65b83bee365864c446a5b057343e2))
+
 ## [0.1.0-beta.6](https://github.com/Planir-io/sdk/compare/python-v0.1.0-beta.5...python-v0.1.0-beta.6) (2026-08-04)
 
 
