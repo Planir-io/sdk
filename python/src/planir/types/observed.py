@@ -23,7 +23,7 @@ class Observed(UniversalBaseModel):
 
     generation: int = pydantic.Field()
     """
-    The desired generation this reflects.
+    The desired generation this reflects. 0 means no desired generation has been acknowledged.
     """
 
     last_seen: typing_extensions.Annotated[str, FieldMetadata(alias="lastSeen"), pydantic.Field(alias="lastSeen")]

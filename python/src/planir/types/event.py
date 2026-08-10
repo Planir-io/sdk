@@ -17,7 +17,7 @@ class Event(UniversalBaseModel):
 
     type: str = pydantic.Field()
     """
-    Event vocabulary today: `created`, `desired-state-changed`, `config-updated`, `env-updated`, `network-updated`, plus one event per observed-phase transition (`provisioning`, `unschedulable`, `running`, `stopping`, `stopped`, `error`, `destroying`, `destroyed`), plus two rootfs-preservation events: `stop-failed` (a stop could not commit the rootfs; it retries while the rootfs is still available) and `rootfs-changes-lost` (the rootfs could not be captured before it was reclaimed — the stop concluded and `start` resumes the newest previously-committed image, without the changes written since it). The set is additive over time — treat unknown types as audit records. Events are the audit/wake-up channel; the authoritative state is always `GET /v1/runtimes/{id}` `observed.phase`.
+    Event vocabulary today: `created`, `desired-state-changed`, `config-updated`, `env-updated`, `network-updated`, `restart-requested`, `force-terminate-requested`, plus one event per observed-phase transition (`provisioning`, `unschedulable`, `running`, `stopping`, `stopped`, `error`, `destroying`, `destroyed`), plus two rootfs-preservation events: `stop-failed` (a stop could not commit the rootfs; it retries while the rootfs is still available) and `rootfs-changes-lost` (the rootfs could not be captured before it was reclaimed — the stop concluded and `start` resumes the newest previously-committed image, without the changes written since it). The set is additive over time — treat unknown types as audit records. Events are the audit/wake-up channel; the authoritative state is always `GET /v1/runtimes/{id}` `observed.phase`.
     """
 
     occurred_at: typing_extensions.Annotated[

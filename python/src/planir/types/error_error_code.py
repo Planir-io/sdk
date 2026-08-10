@@ -17,7 +17,6 @@ ErrorErrorCode = typing.Union[
         "VOLUME_BUSY",
         "REGISTRY_HOST_EXISTS",
         "TEAM_BLOCKED",
-        "FORBIDDEN",
         "INTERNAL",
     ],
     typing.Any,

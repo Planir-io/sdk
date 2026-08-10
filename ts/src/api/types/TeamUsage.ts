@@ -20,7 +20,7 @@ export namespace TeamUsage {
         /** Runtime windows + volume accruals together — the month total. */
         billedMicrocents: number;
         meteredMs: number;
-        wallMs: number;
+        attachedVolumeMs: number;
         detachedMs: number;
     }
 }

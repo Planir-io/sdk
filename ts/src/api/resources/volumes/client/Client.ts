@@ -94,7 +94,7 @@ export class VolumesClient {
     }
 
     /**
-     * Starts backing-storage provisioning — a 201 returns the volume in `creating`; it becomes `available` after the backing storage binds. Attach it by creating a runtime with `volumeId` once available. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+     * Starts backing-storage provisioning — a 201 returns the volume in `creating`; it becomes `available` after the backing storage binds. Attach it by creating a runtime with `volumeId` once available. The volume is homed for a required preset `family` at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from `provisionedAt` to accepted deletion, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
      *
      * @param {PlanirApi.CreateVolumeRequest} request
      * @param {VolumesClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -111,7 +111,8 @@ export class VolumesClient {
      * @example
      *     await client.volumes.createVolume({
      *         name: "name",
-     *         sizeBytes: 1
+     *         sizeBytes: 1,
+     *         family: "co"
      *     })
      */
     public createVolume(

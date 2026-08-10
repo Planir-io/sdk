@@ -28,7 +28,6 @@ export namespace Error_ {
             VolumeBusy: "VOLUME_BUSY",
             RegistryHostExists: "REGISTRY_HOST_EXISTS",
             TeamBlocked: "TEAM_BLOCKED",
-            Forbidden: "FORBIDDEN",
             Internal: "INTERNAL",
         } as const;
         export type Code = (typeof Code)[keyof typeof Code];

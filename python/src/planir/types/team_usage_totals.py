@@ -21,7 +21,9 @@ class TeamUsageTotals(UniversalBaseModel):
         ),
     ]
     metered_ms: typing_extensions.Annotated[int, FieldMetadata(alias="meteredMs"), pydantic.Field(alias="meteredMs")]
-    wall_ms: typing_extensions.Annotated[int, FieldMetadata(alias="wallMs"), pydantic.Field(alias="wallMs")]
+    attached_volume_ms: typing_extensions.Annotated[
+        int, FieldMetadata(alias="attachedVolumeMs"), pydantic.Field(alias="attachedVolumeMs")
+    ]
     detached_ms: typing_extensions.Annotated[int, FieldMetadata(alias="detachedMs"), pydantic.Field(alias="detachedMs")]
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

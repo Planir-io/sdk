@@ -6,8 +6,8 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
-    from .types import CreateVolumeRequestFamily
-_dynamic_imports: typing.Dict[str, str] = {"CreateVolumeRequestFamily": ".types"}
+    from .create_volume_request_family import CreateVolumeRequestFamily
+_dynamic_imports: typing.Dict[str, str] = {"CreateVolumeRequestFamily": ".create_volume_request_family"}
 
 
 def __getattr__(attr_name: str) -> typing.Any:
