@@ -24,6 +24,7 @@ export namespace Error_ {
             ConcurrencyLimit: "CONCURRENCY_LIMIT",
             ResourceQuota: "RESOURCE_QUOTA",
             NoCapacity: "NO_CAPACITY",
+            BillingNotReady: "BILLING_NOT_READY",
             InsufficientBalance: "INSUFFICIENT_BALANCE",
             VolumeBusy: "VOLUME_BUSY",
             RegistryHostExists: "REGISTRY_HOST_EXISTS",

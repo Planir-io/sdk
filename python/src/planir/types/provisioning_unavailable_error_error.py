@@ -4,11 +4,11 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import UniversalBaseModel
-from .no_capacity_error_error_code import NoCapacityErrorErrorCode
+from .provisioning_unavailable_error_error_code import ProvisioningUnavailableErrorErrorCode
 
 
-class NoCapacityErrorError(UniversalBaseModel):
-    code: NoCapacityErrorErrorCode
+class ProvisioningUnavailableErrorError(UniversalBaseModel):
+    code: ProvisioningUnavailableErrorErrorCode
     message: typing.Optional[str] = None
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

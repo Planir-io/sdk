@@ -3,7 +3,7 @@
 export interface Usage {
     windowStart: string;
     windowEnd: string;
-    /** vCPU-seconds over running spans (string — big number). */
+    /** vCPU-seconds over confirmed allocation spans (string — big number). */
     cpuSeconds: string;
     memoryByteSeconds: string;
     storageByteSeconds: string;

@@ -9,7 +9,7 @@ from .limit_exceeded_error_error import LimitExceededErrorError
 
 class LimitExceededError(UniversalBaseModel):
     """
-    A limit refused the request — `code` names which: RATE_LIMITED = request-rate budget (wait `Retry-After`, retry); CONCURRENCY_LIMIT = the running-runtime cap (a quota — destroy a runtime or raise the cap; retrying without that cannot succeed, and no Retry-After is sent); RESOURCE_QUOTA = a per-family vCPU/memory ceiling would be passed (resource-governance Gate C) — the message names the family and the exceeded axis; stop or destroy a runtime of that family, or raise the family quota (no Retry-After).
+    A limit refused the request — `code` names which: RATE_LIMITED = request-rate budget (wait `Retry-After`, retry); CONCURRENCY_LIMIT = the running-runtime cap (a quota — destroy a runtime or raise the cap; retrying without that cannot succeed, and no Retry-After is sent); RESOURCE_QUOTA = a per-family vCPU/memory ceiling would be passed (resource-governance Gate C) or the team's total provisioned-storage entitlement would be passed; release the named resource or raise its entitlement (no Retry-After).
     """
 
     error: LimitExceededErrorError
