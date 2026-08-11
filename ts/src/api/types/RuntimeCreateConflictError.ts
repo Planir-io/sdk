@@ -3,11 +3,11 @@
 /**
  * Create refused by a conflict — `code` names which. CONFLICT: the Idempotency-Key was reused with a DIFFERENT effective request (same key + same request replays idempotently; a different request needs a fresh key). VOLUME_BUSY: the volume named by `volumeId` is attached elsewhere — destroy the holding runtime first. INVALID_STATE: the volume is still creating; retry when it is available.
  */
-export interface IdempotencyConflictError {
-    error: IdempotencyConflictError.Error_;
+export interface RuntimeCreateConflictError {
+    error: RuntimeCreateConflictError.Error_;
 }
 
-export namespace IdempotencyConflictError {
+export namespace RuntimeCreateConflictError {
     export interface Error_ {
         code: Error_.Code;
         message?: string | undefined;

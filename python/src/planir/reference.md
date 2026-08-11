@@ -1153,7 +1153,7 @@ client.runtimes.update_config(
 <dl>
 <dd>
 
-**config:** `str` — Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls the workload only when the bytes actually change (content checksum); a byte-identical replace does not restart it.
+**config:** `str` — Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls the workload only when the decoded bytes change; a byte-identical replace does not restart it.
     
 </dd>
 </dl>
@@ -1762,7 +1762,7 @@ client.volumes.list_volumes()
 <dl>
 <dd>
 
-Starts backing-storage provisioning — a 201 returns the volume in `creating`; it becomes `available` after the backing storage binds. Attach it by creating a runtime with `volumeId` once available. The volume is homed in a location at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from create to delete, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+Starts backing-storage provisioning — a 201 returns the volume in `creating`; it becomes `available` after the backing storage binds. Attach it by creating a runtime with `volumeId` once available. The volume is homed for a required preset `family` at create (optional `region`, the same choice runtime create takes; the response echoes it) and stays there for life — a runtime attaching it is placed there. Billing accrues provisioned byte-seconds from `provisionedAt` to accepted deletion, attached or not — so metered admission gates here exactly as on runtime create: a non-positive balance is a 402. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
 </dd>
 </dl>
 </dd>
@@ -1788,6 +1788,7 @@ client = PlanirClient(
 client.volumes.create_volume(
     name="name",
     size_bytes=1,
+    family="co",
 )
 
 ```
@@ -1812,7 +1813,7 @@ client.volumes.create_volume(
 <dl>
 <dd>
 
-**size_bytes:** `int` — Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from create to delete, attached or not. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+**size_bytes:** `int` — Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from `provisionedAt` to accepted deletion, attached or not. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
     
 </dd>
 </dl>
@@ -1820,7 +1821,15 @@ client.volumes.create_volume(
 <dl>
 <dd>
 
-**region:** `typing.Optional[str]` — The location to home the volume in — the same choice runtime create takes. Omitted: the default location. A location that is not offered → 422; one with no capacity right now → 503 (nothing provisioned). See `GET /v1/regions`. The home is fixed for the volume's life: a runtime attaching this volume is placed here (data gravity — the runtime follows the volume, never the reverse).
+**family:** `CreateVolumeRequestFamily` — The preset family whose runtimes will use this volume. Required placement intent: the selected home must offer this family in the requested/default location. Discover families and live availability via GET /v1/regions.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**region:** `typing.Optional[str]` — The location to home the volume in — the same choice runtime create takes. Omitted: the default location. A location that does not offer `family` → 422; one with no capacity right now → 503 (nothing provisioned). See `GET /v1/regions`. The home is fixed for the volume's life: a runtime attaching this volume is placed here (data gravity — the runtime follows the volume, never the reverse).
     
 </dd>
 </dl>
@@ -2413,7 +2422,7 @@ client.presets.list_presets()
 <dl>
 <dd>
 
-Every location on offer, with per-family `available` derived live — the picker's "can I order here now" truth. `region` values are plain strings (e.g. "brq"), never an enum: new locations appear additively; send one as `region` on create. `available` is probed with the family's smallest preset, so a larger preset's create may still refuse 503 at the capacity margin. Unavailable means full, draining, or not yet commissioned — a create naming that location refuses 503 until it flips (re-read rather than remember; no pagination, the list is a menu).
+Every location on offer, with per-family `available` derived live — the picker's "can I order here now" truth. `region` values are plain strings (e.g. "brq"), never an enum: new locations appear additively; send one as `region` on create. `available` means an unpinned create using the family's smallest preset can be placed now, so a larger preset's create may still refuse 503 at the capacity margin. Unavailable means full, draining, or not ready — a create naming that location refuses 503 until it flips (re-read rather than remember; no pagination, the list is a menu).
 </dd>
 </dl>
 </dd>

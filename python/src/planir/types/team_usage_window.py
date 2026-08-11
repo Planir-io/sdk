@@ -25,12 +25,12 @@ class TeamUsageWindow(UniversalBaseModel):
             description="Metered compute milliseconds accrued in the month (event-derived, clipped to the month).",
         ),
     ]
-    wall_ms: typing_extensions.Annotated[
+    attached_volume_ms: typing_extensions.Annotated[
         int,
-        FieldMetadata(alias="wallMs"),
+        FieldMetadata(alias="attachedVolumeMs"),
         pydantic.Field(
-            alias="wallMs",
-            description="Wall-clock milliseconds the volume existed in the month (create→destroy span, clipped) — accrues while stopped.",
+            alias="attachedVolumeMs",
+            description="Provisioned milliseconds assigned to this runtime's active volume attachment; stopped time remains attached.",
         ),
     ]
     billed_microcents: typing_extensions.Annotated[

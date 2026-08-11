@@ -52,6 +52,15 @@ class Volume(UniversalBaseModel):
     The volume's home location, stamped at create and fixed for its life. A runtime created with this `volumeId` is placed here (runtime-follows-volume).
     """
 
+    provisioned_at: typing_extensions.Annotated[
+        typing.Optional[dt.datetime],
+        FieldMetadata(alias="provisionedAt"),
+        pydantic.Field(
+            alias="provisionedAt",
+            default=None,
+            description="When backing storage provisioning was proven; null while `state` is `creating`.",
+        ),
+    ]
     created_at: typing_extensions.Annotated[
         dt.datetime, FieldMetadata(alias="createdAt"), pydantic.Field(alias="createdAt")
     ]

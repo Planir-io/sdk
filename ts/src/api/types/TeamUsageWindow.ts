@@ -6,8 +6,8 @@ export interface TeamUsageWindow {
     period: string;
     /** Metered compute milliseconds accrued in the month (event-derived, clipped to the month). */
     meteredMs: number;
-    /** Wall-clock milliseconds the volume existed in the month (create→destroy span, clipped) — accrues while stopped. */
-    wallMs: number;
+    /** Provisioned milliseconds assigned to this runtime's active volume attachment; stopped time remains attached. */
+    attachedVolumeMs: number;
     /** What this window has billed so far, integer microcents. 0 for a flat/root window (quantities accrue, nothing is debited) and for a priceless (non-preset) window. */
     billedMicrocents: number;
     /** The window's own carried prices, resolved once when it opened — a reprice or renegotiation never rewrites a month in progress. Null AS A UNIT for a non-preset shape (priceless window): quantities still accrue, billedMicrocents stays 0. */

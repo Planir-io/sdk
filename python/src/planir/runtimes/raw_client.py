@@ -1460,7 +1460,7 @@ class RawRuntimesClient:
         id : str
 
         config : str
-            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls the workload only when the bytes actually change (content checksum); a byte-identical replace does not restart it.
+            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls the workload only when the decoded bytes change; a byte-identical replace does not restart it.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -3773,7 +3773,7 @@ class AsyncRawRuntimesClient:
         id : str
 
         config : str
-            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls the workload only when the bytes actually change (content checksum); a byte-identical replace does not restart it.
+            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls the workload only when the decoded bytes change; a byte-identical replace does not restart it.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.

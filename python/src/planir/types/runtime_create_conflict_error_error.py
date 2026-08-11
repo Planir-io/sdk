@@ -4,11 +4,11 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import UniversalBaseModel
-from .idempotency_conflict_error_error_code import IdempotencyConflictErrorErrorCode
+from .runtime_create_conflict_error_error_code import RuntimeCreateConflictErrorErrorCode
 
 
-class IdempotencyConflictErrorError(UniversalBaseModel):
-    code: IdempotencyConflictErrorErrorCode
+class RuntimeCreateConflictErrorError(UniversalBaseModel):
+    code: RuntimeCreateConflictErrorErrorCode
     message: typing.Optional[str] = None
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

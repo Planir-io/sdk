@@ -14,6 +14,8 @@ export interface Volume {
     runtimeId?: string | undefined;
     /** The volume's home location, stamped at create and fixed for its life. A runtime created with this `volumeId` is placed here (runtime-follows-volume). */
     region: string;
+    /** When backing storage provisioning was proven; null while `state` is `creating`. */
+    provisionedAt: string | null;
     createdAt: string;
 }
 
