@@ -18,6 +18,14 @@ class TeamLimits(UniversalBaseModel):
             description="Gate B — the running-runtime count cap (the same value as `package.concurrencyLimit`; breach = 429 CONCURRENCY_LIMIT).",
         ),
     ]
+    max_total_storage_bytes: typing_extensions.Annotated[
+        int,
+        FieldMetadata(alias="maxTotalStorageBytes"),
+        pydantic.Field(
+            alias="maxTotalStorageBytes",
+            description="Maximum provisioned bytes across all live and deleting volumes; breach = 429 RESOURCE_QUOTA.",
+        ),
+    ]
     allowed_preset_ids: typing_extensions.Annotated[
         typing.Optional[typing.List[str]],
         FieldMetadata(alias="allowedPresetIds"),

@@ -13,6 +13,7 @@ ErrorErrorCode = typing.Union[
         "CONCURRENCY_LIMIT",
         "RESOURCE_QUOTA",
         "NO_CAPACITY",
+        "BILLING_NOT_READY",
         "INSUFFICIENT_BALANCE",
         "VOLUME_BUSY",
         "REGISTRY_HOST_EXISTS",

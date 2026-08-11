@@ -3,6 +3,8 @@
 export interface TeamLimits {
     /** Gate B — the running-runtime count cap (the same value as `package.concurrencyLimit`; breach = 429 CONCURRENCY_LIMIT). */
     maxConcurrentRuntimes: number;
+    /** Maximum provisioned bytes across all live and deleting volumes; breach = 429 RESOURCE_QUOTA. */
+    maxTotalStorageBytes: number;
     /** Gate A — exactly these public presets are creatable, regardless of billing mode. A private preset owned by the package is creatable without appearing in this list. Null = no explicit public set. A metered team must still match a public preset or a private preset owned by its package; see GET /v1/presets. Breach = 422 INVALID_REQUEST. */
     allowedPresetIds: string[] | null;
     /** Gate C — per-family resource ceilings over RUNNING runtimes, region-blind (where each runtime lands stays your choice). A family absent here is uncapped; breach = 429 RESOURCE_QUOTA. A ceiling is an entitlement, never a capacity reservation — a create under quota can still see 503 NO_CAPACITY in a full location. */

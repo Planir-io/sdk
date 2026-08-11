@@ -16,7 +16,9 @@ class Usage(UniversalBaseModel):
     cpu_seconds: typing_extensions.Annotated[
         str,
         FieldMetadata(alias="cpuSeconds"),
-        pydantic.Field(alias="cpuSeconds", description="vCPU-seconds over running spans (string — big number)."),
+        pydantic.Field(
+            alias="cpuSeconds", description="vCPU-seconds over confirmed allocation spans (string — big number)."
+        ),
     ]
     memory_byte_seconds: typing_extensions.Annotated[
         str, FieldMetadata(alias="memoryByteSeconds"), pydantic.Field(alias="memoryByteSeconds")

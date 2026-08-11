@@ -512,6 +512,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.start({
@@ -579,6 +580,8 @@ export class RuntimesClient {
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
