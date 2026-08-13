@@ -94,6 +94,21 @@ await replaceWithin("python/src/planir/runtimes/raw_client.py", "\n    async def
 await replaceExactCount("python/src/planir/team/raw_client.py", untypedCreatePolicy, typedPolicyRefused, 6);
 await replaceExactCount("python/src/planir/volumes/raw_client.py", untypedCreatePolicy, typedPolicyRefused, 2);
 await replaceExactCount("python/src/planir/runtimes/raw_client.py", untypedCreatePolicy, typedPolicyRefused, 2);
+await replaceOnce(
+    "python/src/planir/core/jsonable_encoder.py",
+    "from pathlib import PurePath\n",
+    "from pathlib import PurePath\nfrom urllib.parse import quote\n",
+);
+await replaceOnce(
+    "python/src/planir/core/jsonable_encoder.py",
+    '    if isinstance(obj, bool):\n        return "true" if obj else "false"\n    return str(jsonable_encoder(obj))\n',
+    '    if isinstance(obj, bool):\n        return "true" if obj else "false"\n    value = str(jsonable_encoder(obj))\n    if value in {".", ".."}:\n        raise ValueError("path parameter must not be a dot path segment")\n    return quote(value, safe="")\n',
+);
+await replaceOnce(
+    "python/src/planir/process/gen/planir/runtime/v1/process_pb2.py",
+    "_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'planir.runtime.v1.process_pb2', _globals)",
+    "_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'planir.process.gen.planir.runtime.v1.process_pb2', _globals)",
+);
 await replaceOnce("python/src/planir/CONTRIBUTING.md", "- Python 3.9+", "- Python 3.10+");
 await normalizeGenerated("ts/src/process/gen/planir/runtime/v1/process_pb.ts");
 await normalizeGenerated("python/src/planir/process/gen/planir/runtime/v1/process_connect.py");

@@ -28,7 +28,7 @@ DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fplanir/runtime
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'planir.runtime.v1.process_pb2', _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'planir.process.gen.planir.runtime.v1.process_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'ZTgithub.com/planir-io/planir-orchestrator/guest-agent/gen/planir/runtime/v1;runtimev1'

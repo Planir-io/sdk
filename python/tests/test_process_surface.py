@@ -1,10 +1,14 @@
 import inspect
+import pickle
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import httpx
+
 from planir import AsyncPlanirClient, PlanirClient
-from planir.errors import UnprocessableEntityError
+from planir.core.jsonable_encoder import encode_path_param
+from planir.errors import NotFoundError, UnprocessableEntityError
 from planir.process import ConnectRequest, ProcessConfig, StartRequest
 from planir.process.runtime import _address
 from planir.runtimes.raw_client import AsyncRawRuntimesClient, RawRuntimesClient
@@ -14,6 +18,33 @@ from planir.volumes.raw_client import AsyncRawVolumesClient, RawVolumesClient
 
 
 class ProcessSurfaceTest(unittest.TestCase):
+    def test_process_messages_pickle_round_trip(self) -> None:
+        request = StartRequest(process=ProcessConfig(cmd="echo", args=["hello"]))
+        restored = pickle.loads(pickle.dumps(request))
+        self.assertEqual(restored, request)
+
+    def test_runtime_paths_encode_untrusted_ids_as_one_segment(self) -> None:
+        observed = []
+
+        def capture(request: httpx.Request) -> httpx.Response:
+            observed.append(request.url.raw_path)
+            return httpx.Response(404, json={"error": {"code": "NOT_FOUND", "message": "missing"}})
+
+        client = PlanirClient(
+            base_url="https://api.planir.io",
+            token="test",
+            httpx_client=httpx.Client(transport=httpx.MockTransport(capture)),
+        )
+        with self.assertRaises(NotFoundError):
+            client.runtimes.rotate_runtime_key("../team/keys#")
+
+        self.assertEqual(observed, [b"/v1/runtimes/..%2Fteam%2Fkeys%23/key"])
+
+    def test_rest_path_encoder_rejects_dot_only_segments(self) -> None:
+        for value in (".", ".."):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                encode_path_param(value)
+
     def test_runtime_id_is_one_encoded_path_segment(self) -> None:
         wrapper = SimpleNamespace(get_base_url=lambda: "https://api.planir.io")
         self.assertEqual(
