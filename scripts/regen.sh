@@ -13,6 +13,7 @@ set -euo pipefail
 
 FERN_CLI_VERSION="${FERN_CLI_VERSION:-5.65.0}"
 BUF_VERSION="${BUF_VERSION:-1.57.2}"
+BUF_DIGEST="sha256:60dea959d4a9ea381a2c9d6f8760678845234e086f632ec01a64bb588143a226"
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 stage_root="$(mktemp -d "${TMPDIR:-/tmp}/planir-sdk-regen.XXXXXX")"
@@ -29,8 +30,8 @@ npx --yes "fern-api@${FERN_CLI_VERSION}" generate --local --force
 cd "$repo_root"
 rsync -a --delete "$stage_root/ts/src/" ts/src/
 rsync -a --delete "$stage_root/python/src/planir/" python/src/planir/
-docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$repo_root:/workspace" -w /workspace "bufbuild/buf:${BUF_VERSION}" lint
-docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$repo_root:/workspace" -w /workspace "bufbuild/buf:${BUF_VERSION}" generate
+docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$repo_root:/workspace" -w /workspace "bufbuild/buf:${BUF_VERSION}@${BUF_DIGEST}" lint
+docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$repo_root:/workspace" -w /workspace "bufbuild/buf:${BUF_VERSION}@${BUF_DIGEST}" generate
 cp process-overlay/ts/RuntimeHandle.ts ts/src/process/RuntimeHandle.ts
 cp process-overlay/python/__init__.py python/src/planir/process/__init__.py
 cp process-overlay/python/runtime.py python/src/planir/process/runtime.py

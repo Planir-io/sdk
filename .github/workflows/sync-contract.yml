@@ -96,7 +96,8 @@ jobs:
           set +e
           docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
             -v "$PWD:/workspace" -v /tmp/process.previous:/previous:ro \
-            -w /workspace bufbuild/buf:1.57.2 breaking . --against /previous \
+            -w /workspace bufbuild/buf:1.57.2@sha256:60dea959d4a9ea381a2c9d6f8760678845234e086f632ec01a64bb588143a226 \
+            breaking . --against /previous \
             2>&1 | tee /tmp/buf-breaking.txt
           breaking=${PIPESTATUS[0]}
           set -e
