@@ -6,11 +6,19 @@ from unittest.mock import AsyncMock
 from planir import AsyncPlanirClient, PlanirClient
 from planir.errors import UnprocessableEntityError
 from planir.process import ConnectRequest, ProcessConfig, StartRequest
+from planir.process.runtime import _address
 from planir.runtimes.raw_client import AsyncRawRuntimesClient, RawRuntimesClient
 from planir.types import RuntimeCreatePolicyError
 
 
 class ProcessSurfaceTest(unittest.TestCase):
+    def test_runtime_id_is_one_encoded_path_segment(self) -> None:
+        wrapper = SimpleNamespace(get_base_url=lambda: "https://api.planir.io")
+        self.assertEqual(
+            _address(wrapper, "rt_allowed/../rt_victim?#"),
+            "https://api.planir.io/v1/runtimes/rt_allowed%2F..%2Frt_victim%3F%23",
+        )
+
     def test_process_messages_have_a_public_import(self) -> None:
         request = StartRequest(process=ProcessConfig(cmd="echo", args=["hello"]))
         self.assertEqual(request.process.cmd, "echo")

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import test from "node:test";
 
+import { Code } from "@connectrpc/connect";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
 import { PlanirClient } from "../dist/index.js";
 import { Process } from "../dist/process/gen/planir/runtime/v1/process_pb.js";
@@ -42,11 +43,36 @@ test("Process requests carry SDK auth and custom headers", async (t) => {
     const client = new PlanirClient({
         baseUrl: `http://127.0.0.1:${address.port}`,
         token: "test-token",
-        headers: { "x-planir-test": "present" },
+        headers: { "x-planir-test": "client" },
     });
 
-    await client.runtimes.runtime("rt_test").commands.list({});
+    await client.runtimes.runtime("rt_test").commands.list({}, { headers: { "x-planir-test": "request" } });
 
     assert.equal(headers.get("authorization"), "Bearer test-token");
-    assert.equal(headers.get("x-planir-test"), "present");
+    assert.equal(headers.get("x-planir-test"), "request");
+});
+
+test("Process requests inherit the configured client timeout", async (t) => {
+    const adapter = connectNodeAdapter({
+        routes: (router) => router.service(Process, {
+            async list() {
+                await new Promise((resolve) => setTimeout(resolve, 100));
+                return { processes: [] };
+            },
+        }),
+    });
+    const server = createServer((request, response) => {
+        request.url = request.url.replace(/^\/v1\/runtimes\/rt_test/, "");
+        adapter(request, response);
+    });
+    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    t.after(() => server.close());
+    const address = server.address();
+    const commands = new PlanirClient({
+        baseUrl: `http://127.0.0.1:${address.port}`,
+        token: "test",
+        timeoutInSeconds: 0.01,
+    }).runtimes.runtime("rt_test").commands;
+
+    await assert.rejects(commands.list({}), (error) => error.code === Code.DeadlineExceeded);
 });

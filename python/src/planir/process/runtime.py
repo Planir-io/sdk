@@ -1,11 +1,12 @@
 import typing
+from urllib.parse import quote
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from .gen.planir.runtime.v1.process_connect import ProcessClient, ProcessClientSync
 
 
 def _address(wrapper: typing.Union[AsyncClientWrapper, SyncClientWrapper], runtime_id: str) -> str:
-    return f"{wrapper.get_base_url().rstrip('/')}/v1/runtimes/{runtime_id}"
+    return f"{wrapper.get_base_url().rstrip('/')}/v1/runtimes/{quote(runtime_id, safe='')}"
 
 
 class ProcessPlane:
