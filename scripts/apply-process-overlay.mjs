@@ -56,6 +56,21 @@ await replaceOnce(
     'export { PlanirClient } from "./Client.js";\nexport { ProcessPlane, RuntimeHandle } from "./process/RuntimeHandle.js";\nexport * from "./process/gen/planir/runtime/v1/process_pb.js";\n',
 );
 await replaceOnce(
+    "ts/src/BaseClient.ts",
+    'import type * as environments from "./environments.js";\n',
+    'import type * as environments from "./environments.js";\nimport type { ConnectTransportOptions } from "@connectrpc/connect-node";\n',
+);
+await replaceOnce(
+    "ts/src/BaseClient.ts",
+    "    fetch?: typeof fetch;\n",
+    '    fetch?: typeof fetch;\n    /** Native Connect transport options for Process calls. Required when fetch is customized. */\n    processTransportOptions?: ProcessTransportOptions;\n',
+);
+await replaceOnce(
+    "ts/src/BaseClient.ts",
+    "    | BearerAuthProvider.AuthOptions;\n",
+    '    | BearerAuthProvider.AuthOptions;\n\nexport type ProcessTransportOptions = Omit<\n    Extract<ConnectTransportOptions, { httpVersion: "1.1" }>,\n    "baseUrl" | "httpVersion" | "interceptors" | "defaultTimeoutMs"\n>;\n',
+);
+await replaceOnce(
     "python/src/planir/runtimes/client.py",
     "from .types.list_runtimes_request_include_destroyed import ListRuntimesRequestIncludeDestroyed\n",
     "from .types.list_runtimes_request_include_destroyed import ListRuntimesRequestIncludeDestroyed\nfrom ..process.runtime import AsyncRuntimeHandle, RuntimeHandle\n",
@@ -103,6 +118,59 @@ await replaceOnce(
     "python/src/planir/core/jsonable_encoder.py",
     '    if isinstance(obj, bool):\n        return "true" if obj else "false"\n    return str(jsonable_encoder(obj))\n',
     '    if isinstance(obj, bool):\n        return "true" if obj else "false"\n    value = str(jsonable_encoder(obj))\n    if value in {".", ".."}:\n        raise ValueError("path parameter must not be a dot path segment")\n    return quote(value, safe="")\n',
+);
+await replaceOnce(
+    "python/src/planir/client.py",
+    "import httpx\n",
+    "import httpx\nfrom pyqwest import Client as PyqwestClient, SyncClient as PyqwestSyncClient\n",
+);
+await replaceExactCount(
+    "python/src/planir/client.py",
+    "        httpx_client: typing.Optional[httpx.Client] = None,\n",
+    "        httpx_client: typing.Optional[httpx.Client] = None,\n        process_http_client: typing.Optional[PyqwestSyncClient] = None,\n",
+    1,
+);
+await replaceExactCount(
+    "python/src/planir/client.py",
+    "        httpx_client: typing.Optional[httpx.AsyncClient] = None,\n",
+    "        httpx_client: typing.Optional[httpx.AsyncClient] = None,\n        process_http_client: typing.Optional[PyqwestClient] = None,\n",
+    1,
+);
+await replaceExactCount(
+    "python/src/planir/client.py",
+    "    httpx_client : typing.Optional[httpx.Client]\n        The httpx client to use for making requests, a preconfigured client is used by default, however this is useful should you want to pass in any custom httpx configuration.\n",
+    "    httpx_client : typing.Optional[httpx.Client]\n        The httpx client to use for making requests, a preconfigured client is used by default, however this is useful should you want to pass in any custom httpx configuration.\n\n    process_http_client : typing.Optional[PyqwestSyncClient]\n        The native Connect HTTP client for Process calls. Required when httpx_client is customized.\n",
+    1,
+);
+await replaceExactCount(
+    "python/src/planir/client.py",
+    "    httpx_client : typing.Optional[httpx.AsyncClient]\n        The httpx client to use for making requests, a preconfigured client is used by default, however this is useful should you want to pass in any custom httpx configuration.\n",
+    "    httpx_client : typing.Optional[httpx.AsyncClient]\n        The httpx client to use for making requests, a preconfigured client is used by default, however this is useful should you want to pass in any custom httpx configuration.\n\n    process_http_client : typing.Optional[PyqwestClient]\n        The native Connect HTTP client for Process calls. Required when httpx_client is customized.\n",
+    1,
+);
+await replaceExactCount(
+    "python/src/planir/client.py",
+    "            logging=logging,\n",
+    "            logging=logging,\n            uses_custom_httpx_client=httpx_client is not None,\n            process_http_client=process_http_client,\n",
+    2,
+);
+await replaceExactCount(
+    "python/src/planir/core/client_wrapper.py",
+    "        httpx_client: httpx.Client,\n",
+    "        httpx_client: httpx.Client,\n        uses_custom_httpx_client: bool = False,\n        process_http_client: typing.Any = None,\n",
+    1,
+);
+await replaceExactCount(
+    "python/src/planir/core/client_wrapper.py",
+    "        httpx_client: httpx.AsyncClient,\n",
+    "        httpx_client: httpx.AsyncClient,\n        uses_custom_httpx_client: bool = False,\n        process_http_client: typing.Any = None,\n",
+    1,
+);
+await replaceExactCount(
+    "python/src/planir/core/client_wrapper.py",
+    "            logging_config=self._logging,\n        )\n",
+    "            logging_config=self._logging,\n        )\n        self._uses_custom_httpx_client = uses_custom_httpx_client\n        self._process_http_client = process_http_client\n",
+    2,
 );
 await replaceOnce(
     "python/src/planir/process/gen/planir/runtime/v1/process_pb2.py",

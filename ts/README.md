@@ -33,7 +33,8 @@ console.log(runtime.urls);
 The client defaults to `https://api.planir.io`; pass `baseUrl` to point elsewhere
 (e.g. a mock server in tests). `client.runtimes.runtime(runtime.id).commands` and
 `.pty` expose the generated streaming Process client. Commands use argv; no shell is
-added implicitly.
+added implicitly. A custom `fetch` also requires `processTransportOptions`, because
+streaming Process calls use the native Connect transport.
 
 ## License
 

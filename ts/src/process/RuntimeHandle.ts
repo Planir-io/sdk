@@ -15,6 +15,9 @@ export class ProcessPlane {
         if (runtimeId === "." || runtimeId === "..") {
             throw new Error("runtimeId must not be a dot path segment");
         }
+        if (options.fetch != null && options.processTransportOptions == null) {
+            throw new Error("custom fetch does not serve Process calls; configure processTransportOptions");
+        }
         const auth: Interceptor = (next) => async (request) => {
             for (const [name, supplied] of Object.entries(options.headers ?? {})) {
                 if (request.header.has(name)) continue;
@@ -29,6 +32,7 @@ export class ProcessPlane {
         };
         this.client = Supplier.get(options.baseUrl ?? options.environment ?? PlanirApiEnvironment.Default).then((baseUrl) =>
             createClient(Process, createConnectTransport({
+                ...options.processTransportOptions,
                 baseUrl: `${baseUrl.replace(/\/$/, "")}/v1/runtimes/${encodeURIComponent(runtimeId)}`,
                 httpVersion: "1.1",
                 interceptors: [auth],

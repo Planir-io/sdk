@@ -1,5 +1,6 @@
 import inspect
 import pickle
+import typing
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -18,6 +19,10 @@ from planir.volumes.raw_client import AsyncRawVolumesClient, RawVolumesClient
 
 
 class ProcessSurfaceTest(unittest.TestCase):
+    def test_process_http_client_annotations_resolve(self) -> None:
+        hints = typing.get_type_hints(PlanirClient.__init__)
+        self.assertEqual(typing.get_args(hints["process_http_client"])[0].__name__, "SyncClient")
+
     def test_process_messages_pickle_round_trip(self) -> None:
         request = StartRequest(process=ProcessConfig(cmd="echo", args=["hello"]))
         restored = pickle.loads(pickle.dumps(request))
@@ -69,12 +74,46 @@ class ProcessSurfaceTest(unittest.TestCase):
             self.assertTrue(callable(getattr(runtime.commands, method)))
             self.assertTrue(callable(getattr(runtime.pty, method)))
 
+    def test_custom_rest_client_requires_process_http_client(self) -> None:
+        client = PlanirClient(token="test", httpx_client=httpx.Client())
+        with self.assertRaisesRegex(ValueError, "process_http_client"):
+            client.runtimes.runtime("rt_test")
+
+    def test_process_http_client_is_injected(self) -> None:
+        from pyqwest import SyncClient
+
+        process_http_client = SyncClient()
+        runtime = PlanirClient(
+            token="test",
+            httpx_client=httpx.Client(),
+            process_http_client=process_http_client,
+        ).runtimes.runtime("rt_test")
+
+        self.assertIs(runtime.commands._client._http_client, process_http_client)
+
     def test_async_runtime_handle_exposes_commands_and_pty(self) -> None:
         runtime = AsyncPlanirClient(token="test").runtimes.runtime("rt_test")
         methods = ("start", "connect", "list", "stream_input", "send_input", "close_stdin", "update", "send_signal")
         for method in methods:
             self.assertTrue(callable(getattr(runtime.commands, method)))
             self.assertTrue(callable(getattr(runtime.pty, method)))
+
+    def test_async_custom_rest_client_requires_process_http_client(self) -> None:
+        client = AsyncPlanirClient(token="test", httpx_client=httpx.AsyncClient())
+        with self.assertRaisesRegex(ValueError, "process_http_client"):
+            client.runtimes.runtime("rt_test")
+
+    def test_async_process_http_client_is_injected(self) -> None:
+        from pyqwest import Client
+
+        process_http_client = Client()
+        runtime = AsyncPlanirClient(
+            token="test",
+            httpx_client=httpx.AsyncClient(),
+            process_http_client=process_http_client,
+        ).runtimes.runtime("rt_test")
+
+        self.assertIs(runtime.commands._client._http_client, process_http_client)
 
     def test_async_streaming_methods_return_async_iterables(self) -> None:
         commands = AsyncPlanirClient(token="test").runtimes.runtime("rt_test").commands

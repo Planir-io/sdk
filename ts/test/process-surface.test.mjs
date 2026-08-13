@@ -83,3 +83,41 @@ test("Process requests inherit the configured client timeout", async (t) => {
 
     await assert.rejects(commands.list({}), (error) => error.code === Code.DeadlineExceeded);
 });
+
+test("custom REST fetch requires explicit Process transport options", () => {
+    const client = new PlanirClient({ token: "test", fetch: async () => new Response() });
+
+    assert.throws(
+        () => client.runtimes.runtime("rt_test"),
+        /processTransportOptions/,
+    );
+});
+
+test("explicit Process transport options are applied", async (t) => {
+    let contentType;
+    const adapter = connectNodeAdapter({
+        routes: (router) => router.service(Process, {
+            list(_request, context) {
+                contentType = context.requestHeader.get("content-type");
+                return { processes: [] };
+            },
+        }),
+    });
+    const server = createServer((request, response) => {
+        request.url = request.url.replace(/^\/v1\/runtimes\/rt_test/, "");
+        adapter(request, response);
+    });
+    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    t.after(() => server.close());
+    const address = server.address();
+    const commands = new PlanirClient({
+        baseUrl: `http://127.0.0.1:${address.port}`,
+        token: "test",
+        fetch: async () => { throw new Error("REST fetch must not serve Process calls"); },
+        processTransportOptions: { useBinaryFormat: false },
+    }).runtimes.runtime("rt_test").commands;
+
+    await commands.list({});
+
+    assert.match(contentType, /json/);
+});

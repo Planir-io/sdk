@@ -31,6 +31,8 @@ The client defaults to `https://api.planir.io`; pass `base_url` to point elsewhe
 (e.g. a mock server in tests). An async client is available as `AsyncPlanirClient`.
 `client.runtimes.runtime(runtime.id).commands` and `.pty` expose the generated
 streaming Process client. Commands use argv; no shell is added implicitly.
+A custom `httpx_client` also requires `process_http_client`, because streaming Process
+calls use Connect's native Pyqwest client.
 
 ## License
 

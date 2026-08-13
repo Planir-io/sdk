@@ -13,8 +13,10 @@ def _address(wrapper: typing.Union[AsyncClientWrapper, SyncClientWrapper], runti
 
 class ProcessPlane:
     def __init__(self, wrapper: SyncClientWrapper, runtime_id: str) -> None:
+        if wrapper._uses_custom_httpx_client and wrapper._process_http_client is None:
+            raise ValueError("custom httpx_client does not serve Process calls; configure process_http_client")
         self._wrapper = wrapper
-        self._client = ProcessClientSync(_address(wrapper, runtime_id))
+        self._client = ProcessClientSync(_address(wrapper, runtime_id), http_client=wrapper._process_http_client)
 
     def _headers(self, headers):
         return {**self._wrapper.get_headers(), **(headers or {})}
@@ -51,8 +53,10 @@ class RuntimeHandle:
 
 class AsyncProcessPlane:
     def __init__(self, wrapper: AsyncClientWrapper, runtime_id: str) -> None:
+        if wrapper._uses_custom_httpx_client and wrapper._process_http_client is None:
+            raise ValueError("custom httpx_client does not serve Process calls; configure process_http_client")
         self._wrapper = wrapper
-        self._client = ProcessClient(_address(wrapper, runtime_id))
+        self._client = ProcessClient(_address(wrapper, runtime_id), http_client=wrapper._process_http_client)
 
     async def _headers(self, headers):
         return {**(await self._wrapper.async_get_headers()), **(headers or {})}

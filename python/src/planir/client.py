@@ -5,6 +5,7 @@ from __future__ import annotations
 import typing
 
 import httpx
+from pyqwest import Client as PyqwestClient, SyncClient as PyqwestSyncClient
 from .core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from .core.logging import LogConfig, Logger
 from .environment import PlanirClientEnvironment
@@ -60,6 +61,9 @@ class PlanirClient:
     httpx_client : typing.Optional[httpx.Client]
         The httpx client to use for making requests, a preconfigured client is used by default, however this is useful should you want to pass in any custom httpx configuration.
 
+    process_http_client : typing.Optional[PyqwestSyncClient]
+        The native Connect HTTP client for Process calls. Required when httpx_client is customized.
+
     logging : typing.Optional[typing.Union[LogConfig, Logger]]
         Configure logging for the SDK. Accepts a LogConfig dict with 'level' (debug/info/warn/error), 'logger' (custom logger implementation), and 'silent' (boolean, defaults to True) fields. You can also pass a pre-configured Logger instance.
 
@@ -85,6 +89,7 @@ class PlanirClient:
         max_stream_reconnection_attempts: typing.Optional[int] = None,
         follow_redirects: typing.Optional[bool] = True,
         httpx_client: typing.Optional[httpx.Client] = None,
+        process_http_client: typing.Optional[PyqwestSyncClient] = None,
         logging: typing.Optional[typing.Union[LogConfig, Logger]] = None,
     ):
         _defaulted_timeout = timeout if timeout is not None else 60 if httpx_client is None else None
@@ -103,6 +108,8 @@ class PlanirClient:
             stream_reconnection_enabled=stream_reconnection_enabled,
             max_stream_reconnection_attempts=max_stream_reconnection_attempts,
             logging=logging,
+            uses_custom_httpx_client=httpx_client is not None,
+            process_http_client=process_http_client,
         )
         self._health: typing.Optional[HealthClient] = None
         self._meta: typing.Optional[MetaClient] = None
@@ -239,6 +246,9 @@ class AsyncPlanirClient:
     httpx_client : typing.Optional[httpx.AsyncClient]
         The httpx client to use for making requests, a preconfigured client is used by default, however this is useful should you want to pass in any custom httpx configuration.
 
+    process_http_client : typing.Optional[PyqwestClient]
+        The native Connect HTTP client for Process calls. Required when httpx_client is customized.
+
     logging : typing.Optional[typing.Union[LogConfig, Logger]]
         Configure logging for the SDK. Accepts a LogConfig dict with 'level' (debug/info/warn/error), 'logger' (custom logger implementation), and 'silent' (boolean, defaults to True) fields. You can also pass a pre-configured Logger instance.
 
@@ -265,6 +275,7 @@ class AsyncPlanirClient:
         max_stream_reconnection_attempts: typing.Optional[int] = None,
         follow_redirects: typing.Optional[bool] = True,
         httpx_client: typing.Optional[httpx.AsyncClient] = None,
+        process_http_client: typing.Optional[PyqwestClient] = None,
         logging: typing.Optional[typing.Union[LogConfig, Logger]] = None,
     ):
         _defaulted_timeout = timeout if timeout is not None else 60 if httpx_client is None else None
@@ -282,6 +293,8 @@ class AsyncPlanirClient:
             stream_reconnection_enabled=stream_reconnection_enabled,
             max_stream_reconnection_attempts=max_stream_reconnection_attempts,
             logging=logging,
+            uses_custom_httpx_client=httpx_client is not None,
+            process_http_client=process_http_client,
         )
         self._health: typing.Optional[AsyncHealthClient] = None
         self._meta: typing.Optional[AsyncMetaClient] = None

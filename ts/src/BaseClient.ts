@@ -4,12 +4,18 @@ import { BearerAuthProvider } from "./auth/BearerAuthProvider.js";
 import { mergeHeaders } from "./core/headers.js";
 import * as core from "./core/index.js";
 import type * as environments from "./environments.js";
+import type { ConnectTransportOptions } from "@connectrpc/connect-node";
 
 export type AuthOption =
     | false
     | core.AuthProvider["getAuthRequest"]
     | core.AuthProvider
     | BearerAuthProvider.AuthOptions;
+
+export type ProcessTransportOptions = Omit<
+    Extract<ConnectTransportOptions, { httpVersion: "1.1" }>,
+    "baseUrl" | "httpVersion" | "interceptors" | "defaultTimeoutMs"
+>;
 
 export type BaseClientOptions = {
     environment?: core.Supplier<environments.PlanirApiEnvironment | string>;
@@ -23,6 +29,8 @@ export type BaseClientOptions = {
     maxRetries?: number;
     /** Provide a custom fetch implementation. Useful for platforms that don't have a built-in fetch or need a custom implementation. */
     fetch?: typeof fetch;
+    /** Native Connect transport options for Process calls. Required when fetch is customized. */
+    processTransportOptions?: ProcessTransportOptions;
     /** Configure logging for the client. */
     logging?: core.logging.LogConfig | core.logging.Logger;
     /** Default options for SSE stream reconnection behavior. Has no effect on non-resumable endpoints. */
