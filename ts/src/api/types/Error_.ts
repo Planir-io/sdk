@@ -28,6 +28,11 @@ export namespace Error_ {
             InsufficientBalance: "INSUFFICIENT_BALANCE",
             VolumeBusy: "VOLUME_BUSY",
             RegistryHostExists: "REGISTRY_HOST_EXISTS",
+            ImageNotFound: "IMAGE_NOT_FOUND",
+            UnsafeImageHost: "UNSAFE_IMAGE_HOST",
+            UnsupportedImagePlatform: "UNSUPPORTED_IMAGE_PLATFORM",
+            InvalidImageConfig: "INVALID_IMAGE_CONFIG",
+            RegistryUnavailable: "REGISTRY_UNAVAILABLE",
             TeamBlocked: "TEAM_BLOCKED",
             Internal: "INTERNAL",
         } as const;

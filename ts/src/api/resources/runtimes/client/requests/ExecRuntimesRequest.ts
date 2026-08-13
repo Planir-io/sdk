@@ -6,6 +6,6 @@
  *         id: "id"
  *     }
  */
-export interface ListRuntimeExecsRequest {
+export interface ExecRuntimesRequest {
     id: string;
 }

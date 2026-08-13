@@ -7,11 +7,7 @@ from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from ..core.request_options import RequestOptions
 from ..types.api_key import ApiKey
 from ..types.create_runtime_request import CreateRuntimeRequest
-from ..types.detached_exec import DetachedExec
 from ..types.events_list import EventsList
-from ..types.exec_id import ExecId
-from ..types.exec_list import ExecList
-from ..types.exec_result import ExecResult
 from ..types.network_spec import NetworkSpec
 from ..types.reach import Reach
 from ..types.runtime import Runtime
@@ -351,171 +347,6 @@ class RuntimesClient:
         _response = self._raw_client.rotate_runtime_key(id, request_options=request_options)
         return _response.data
 
-    def list_runtime_execs(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ExecList:
-        """
-        Detached execs only — sync execs are request-scoped and never listed. Records are in-process: retained briefly after exit (minutes, platform policy), then gone; an engine restart also loses them (the command dies with its stream). Scoped to the runtime exactly like the poll endpoint — another runtime's execIds never appear.
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExecList
-            The runtime's detached execs; empty when none are in flight or retained.
-
-        Examples
-        --------
-        from planir import PlanirClient
-
-        client = PlanirClient(
-            token="YOUR_TOKEN",
-        )
-        client.runtimes.list_runtime_execs(
-            id="id",
-        )
-        """
-        _response = self._raw_client.list_runtime_execs(id, request_options=request_options)
-        return _response.data
-
-    def exec(
-        self,
-        id: str,
-        *,
-        command: typing.Sequence[str],
-        stdin: typing.Optional[str] = OMIT,
-        timeout_ms: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExecResult:
-        """
-        Synchronous: `timeoutMs` (default and cap 30 s) bounds output CAPTURE — a deadline cut is a 200 result with `timedOut: true` and the partial streams, never an error, and never stops the process (stop/start the runtime for a runaway). 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, polled via GET /v1/runtimes/{id}/exec/{execId}.
-
-        Parameters
-        ----------
-        id : str
-
-        command : typing.Sequence[str]
-            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
-
-        stdin : typing.Optional[str]
-            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
-
-        timeout_ms : typing.Optional[int]
-            Capture deadline in milliseconds (1–30000, default 30000 — the edge's connection ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExecResult
-            The command ran (or failed to run, or was deadline-cut — `timedOut` says so); its captured result.
-
-        Examples
-        --------
-        from planir import PlanirClient
-
-        client = PlanirClient(
-            token="YOUR_TOKEN",
-        )
-        client.runtimes.exec(
-            id="id",
-            command=["command"],
-        )
-        """
-        _response = self._raw_client.exec(
-            id, command=command, stdin=stdin, timeout_ms=timeout_ms, request_options=request_options
-        )
-        return _response.data
-
-    def exec_detached(
-        self,
-        id: str,
-        *,
-        command: typing.Sequence[str],
-        stdin: typing.Optional[str] = OMIT,
-        timeout_ms: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExecId:
-        """
-        Returns 202 {execId} immediately; the command runs without the 30-second sync deadline — `timeoutMs` (default and cap 30 min) bounds output CAPTURE; a deadline cut resolves the poll with `timedOut: true` and the partial streams, never an error, and never stops the process. Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker). At most 8 in flight per runtime.
-
-        Parameters
-        ----------
-        id : str
-
-        command : typing.Sequence[str]
-            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
-
-        stdin : typing.Optional[str]
-            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
-
-        timeout_ms : typing.Optional[int]
-            Capture deadline in milliseconds (1–1800000, default 1800000 — the platform ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExecId
-            The command started; poll with the execId.
-
-        Examples
-        --------
-        from planir import PlanirClient
-
-        client = PlanirClient(
-            token="YOUR_TOKEN",
-        )
-        client.runtimes.exec_detached(
-            id="id",
-            command=["command"],
-        )
-        """
-        _response = self._raw_client.exec_detached(
-            id, command=command, stdin=stdin, timeout_ms=timeout_ms, request_options=request_options
-        )
-        return _response.data
-
-    def get_exec(
-        self, id: str, exec_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> DetachedExec:
-        """
-        Results are retained BRIEFLY after exit (minutes, platform policy), then the execId 404s — read the result promptly and store what you need. An engine restart also loses in-flight detached execs (the command dies with its stream); a 404 on an execId you were polling means exactly that.
-
-        Parameters
-        ----------
-        id : str
-
-        exec_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DetachedExec
-            Current status; stdout/stderr are the capture so far (final once exited).
-
-        Examples
-        --------
-        from planir import PlanirClient
-
-        client = PlanirClient(
-            token="YOUR_TOKEN",
-        )
-        client.runtimes.get_exec(
-            id="id",
-            exec_id="execId",
-        )
-        """
-        _response = self._raw_client.get_exec(id, exec_id, request_options=request_options)
-        return _response.data
-
     def update_config(
         self, id: str, *, config: str, request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
@@ -796,6 +627,90 @@ class RuntimesClient:
         )
         """
         _response = self._raw_client.get_events(id, cursor=cursor, request_options=request_options)
+        return _response.data
+
+    def exec(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.runtimes.exec(
+            id="id",
+        )
+        """
+        _response = self._raw_client.exec(id, request_options=request_options)
+        return _response.data
+
+    def exec_detached(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.runtimes.exec_detached(
+            id="id",
+        )
+        """
+        _response = self._raw_client.exec_detached(id, request_options=request_options)
+        return _response.data
+
+    def get_exec(self, id: str, exec_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        id : str
+
+        exec_id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.runtimes.get_exec(
+            id="id",
+            exec_id="execId",
+        )
+        """
+        _response = self._raw_client.get_exec(id, exec_id, request_options=request_options)
         return _response.data
 
 
@@ -1194,203 +1109,6 @@ class AsyncRuntimesClient:
         _response = await self._raw_client.rotate_runtime_key(id, request_options=request_options)
         return _response.data
 
-    async def list_runtime_execs(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ExecList:
-        """
-        Detached execs only — sync execs are request-scoped and never listed. Records are in-process: retained briefly after exit (minutes, platform policy), then gone; an engine restart also loses them (the command dies with its stream). Scoped to the runtime exactly like the poll endpoint — another runtime's execIds never appear.
-
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExecList
-            The runtime's detached execs; empty when none are in flight or retained.
-
-        Examples
-        --------
-        import asyncio
-
-        from planir import AsyncPlanirClient
-
-        client = AsyncPlanirClient(
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.runtimes.list_runtime_execs(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.list_runtime_execs(id, request_options=request_options)
-        return _response.data
-
-    async def exec(
-        self,
-        id: str,
-        *,
-        command: typing.Sequence[str],
-        stdin: typing.Optional[str] = OMIT,
-        timeout_ms: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExecResult:
-        """
-        Synchronous: `timeoutMs` (default and cap 30 s) bounds output CAPTURE — a deadline cut is a 200 result with `timedOut: true` and the partial streams, never an error, and never stops the process (stop/start the runtime for a runaway). 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, polled via GET /v1/runtimes/{id}/exec/{execId}.
-
-        Parameters
-        ----------
-        id : str
-
-        command : typing.Sequence[str]
-            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
-
-        stdin : typing.Optional[str]
-            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
-
-        timeout_ms : typing.Optional[int]
-            Capture deadline in milliseconds (1–30000, default 30000 — the edge's connection ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExecResult
-            The command ran (or failed to run, or was deadline-cut — `timedOut` says so); its captured result.
-
-        Examples
-        --------
-        import asyncio
-
-        from planir import AsyncPlanirClient
-
-        client = AsyncPlanirClient(
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.runtimes.exec(
-                id="id",
-                command=["command"],
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.exec(
-            id, command=command, stdin=stdin, timeout_ms=timeout_ms, request_options=request_options
-        )
-        return _response.data
-
-    async def exec_detached(
-        self,
-        id: str,
-        *,
-        command: typing.Sequence[str],
-        stdin: typing.Optional[str] = OMIT,
-        timeout_ms: typing.Optional[int] = OMIT,
-        request_options: typing.Optional[RequestOptions] = None,
-    ) -> ExecId:
-        """
-        Returns 202 {execId} immediately; the command runs without the 30-second sync deadline — `timeoutMs` (default and cap 30 min) bounds output CAPTURE; a deadline cut resolves the poll with `timedOut: true` and the partial streams, never an error, and never stops the process. Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker). At most 8 in flight per runtime.
-
-        Parameters
-        ----------
-        id : str
-
-        command : typing.Sequence[str]
-            argv — run directly, no shell. Per-exec working directory or env vars ride the canonical wrapper `["sh","-c","cd DIR && KEY=VAL exec CMD"]`, which requires a POSIX shell in the image. Ambient env is runtime-level: PUT /v1/runtimes/{id}/env.
-
-        stdin : typing.Optional[str]
-            Text written to the command's standard input, then closed — the process sees EOF after the last byte. UTF-8, at most 256 KiB. Binary stdin is out of scope: deliver binary data via volumes or runtime env instead.
-
-        timeout_ms : typing.Optional[int]
-            Capture deadline in milliseconds (1–1800000, default 1800000 — the platform ceiling). Bounds output CAPTURE, never the process: past the deadline the command may still be running in the runtime; the remedy for a runaway is stop/start. Out-of-bounds values are refused (400), never clamped.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        ExecId
-            The command started; poll with the execId.
-
-        Examples
-        --------
-        import asyncio
-
-        from planir import AsyncPlanirClient
-
-        client = AsyncPlanirClient(
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.runtimes.exec_detached(
-                id="id",
-                command=["command"],
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.exec_detached(
-            id, command=command, stdin=stdin, timeout_ms=timeout_ms, request_options=request_options
-        )
-        return _response.data
-
-    async def get_exec(
-        self, id: str, exec_id: str, *, request_options: typing.Optional[RequestOptions] = None
-    ) -> DetachedExec:
-        """
-        Results are retained BRIEFLY after exit (minutes, platform policy), then the execId 404s — read the result promptly and store what you need. An engine restart also loses in-flight detached execs (the command dies with its stream); a 404 on an execId you were polling means exactly that.
-
-        Parameters
-        ----------
-        id : str
-
-        exec_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        DetachedExec
-            Current status; stdout/stderr are the capture so far (final once exited).
-
-        Examples
-        --------
-        import asyncio
-
-        from planir import AsyncPlanirClient
-
-        client = AsyncPlanirClient(
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.runtimes.get_exec(
-                id="id",
-                exec_id="execId",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_exec(id, exec_id, request_options=request_options)
-        return _response.data
-
     async def update_config(
         self, id: str, *, config: str, request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
@@ -1737,4 +1455,112 @@ class AsyncRuntimesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.get_events(id, cursor=cursor, request_options=request_options)
+        return _response.data
+
+    async def exec(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.runtimes.exec(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.exec(id, request_options=request_options)
+        return _response.data
+
+    async def exec_detached(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.runtimes.exec_detached(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.exec_detached(id, request_options=request_options)
+        return _response.data
+
+    async def get_exec(self, id: str, exec_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        id : str
+
+        exec_id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.runtimes.get_exec(
+                id="id",
+                exec_id="execId",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.get_exec(id, exec_id, request_options=request_options)
         return _response.data

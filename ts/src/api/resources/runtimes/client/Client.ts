@@ -16,7 +16,7 @@ export declare namespace RuntimesClient {
 }
 
 /**
- * Runtime lifecycle, exec, config, reach, usage, events.
+ * Runtime lifecycle, config, reach, logs, usage, events.
  */
 export class RuntimesClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<RuntimesClient.Options>;
@@ -224,7 +224,7 @@ export class RuntimesClient {
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
-                        _response.error.body as PlanirApi.PolicyRefusedError,
+                        _response.error.body as unknown,
                         _response.rawResponse,
                     );
                 case 429:
@@ -848,383 +848,6 @@ export class RuntimesClient {
     }
 
     /**
-     * Detached execs only — sync execs are request-scoped and never listed. Records are in-process: retained briefly after exit (minutes, platform policy), then gone; an engine restart also loses them (the command dies with its stream). Scoped to the runtime exactly like the poll endpoint — another runtime's execIds never appear.
-     *
-     * @param {PlanirApi.ListRuntimeExecsRequest} request
-     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link PlanirApi.UnauthorizedError}
-     * @throws {@link PlanirApi.ForbiddenError}
-     * @throws {@link PlanirApi.NotFoundError}
-     * @throws {@link PlanirApi.TooManyRequestsError}
-     *
-     * @example
-     *     await client.runtimes.listRuntimeExecs({
-     *         id: "id"
-     *     })
-     */
-    public listRuntimeExecs(
-        request: PlanirApi.ListRuntimeExecsRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): core.HttpResponsePromise<PlanirApi.ExecList> {
-        return core.HttpResponsePromise.fromPromise(this.__listRuntimeExecs(request, requestOptions));
-    }
-
-    private async __listRuntimeExecs(
-        request: PlanirApi.ListRuntimeExecsRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): Promise<core.WithRawResponse<PlanirApi.ExecList>> {
-        const { id } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.PlanirApiEnvironment.Default,
-                `v1/runtimes/${core.url.encodePathParam(id)}/exec`,
-            ),
-            method: "GET",
-            headers: _headers,
-            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body as PlanirApi.ExecList, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 401:
-                    throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.UnauthenticatedError,
-                        _response.rawResponse,
-                    );
-                case 403:
-                    throw new PlanirApi.ForbiddenError(
-                        _response.error.body as PlanirApi.TeamBlockedError,
-                        _response.rawResponse,
-                    );
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
-                default:
-                    throw new errors.PlanirApiError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/v1/runtimes/{id}/exec");
-    }
-
-    /**
-     * Synchronous: `timeoutMs` (default and cap 30 s) bounds output CAPTURE — a deadline cut is a 200 result with `timedOut: true` and the partial streams, never an error, and never stops the process (stop/start the runtime for a runaway). 1 MiB captured per stream (stdout/stderr each truncate with a marker); size client timeouts above 30 s. Longer commands: use POST /v1/runtimes/{id}/exec/detached, polled via GET /v1/runtimes/{id}/exec/{execId}.
-     *
-     * @param {PlanirApi.ExecRequest} request
-     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link PlanirApi.BadRequestError}
-     * @throws {@link PlanirApi.UnauthorizedError}
-     * @throws {@link PlanirApi.ForbiddenError}
-     * @throws {@link PlanirApi.NotFoundError}
-     * @throws {@link PlanirApi.ConflictError}
-     * @throws {@link PlanirApi.ContentTooLargeError}
-     * @throws {@link PlanirApi.TooManyRequestsError}
-     *
-     * @example
-     *     await client.runtimes.exec({
-     *         id: "id",
-     *         command: ["command"]
-     *     })
-     */
-    public exec(
-        request: PlanirApi.ExecRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): core.HttpResponsePromise<PlanirApi.ExecResult> {
-        return core.HttpResponsePromise.fromPromise(this.__exec(request, requestOptions));
-    }
-
-    private async __exec(
-        request: PlanirApi.ExecRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): Promise<core.WithRawResponse<PlanirApi.ExecResult>> {
-        const { id, ..._body } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.PlanirApiEnvironment.Default,
-                `v1/runtimes/${core.url.encodePathParam(id)}/exec`,
-            ),
-            method: "POST",
-            headers: _headers,
-            contentType: "application/json",
-            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
-            requestType: "json",
-            body: _body,
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body as PlanirApi.ExecResult, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 400:
-                    throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.InvalidRequestError,
-                        _response.rawResponse,
-                    );
-                case 401:
-                    throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.UnauthenticatedError,
-                        _response.rawResponse,
-                    );
-                case 403:
-                    throw new PlanirApi.ForbiddenError(
-                        _response.error.body as PlanirApi.TeamBlockedError,
-                        _response.rawResponse,
-                    );
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
-                case 413:
-                    throw new PlanirApi.ContentTooLargeError(
-                        _response.error.body as PlanirApi.PayloadTooLargeError,
-                        _response.rawResponse,
-                    );
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
-                default:
-                    throw new errors.PlanirApiError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/runtimes/{id}/exec");
-    }
-
-    /**
-     * Returns 202 {execId} immediately; the command runs without the 30-second sync deadline — `timeoutMs` (default and cap 30 min) bounds output CAPTURE; a deadline cut resolves the poll with `timedOut: true` and the partial streams, never an error, and never stops the process. Poll GET /v1/runtimes/{id}/exec/{execId} for status and captured output. Same capture limits as the synchronous verb (1 MiB per stream, truncated with a marker). At most 8 in flight per runtime.
-     *
-     * @param {PlanirApi.DetachedExecRequest} request
-     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link PlanirApi.BadRequestError}
-     * @throws {@link PlanirApi.UnauthorizedError}
-     * @throws {@link PlanirApi.ForbiddenError}
-     * @throws {@link PlanirApi.NotFoundError}
-     * @throws {@link PlanirApi.ConflictError}
-     * @throws {@link PlanirApi.ContentTooLargeError}
-     * @throws {@link PlanirApi.TooManyRequestsError}
-     *
-     * @example
-     *     await client.runtimes.execDetached({
-     *         id: "id",
-     *         command: ["command"]
-     *     })
-     */
-    public execDetached(
-        request: PlanirApi.DetachedExecRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): core.HttpResponsePromise<PlanirApi.ExecId> {
-        return core.HttpResponsePromise.fromPromise(this.__execDetached(request, requestOptions));
-    }
-
-    private async __execDetached(
-        request: PlanirApi.DetachedExecRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): Promise<core.WithRawResponse<PlanirApi.ExecId>> {
-        const { id, ..._body } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.PlanirApiEnvironment.Default,
-                `v1/runtimes/${core.url.encodePathParam(id)}/exec/detached`,
-            ),
-            method: "POST",
-            headers: _headers,
-            contentType: "application/json",
-            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
-            requestType: "json",
-            body: _body,
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body as PlanirApi.ExecId, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 400:
-                    throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.InvalidRequestError,
-                        _response.rawResponse,
-                    );
-                case 401:
-                    throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.UnauthenticatedError,
-                        _response.rawResponse,
-                    );
-                case 403:
-                    throw new PlanirApi.ForbiddenError(
-                        _response.error.body as PlanirApi.TeamBlockedError,
-                        _response.rawResponse,
-                    );
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
-                case 413:
-                    throw new PlanirApi.ContentTooLargeError(
-                        _response.error.body as PlanirApi.PayloadTooLargeError,
-                        _response.rawResponse,
-                    );
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
-                default:
-                    throw new errors.PlanirApiError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "POST",
-            "/v1/runtimes/{id}/exec/detached",
-        );
-    }
-
-    /**
-     * Results are retained BRIEFLY after exit (minutes, platform policy), then the execId 404s — read the result promptly and store what you need. An engine restart also loses in-flight detached execs (the command dies with its stream); a 404 on an execId you were polling means exactly that.
-     *
-     * @param {PlanirApi.GetExecRuntimesRequest} request
-     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link PlanirApi.UnauthorizedError}
-     * @throws {@link PlanirApi.ForbiddenError}
-     * @throws {@link PlanirApi.NotFoundError}
-     * @throws {@link PlanirApi.TooManyRequestsError}
-     *
-     * @example
-     *     await client.runtimes.getExec({
-     *         id: "id",
-     *         execId: "execId"
-     *     })
-     */
-    public getExec(
-        request: PlanirApi.GetExecRuntimesRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): core.HttpResponsePromise<PlanirApi.DetachedExec> {
-        return core.HttpResponsePromise.fromPromise(this.__getExec(request, requestOptions));
-    }
-
-    private async __getExec(
-        request: PlanirApi.GetExecRuntimesRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): Promise<core.WithRawResponse<PlanirApi.DetachedExec>> {
-        const { id, execId } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.PlanirApiEnvironment.Default,
-                `v1/runtimes/${core.url.encodePathParam(id)}/exec/${core.url.encodePathParam(execId)}`,
-            ),
-            method: "GET",
-            headers: _headers,
-            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body as PlanirApi.DetachedExec, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 401:
-                    throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.UnauthenticatedError,
-                        _response.rawResponse,
-                    );
-                case 403:
-                    throw new PlanirApi.ForbiddenError(
-                        _response.error.body as PlanirApi.TeamBlockedError,
-                        _response.rawResponse,
-                    );
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
-                default:
-                    throw new errors.PlanirApiError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "GET",
-            "/v1/runtimes/{id}/exec/{execId}",
-        );
-    }
-
-    /**
      * @param {PlanirApi.ConfigRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -1401,7 +1024,7 @@ export class RuntimesClient {
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
-                        _response.error.body as PlanirApi.PolicyRefusedError,
+                        _response.error.body as unknown,
                         _response.rawResponse,
                     );
                 case 429:
@@ -1979,5 +1602,190 @@ export class RuntimesClient {
         }
 
         return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/v1/runtimes/{id}/events");
+    }
+
+    /**
+     * @param {PlanirApi.ExecRuntimesRequest} request
+     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @example
+     *     await client.runtimes.exec({
+     *         id: "id"
+     *     })
+     */
+    public exec(
+        request: PlanirApi.ExecRuntimesRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): core.HttpResponsePromise<void> {
+        return core.HttpResponsePromise.fromPromise(this.__exec(request, requestOptions));
+    }
+
+    private async __exec(
+        request: PlanirApi.ExecRuntimesRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): Promise<core.WithRawResponse<void>> {
+        const { id } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/runtimes/${core.url.encodePathParam(id)}/exec`,
+            ),
+            method: "POST",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: undefined, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            throw new errors.PlanirApiError({
+                statusCode: _response.error.statusCode,
+                body: _response.error.body,
+                rawResponse: _response.rawResponse,
+            });
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/runtimes/{id}/exec");
+    }
+
+    /**
+     * @param {PlanirApi.ExecDetachedRuntimesRequest} request
+     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @example
+     *     await client.runtimes.execDetached({
+     *         id: "id"
+     *     })
+     */
+    public execDetached(
+        request: PlanirApi.ExecDetachedRuntimesRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): core.HttpResponsePromise<void> {
+        return core.HttpResponsePromise.fromPromise(this.__execDetached(request, requestOptions));
+    }
+
+    private async __execDetached(
+        request: PlanirApi.ExecDetachedRuntimesRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): Promise<core.WithRawResponse<void>> {
+        const { id } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/runtimes/${core.url.encodePathParam(id)}/exec/detached`,
+            ),
+            method: "POST",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: undefined, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            throw new errors.PlanirApiError({
+                statusCode: _response.error.statusCode,
+                body: _response.error.body,
+                rawResponse: _response.rawResponse,
+            });
+        }
+
+        return handleNonStatusCodeError(
+            _response.error,
+            _response.rawResponse,
+            "POST",
+            "/v1/runtimes/{id}/exec/detached",
+        );
+    }
+
+    /**
+     * @param {PlanirApi.GetExecRuntimesRequest} request
+     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @example
+     *     await client.runtimes.getExec({
+     *         id: "id",
+     *         execId: "execId"
+     *     })
+     */
+    public getExec(
+        request: PlanirApi.GetExecRuntimesRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): core.HttpResponsePromise<void> {
+        return core.HttpResponsePromise.fromPromise(this.__getExec(request, requestOptions));
+    }
+
+    private async __getExec(
+        request: PlanirApi.GetExecRuntimesRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): Promise<core.WithRawResponse<void>> {
+        const { id, execId } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/runtimes/${core.url.encodePathParam(id)}/exec/${core.url.encodePathParam(execId)}`,
+            ),
+            method: "GET",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: undefined, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            throw new errors.PlanirApiError({
+                statusCode: _response.error.statusCode,
+                body: _response.error.body,
+                rawResponse: _response.rawResponse,
+            });
+        }
+
+        return handleNonStatusCodeError(
+            _response.error,
+            _response.rawResponse,
+            "GET",
+            "/v1/runtimes/{id}/exec/{execId}",
+        );
     }
 }

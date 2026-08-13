@@ -21,7 +21,6 @@ from ..errors.unauthorized_error import UnauthorizedError
 from ..errors.unprocessable_entity_error import UnprocessableEntityError
 from ..types.insufficient_balance_error import InsufficientBalanceError
 from ..types.invalid_request_error import InvalidRequestError
-from ..types.policy_refused_error import PolicyRefusedError
 from ..types.team_blocked_error import TeamBlockedError
 from ..types.unauthenticated_error import UnauthenticatedError
 from ..types.volume import Volume
@@ -226,9 +225,9 @@ class RawVolumesClient:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        PolicyRefusedError,
+                        typing.Any,
                         parse_obj_as(
-                            type_=PolicyRefusedError,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -629,9 +628,9 @@ class AsyncRawVolumesClient:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        PolicyRefusedError,
+                        typing.Any,
                         parse_obj_as(
-                            type_=PolicyRefusedError,  # type: ignore
+                            type_=typing.Any,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

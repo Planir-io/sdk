@@ -2,4 +2,6 @@
 
 import typing
 
-ProvisioningUnavailableErrorErrorCode = typing.Union[typing.Literal["NO_CAPACITY", "BILLING_NOT_READY"], typing.Any]
+ProvisioningUnavailableErrorErrorCode = typing.Union[
+    typing.Literal["NO_CAPACITY", "BILLING_NOT_READY", "REGISTRY_UNAVAILABLE"], typing.Any
+]

@@ -9,7 +9,7 @@ from .provisioning_unavailable_error_error import ProvisioningUnavailableErrorEr
 
 class ProvisioningUnavailableError(UniversalBaseModel):
     """
-    New allocation is temporarily unavailable because placement has no capacity or billing catch-up is incomplete. Nothing is provisioned or charged; retry later.
+    New allocation is temporarily unavailable because placement has no capacity, billing catch-up is incomplete, or the image registry is unavailable. Nothing is provisioned or charged; retry later.
     """
 
     error: ProvisioningUnavailableErrorError

@@ -1,15 +1,14 @@
 export type { ConfigRequest } from "./ConfigRequest.js";
 export type { CreateRuntimesRequest } from "./CreateRuntimesRequest.js";
 export type { DestroyRuntimesRequest } from "./DestroyRuntimesRequest.js";
-export type { DetachedExecRequest } from "./DetachedExecRequest.js";
 export type { EnvRequest } from "./EnvRequest.js";
-export type { ExecRequest } from "./ExecRequest.js";
+export type { ExecDetachedRuntimesRequest } from "./ExecDetachedRuntimesRequest.js";
+export type { ExecRuntimesRequest } from "./ExecRuntimesRequest.js";
 export type { GetEventsRuntimesRequest } from "./GetEventsRuntimesRequest.js";
 export type { GetExecRuntimesRequest } from "./GetExecRuntimesRequest.js";
 export type { GetLogsRuntimesRequest } from "./GetLogsRuntimesRequest.js";
 export type { GetRuntimesRequest } from "./GetRuntimesRequest.js";
 export type { GetUsageRuntimesRequest } from "./GetUsageRuntimesRequest.js";
-export type { ListRuntimeExecsRequest } from "./ListRuntimeExecsRequest.js";
 export type { ListRuntimesRequest } from "./ListRuntimesRequest.js";
 export type { MetadataRequest } from "./MetadataRequest.js";
 export type { NetworkRequest } from "./NetworkRequest.js";

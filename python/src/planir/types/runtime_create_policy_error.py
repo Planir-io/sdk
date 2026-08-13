@@ -4,14 +4,14 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import UniversalBaseModel
-from .exec_not_found_error_error import ExecNotFoundErrorError
+from .runtime_create_policy_error_error import RuntimeCreatePolicyErrorError
 
 
-class ExecNotFoundError(UniversalBaseModel):
+class RuntimeCreatePolicyError(UniversalBaseModel):
     """
-    No such runtime, or no such (or expired) execId for it — results are retained briefly.
+    A create policy or permanent image-input condition refused the request; code names the cause.
     """
 
-    error: ExecNotFoundErrorError
+    error: RuntimeCreatePolicyErrorError
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

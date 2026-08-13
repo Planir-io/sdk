@@ -4,11 +4,11 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import UniversalBaseModel
-from .payload_too_large_error_error_code import PayloadTooLargeErrorErrorCode
+from .runtime_create_policy_error_error_code import RuntimeCreatePolicyErrorErrorCode
 
 
-class PayloadTooLargeErrorError(UniversalBaseModel):
-    code: PayloadTooLargeErrorErrorCode
+class RuntimeCreatePolicyErrorError(UniversalBaseModel):
+    code: RuntimeCreatePolicyErrorErrorCode
     message: typing.Optional[str] = None
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

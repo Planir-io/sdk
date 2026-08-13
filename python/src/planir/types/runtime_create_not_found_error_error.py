@@ -4,11 +4,11 @@ import typing
 
 import pydantic
 from ..core.pydantic_utilities import UniversalBaseModel
-from .exec_not_found_error_error_code import ExecNotFoundErrorErrorCode
+from .runtime_create_not_found_error_error_code import RuntimeCreateNotFoundErrorErrorCode
 
 
-class ExecNotFoundErrorError(UniversalBaseModel):
-    code: ExecNotFoundErrorErrorCode
+class RuntimeCreateNotFoundErrorError(UniversalBaseModel):
+    code: RuntimeCreateNotFoundErrorErrorCode
     message: typing.Optional[str] = None
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)
