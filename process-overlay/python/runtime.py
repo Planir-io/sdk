@@ -55,10 +55,14 @@ class AsyncProcessPlane:
         return {**(await self._wrapper.async_get_headers()), **(headers or {})}
 
     async def start(self, request, *, headers=None, timeout_ms=None):
-        return self._client.start(request, headers=await self._headers(headers), timeout_ms=timeout_ms)
+        stream = self._client.start(request, headers=await self._headers(headers), timeout_ms=timeout_ms)
+        async for event in stream:
+            yield event
 
     async def connect(self, request, *, headers=None, timeout_ms=None):
-        return self._client.connect(request, headers=await self._headers(headers), timeout_ms=timeout_ms)
+        stream = self._client.connect(request, headers=await self._headers(headers), timeout_ms=timeout_ms)
+        async for event in stream:
+            yield event
 
     async def list(self, request, *, headers=None, timeout_ms=None):
         return await self._client.list(request, headers=await self._headers(headers), timeout_ms=timeout_ms)

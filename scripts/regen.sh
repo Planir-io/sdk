@@ -29,8 +29,8 @@ npx --yes "fern-api@${FERN_CLI_VERSION}" generate --local --force
 cd "$repo_root"
 rsync -a --delete "$stage_root/ts/src/" ts/src/
 rsync -a --delete "$stage_root/python/src/planir/" python/src/planir/
-docker run --rm -v "$repo_root:/workspace" -w /workspace "bufbuild/buf:${BUF_VERSION}" lint
-docker run --rm -v "$repo_root:/workspace" -w /workspace "bufbuild/buf:${BUF_VERSION}" generate
+docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$repo_root:/workspace" -w /workspace "bufbuild/buf:${BUF_VERSION}" lint
+docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$repo_root:/workspace" -w /workspace "bufbuild/buf:${BUF_VERSION}" generate
 cp process-overlay/ts/RuntimeHandle.ts ts/src/process/RuntimeHandle.ts
 cp process-overlay/python/__init__.py python/src/planir/process/__init__.py
 cp process-overlay/python/runtime.py python/src/planir/process/runtime.py

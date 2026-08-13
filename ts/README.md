@@ -3,6 +3,8 @@
 Official TypeScript/JavaScript SDK for [planir.io](https://planir.io) — hosted,
 hardware-isolated microVM runtimes with a stable public URL per runtime.
 
+Requires Node.js 20 or newer.
+
 ## Install
 
 ```sh
