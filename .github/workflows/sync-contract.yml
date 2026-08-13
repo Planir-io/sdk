@@ -46,9 +46,12 @@ jobs:
         run: |
           cp fern/openapi.json /tmp/openapi.previous.json
           curl -fsSL https://api.planir.io/openapi.json -o fern/openapi.json.new
+          curl -fsSL https://api.planir.io/process.proto -o proto/planir/runtime/v1/process.proto.new
           # Guard against a truncated/garbage response before it lands in the tree.
           jq empty fern/openapi.json.new
+          test -s proto/planir/runtime/v1/process.proto.new
           mv fern/openapi.json.new fern/openapi.json
+          mv proto/planir/runtime/v1/process.proto.new proto/planir/runtime/v1/process.proto
 
       - name: Classify the contract diff (oasdiff)
         id: oasdiff
@@ -96,8 +99,7 @@ jobs:
             cat /tmp/oasdiff.txt
             echo '```'
             echo
-            echo "Pulled the latest published contract from"
-            echo '`https://api.planir.io/openapi.json` and regenerated the SDK source.'
+            echo "Pulled the latest published OpenAPI and Process contracts and regenerated the SDK source."
             echo "Review the contract diff and the generated \`ts/src\` + \`python/src/planir\`"
             echo "diff together — they must land as one commit to keep the drift gate green."
           } > /tmp/pr-body.md
@@ -119,6 +121,7 @@ jobs:
           body-path: /tmp/pr-body.md
           add-paths: |
             fern/openapi.json
+            proto/planir/runtime/v1/process.proto
             ts/src
             python/src/planir
 

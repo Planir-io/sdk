@@ -74,6 +74,7 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build
+      - run: node --test test/process-surface.test.mjs
       - name: Import smoke test
         run: node --input-type=module -e "import { PlanirClient } from './dist/index.js'; if (typeof PlanirClient !== 'function') { throw new Error('PlanirClient not exported'); }"
 
@@ -88,6 +89,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -e .
+      - run: python -m unittest discover -s tests -v
       - name: Import smoke test
         run: python -c "from planir import PlanirClient, AsyncPlanirClient; print('import ok')"
 

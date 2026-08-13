@@ -28,9 +28,9 @@ print(runtime.urls)
 ```
 
 The client defaults to `https://api.planir.io`; pass `base_url` to point elsewhere
-(e.g. a mock server in tests). An async client is available as `AsyncPlanirClient`. `client.runtimes.exec(...)`
-runs synchronously; `client.runtimes.exec_detached(...)` returns an exec id you poll with
-`client.runtimes.get_exec(...)`.
+(e.g. a mock server in tests). An async client is available as `AsyncPlanirClient`.
+`client.runtimes.runtime(runtime.id).commands` and `.pty` expose the generated
+streaming Process client. Commands use argv; no shell is added implicitly.
 
 ## License
 

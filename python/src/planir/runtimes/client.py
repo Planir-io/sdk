@@ -19,6 +19,7 @@ from .raw_client import AsyncRawRuntimesClient, RawRuntimesClient
 from .types.get_logs_runtimes_request_previous import GetLogsRuntimesRequestPrevious
 from .types.list_runtimes_request_desired_state_item import ListRuntimesRequestDesiredStateItem
 from .types.list_runtimes_request_include_destroyed import ListRuntimesRequestIncludeDestroyed
+from ..process.runtime import AsyncRuntimeHandle, RuntimeHandle
 
 # this is used as the default value for optional parameters
 OMIT = typing.cast(typing.Any, ...)
@@ -26,7 +27,11 @@ OMIT = typing.cast(typing.Any, ...)
 
 class RuntimesClient:
     def __init__(self, *, client_wrapper: SyncClientWrapper):
+        self._client_wrapper = client_wrapper
         self._raw_client = RawRuntimesClient(client_wrapper=client_wrapper)
+
+    def runtime(self, runtime_id: str) -> RuntimeHandle:
+        return RuntimeHandle(self._client_wrapper, runtime_id)
 
     @property
     def with_raw_response(self) -> RawRuntimesClient:
@@ -629,94 +634,14 @@ class RuntimesClient:
         _response = self._raw_client.get_events(id, cursor=cursor, request_options=request_options)
         return _response.data
 
-    def exec(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from planir import PlanirClient
-
-        client = PlanirClient(
-            token="YOUR_TOKEN",
-        )
-        client.runtimes.exec(
-            id="id",
-        )
-        """
-        _response = self._raw_client.exec(id, request_options=request_options)
-        return _response.data
-
-    def exec_detached(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from planir import PlanirClient
-
-        client = PlanirClient(
-            token="YOUR_TOKEN",
-        )
-        client.runtimes.exec_detached(
-            id="id",
-        )
-        """
-        _response = self._raw_client.exec_detached(id, request_options=request_options)
-        return _response.data
-
-    def get_exec(self, id: str, exec_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Parameters
-        ----------
-        id : str
-
-        exec_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from planir import PlanirClient
-
-        client = PlanirClient(
-            token="YOUR_TOKEN",
-        )
-        client.runtimes.get_exec(
-            id="id",
-            exec_id="execId",
-        )
-        """
-        _response = self._raw_client.get_exec(id, exec_id, request_options=request_options)
-        return _response.data
-
 
 class AsyncRuntimesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
+        self._client_wrapper = client_wrapper
         self._raw_client = AsyncRawRuntimesClient(client_wrapper=client_wrapper)
+
+    def runtime(self, runtime_id: str) -> AsyncRuntimeHandle:
+        return AsyncRuntimeHandle(self._client_wrapper, runtime_id)
 
     @property
     def with_raw_response(self) -> AsyncRawRuntimesClient:
@@ -1455,112 +1380,4 @@ class AsyncRuntimesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.get_events(id, cursor=cursor, request_options=request_options)
-        return _response.data
-
-    async def exec(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from planir import AsyncPlanirClient
-
-        client = AsyncPlanirClient(
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.runtimes.exec(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.exec(id, request_options=request_options)
-        return _response.data
-
-    async def exec_detached(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from planir import AsyncPlanirClient
-
-        client = AsyncPlanirClient(
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.runtimes.exec_detached(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.exec_detached(id, request_options=request_options)
-        return _response.data
-
-    async def get_exec(self, id: str, exec_id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Parameters
-        ----------
-        id : str
-
-        exec_id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from planir import AsyncPlanirClient
-
-        client = AsyncPlanirClient(
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.runtimes.get_exec(
-                id="id",
-                exec_id="execId",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.get_exec(id, exec_id, request_options=request_options)
         return _response.data

@@ -1,0 +1,45 @@
+import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import test from "node:test";
+
+import { connectNodeAdapter } from "@connectrpc/connect-node";
+import { PlanirClient } from "../dist/index.js";
+import { Process } from "../dist/process/gen/planir/runtime/v1/process_pb.js";
+
+test("a runtime handle exposes commands and pty", () => {
+    const runtime = new PlanirClient({ token: "test" }).runtimes.runtime("rt_test");
+    const methods = ["start", "connect", "list", "streamInput", "sendInput", "closeStdin", "update", "sendSignal"];
+    for (const method of methods) {
+        assert.equal(typeof runtime.commands[method], "function");
+        assert.equal(typeof runtime.pty[method], "function");
+    }
+});
+
+test("Process requests carry SDK auth and custom headers", async (t) => {
+    let headers;
+    const adapter = connectNodeAdapter({
+        routes: (router) => router.service(Process, {
+            list(_request, context) {
+                headers = context.requestHeader;
+                return { processes: [] };
+            },
+        }),
+    });
+    const server = createServer((request, response) => {
+        request.url = request.url.replace(/^\/v1\/runtimes\/rt_test/, "");
+        adapter(request, response);
+    });
+    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+    t.after(() => server.close());
+    const address = server.address();
+    const client = new PlanirClient({
+        baseUrl: `http://127.0.0.1:${address.port}`,
+        token: "test-token",
+        headers: { "x-planir-test": "present" },
+    });
+
+    await client.runtimes.runtime("rt_test").commands.list({});
+
+    assert.equal(headers.get("authorization"), "Bearer test-token");
+    assert.equal(headers.get("x-planir-test"), "present");
+});

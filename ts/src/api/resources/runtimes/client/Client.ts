@@ -8,6 +8,7 @@ import * as environments from "../../../../environments.js";
 import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
 import * as errors from "../../../../errors/index.js";
 import * as PlanirApi from "../../../index.js";
+import { RuntimeHandle } from "../../../../process/RuntimeHandle.js";
 
 export declare namespace RuntimesClient {
     export type Options = BaseClientOptions;
@@ -23,6 +24,10 @@ export class RuntimesClient {
 
     constructor(options: RuntimesClient.Options = {}) {
         this._options = normalizeClientOptionsWithAuth(options);
+    }
+
+    public runtime(id: string): RuntimeHandle {
+        return new RuntimeHandle(this._options, id);
     }
 
     /**
@@ -1602,190 +1607,5 @@ export class RuntimesClient {
         }
 
         return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/v1/runtimes/{id}/events");
-    }
-
-    /**
-     * @param {PlanirApi.ExecRuntimesRequest} request
-     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @example
-     *     await client.runtimes.exec({
-     *         id: "id"
-     *     })
-     */
-    public exec(
-        request: PlanirApi.ExecRuntimesRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): core.HttpResponsePromise<void> {
-        return core.HttpResponsePromise.fromPromise(this.__exec(request, requestOptions));
-    }
-
-    private async __exec(
-        request: PlanirApi.ExecRuntimesRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): Promise<core.WithRawResponse<void>> {
-        const { id } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.PlanirApiEnvironment.Default,
-                `v1/runtimes/${core.url.encodePathParam(id)}/exec`,
-            ),
-            method: "POST",
-            headers: _headers,
-            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: undefined, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            throw new errors.PlanirApiError({
-                statusCode: _response.error.statusCode,
-                body: _response.error.body,
-                rawResponse: _response.rawResponse,
-            });
-        }
-
-        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/runtimes/{id}/exec");
-    }
-
-    /**
-     * @param {PlanirApi.ExecDetachedRuntimesRequest} request
-     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @example
-     *     await client.runtimes.execDetached({
-     *         id: "id"
-     *     })
-     */
-    public execDetached(
-        request: PlanirApi.ExecDetachedRuntimesRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): core.HttpResponsePromise<void> {
-        return core.HttpResponsePromise.fromPromise(this.__execDetached(request, requestOptions));
-    }
-
-    private async __execDetached(
-        request: PlanirApi.ExecDetachedRuntimesRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): Promise<core.WithRawResponse<void>> {
-        const { id } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.PlanirApiEnvironment.Default,
-                `v1/runtimes/${core.url.encodePathParam(id)}/exec/detached`,
-            ),
-            method: "POST",
-            headers: _headers,
-            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: undefined, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            throw new errors.PlanirApiError({
-                statusCode: _response.error.statusCode,
-                body: _response.error.body,
-                rawResponse: _response.rawResponse,
-            });
-        }
-
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "POST",
-            "/v1/runtimes/{id}/exec/detached",
-        );
-    }
-
-    /**
-     * @param {PlanirApi.GetExecRuntimesRequest} request
-     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @example
-     *     await client.runtimes.getExec({
-     *         id: "id",
-     *         execId: "execId"
-     *     })
-     */
-    public getExec(
-        request: PlanirApi.GetExecRuntimesRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): core.HttpResponsePromise<void> {
-        return core.HttpResponsePromise.fromPromise(this.__getExec(request, requestOptions));
-    }
-
-    private async __getExec(
-        request: PlanirApi.GetExecRuntimesRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): Promise<core.WithRawResponse<void>> {
-        const { id, execId } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.PlanirApiEnvironment.Default,
-                `v1/runtimes/${core.url.encodePathParam(id)}/exec/${core.url.encodePathParam(execId)}`,
-            ),
-            method: "GET",
-            headers: _headers,
-            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: undefined, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            throw new errors.PlanirApiError({
-                statusCode: _response.error.statusCode,
-                body: _response.error.body,
-                rawResponse: _response.rawResponse,
-            });
-        }
-
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "GET",
-            "/v1/runtimes/{id}/exec/{execId}",
-        );
     }
 }

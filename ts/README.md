@@ -29,8 +29,9 @@ console.log(runtime.urls);
 ```
 
 The client defaults to `https://api.planir.io`; pass `baseUrl` to point elsewhere
-(e.g. a mock server in tests). `client.runtimes.exec(...)` runs synchronously; `client.runtimes.execDetached(...)`
-returns an exec id you poll with `client.runtimes.getExec(...)`.
+(e.g. a mock server in tests). `client.runtimes.runtime(runtime.id).commands` and
+`.pty` expose the generated streaming Process client. Commands use argv; no shell is
+added implicitly.
 
 ## License
 
