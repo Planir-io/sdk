@@ -1,8 +1,13 @@
 import inspect
 import unittest
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 from planir import AsyncPlanirClient, PlanirClient
+from planir.errors import UnprocessableEntityError
 from planir.process import ConnectRequest, ProcessConfig, StartRequest
+from planir.runtimes.raw_client import AsyncRawRuntimesClient, RawRuntimesClient
+from planir.types import RuntimeCreatePolicyError
 
 
 class ProcessSurfaceTest(unittest.TestCase):
@@ -34,6 +39,31 @@ class ProcessSurfaceTest(unittest.TestCase):
             for stream in streams:
                 if inspect.iscoroutine(stream):
                     stream.close()
+
+    def test_create_policy_failure_has_a_typed_body(self) -> None:
+        payload = {"error": {"code": "UNSAFE_IMAGE_HOST", "message": "refused"}}
+        response = SimpleNamespace(status_code=422, headers={}, json=lambda: payload)
+        http = SimpleNamespace(request=lambda *args, **kwargs: response)
+        client = RawRuntimesClient(client_wrapper=SimpleNamespace(httpx_client=http))
+
+        with self.assertRaises(UnprocessableEntityError) as caught:
+            client.create(request={})
+
+        self.assertIsInstance(caught.exception.body, RuntimeCreatePolicyError)
+        self.assertEqual(caught.exception.body.error.code, "UNSAFE_IMAGE_HOST")
+
+
+class AsyncPolicyErrorTest(unittest.IsolatedAsyncioTestCase):
+    async def test_create_policy_failure_has_a_typed_body(self) -> None:
+        payload = {"error": {"code": "UNSAFE_IMAGE_HOST", "message": "refused"}}
+        response = SimpleNamespace(status_code=422, headers={}, json=lambda: payload)
+        http = SimpleNamespace(request=AsyncMock(return_value=response))
+        client = AsyncRawRuntimesClient(client_wrapper=SimpleNamespace(httpx_client=http))
+
+        with self.assertRaises(UnprocessableEntityError) as caught:
+            await client.create(request={})
+
+        self.assertIsInstance(caught.exception.body, RuntimeCreatePolicyError)
 
 
 if __name__ == "__main__":

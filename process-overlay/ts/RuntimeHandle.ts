@@ -30,8 +30,14 @@ export class ProcessPlane {
         );
     }
 
-    start(...args: Parameters<ProcessClient["start"]>) { return this.client.then((client) => client.start(...args)); }
-    connect(...args: Parameters<ProcessClient["connect"]>) { return this.client.then((client) => client.connect(...args)); }
+    async *start(...args: Parameters<ProcessClient["start"]>) {
+        const client = await this.client;
+        yield* client.start(...args);
+    }
+    async *connect(...args: Parameters<ProcessClient["connect"]>) {
+        const client = await this.client;
+        yield* client.connect(...args);
+    }
     list(...args: Parameters<ProcessClient["list"]>) { return this.client.then((client) => client.list(...args)); }
     streamInput(...args: Parameters<ProcessClient["streamInput"]>) { return this.client.then((client) => client.streamInput(...args)); }
     sendInput(...args: Parameters<ProcessClient["sendInput"]>) { return this.client.then((client) => client.sendInput(...args)); }

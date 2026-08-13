@@ -30,6 +30,7 @@ from ..types.invalid_request_error import InvalidRequestError
 from ..types.network_spec import NetworkSpec
 from ..types.reach import Reach
 from ..types.runtime import Runtime
+from ..types.runtime_create_policy_error import RuntimeCreatePolicyError
 from ..types.runtime_with_observed import RuntimeWithObserved
 from ..types.runtimes_list import RuntimesList
 from ..types.set_runtime_timeout_request import SetRuntimeTimeoutRequest
@@ -280,9 +281,9 @@ class RawRuntimesClient:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        typing.Any,
+                        RuntimeCreatePolicyError,
                         parse_obj_as(
-                            type_=typing.Any,  # type: ignore
+                            type_=RuntimeCreatePolicyError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2136,9 +2137,9 @@ class AsyncRawRuntimesClient:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        typing.Any,
+                        RuntimeCreatePolicyError,
                         parse_obj_as(
-                            type_=typing.Any,  # type: ignore
+                            type_=RuntimeCreatePolicyError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

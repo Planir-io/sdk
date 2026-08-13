@@ -15,6 +15,13 @@ test("a runtime handle exposes commands and pty", () => {
     }
 });
 
+test("streaming methods return async iterables without an extra await", () => {
+    const commands = new PlanirClient({ token: "test" }).runtimes.runtime("rt_test").commands;
+    for (const stream of [commands.start({}), commands.connect({})]) {
+        assert.equal(typeof stream[Symbol.asyncIterator], "function");
+    }
+});
+
 test("Process requests carry SDK auth and custom headers", async (t) => {
     let headers;
     const adapter = connectNodeAdapter({
