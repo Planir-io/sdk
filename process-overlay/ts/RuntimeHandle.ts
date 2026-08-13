@@ -12,6 +12,9 @@ export class ProcessPlane {
     private readonly client: Promise<ProcessClient>;
 
     constructor(options: NormalizedClientOptionsWithAuth, runtimeId: string) {
+        if (runtimeId === "." || runtimeId === "..") {
+            throw new Error("runtimeId must not be a dot path segment");
+        }
         const auth: Interceptor = (next) => async (request) => {
             for (const [name, supplied] of Object.entries(options.headers ?? {})) {
                 if (request.header.has(name)) continue;

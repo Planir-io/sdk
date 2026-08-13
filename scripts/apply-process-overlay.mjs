@@ -24,6 +24,16 @@ async function replaceWithin(path, start, end, before, after) {
     await writeFile(absolute, source.slice(0, startIndex) + updated + source.slice(endIndex));
 }
 
+async function replaceExactCount(path, before, after, expectedCount) {
+    const absolute = resolve(root, path);
+    const source = await readFile(absolute, "utf8");
+    const count = source.split(before).length - 1;
+    if (count !== expectedCount) {
+        throw new Error(`Process overlay expected ${expectedCount} anchors, found ${count}: ${path}`);
+    }
+    await writeFile(absolute, source.split(before).join(after));
+}
+
 async function normalizeGenerated(path) {
     const absolute = resolve(root, path);
     const source = await readFile(absolute, "utf8");
@@ -65,10 +75,25 @@ await replaceOnce(
     "from ..types.runtime import Runtime\n",
     "from ..types.runtime import Runtime\nfrom ..types.runtime_create_policy_error import RuntimeCreatePolicyError\n",
 );
+for (const path of [
+    "python/src/planir/team/raw_client.py",
+    "python/src/planir/volumes/raw_client.py",
+    "python/src/planir/runtimes/raw_client.py",
+]) {
+    await replaceOnce(
+        path,
+        "from ..types.invalid_request_error import InvalidRequestError\n",
+        "from ..types.invalid_request_error import InvalidRequestError\nfrom ..types.policy_refused_error import PolicyRefusedError\n",
+    );
+}
 const untypedCreatePolicy = "if _response.status_code == 422:\n                raise UnprocessableEntityError(\n                    headers=dict(_response.headers),\n                    body=typing.cast(\n                        typing.Any,\n                        parse_obj_as(\n                            type_=typing.Any,  # type: ignore";
 const typedCreatePolicy = "if _response.status_code == 422:\n                raise UnprocessableEntityError(\n                    headers=dict(_response.headers),\n                    body=typing.cast(\n                        RuntimeCreatePolicyError,\n                        parse_obj_as(\n                            type_=RuntimeCreatePolicyError,  # type: ignore";
+const typedPolicyRefused = "if _response.status_code == 422:\n                raise UnprocessableEntityError(\n                    headers=dict(_response.headers),\n                    body=typing.cast(\n                        PolicyRefusedError,\n                        parse_obj_as(\n                            type_=PolicyRefusedError,  # type: ignore";
 await replaceWithin("python/src/planir/runtimes/raw_client.py", "\n    def create(\n", "\n    def get(\n", untypedCreatePolicy, typedCreatePolicy);
 await replaceWithin("python/src/planir/runtimes/raw_client.py", "\n    async def create(\n", "\n    async def get(\n", untypedCreatePolicy, typedCreatePolicy);
+await replaceExactCount("python/src/planir/team/raw_client.py", untypedCreatePolicy, typedPolicyRefused, 6);
+await replaceExactCount("python/src/planir/volumes/raw_client.py", untypedCreatePolicy, typedPolicyRefused, 2);
+await replaceExactCount("python/src/planir/runtimes/raw_client.py", untypedCreatePolicy, typedPolicyRefused, 2);
 await replaceOnce("python/src/planir/CONTRIBUTING.md", "- Python 3.9+", "- Python 3.10+");
 await normalizeGenerated("ts/src/process/gen/planir/runtime/v1/process_pb.ts");
 await normalizeGenerated("python/src/planir/process/gen/planir/runtime/v1/process_connect.py");

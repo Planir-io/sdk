@@ -27,6 +27,7 @@ from ..types.create_runtime_request import CreateRuntimeRequest
 from ..types.events_list import EventsList
 from ..types.insufficient_balance_error import InsufficientBalanceError
 from ..types.invalid_request_error import InvalidRequestError
+from ..types.policy_refused_error import PolicyRefusedError
 from ..types.network_spec import NetworkSpec
 from ..types.reach import Reach
 from ..types.runtime import Runtime
@@ -1212,9 +1213,9 @@ class RawRuntimesClient:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        typing.Any,
+                        PolicyRefusedError,
                         parse_obj_as(
-                            type_=typing.Any,  # type: ignore
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3076,9 +3077,9 @@ class AsyncRawRuntimesClient:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
                     body=typing.cast(
-                        typing.Any,
+                        PolicyRefusedError,
                         parse_obj_as(
-                            type_=typing.Any,  # type: ignore
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

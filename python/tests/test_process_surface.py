@@ -8,7 +8,9 @@ from planir.errors import UnprocessableEntityError
 from planir.process import ConnectRequest, ProcessConfig, StartRequest
 from planir.process.runtime import _address
 from planir.runtimes.raw_client import AsyncRawRuntimesClient, RawRuntimesClient
-from planir.types import RuntimeCreatePolicyError
+from planir.team.raw_client import AsyncRawTeamClient, RawTeamClient
+from planir.types import PolicyRefusedError, RuntimeCreatePolicyError
+from planir.volumes.raw_client import AsyncRawVolumesClient, RawVolumesClient
 
 
 class ProcessSurfaceTest(unittest.TestCase):
@@ -66,6 +68,28 @@ class ProcessSurfaceTest(unittest.TestCase):
         self.assertIsInstance(caught.exception.body, RuntimeCreatePolicyError)
         self.assertEqual(caught.exception.body.error.code, "UNSAFE_IMAGE_HOST")
 
+    def test_existing_policy_failures_keep_typed_bodies(self) -> None:
+        response = SimpleNamespace(
+            status_code=422,
+            headers={},
+            json=lambda: {"error": {"code": "POLICY_REFUSED", "message": "refused"}},
+        )
+        wrapper = SimpleNamespace(httpx_client=SimpleNamespace(request=lambda *args, **kwargs: response))
+        team = RawTeamClient(client_wrapper=wrapper)
+        volumes = RawVolumesClient(client_wrapper=wrapper)
+        runtimes = RawRuntimesClient(client_wrapper=wrapper)
+        calls = (
+            lambda: team.patch_team(default_region="brq"),
+            lambda: team.mint_team_key(name="key"),
+            lambda: team.register_team_webhook(url="https://example.com"),
+            lambda: volumes.create_volume(name="data", size_bytes=1, family="co"),
+            lambda: runtimes.update_env("runtime", env={"KEY": "value"}),
+        )
+        for call in calls:
+            with self.assertRaises(UnprocessableEntityError) as caught:
+                call()
+            self.assertIsInstance(caught.exception.body, PolicyRefusedError)
+
 
 class AsyncPolicyErrorTest(unittest.IsolatedAsyncioTestCase):
     async def test_create_policy_failure_has_a_typed_body(self) -> None:
@@ -78,6 +102,28 @@ class AsyncPolicyErrorTest(unittest.IsolatedAsyncioTestCase):
             await client.create(request={})
 
         self.assertIsInstance(caught.exception.body, RuntimeCreatePolicyError)
+
+    async def test_existing_policy_failures_keep_typed_bodies(self) -> None:
+        response = SimpleNamespace(
+            status_code=422,
+            headers={},
+            json=lambda: {"error": {"code": "POLICY_REFUSED", "message": "refused"}},
+        )
+        wrapper = SimpleNamespace(httpx_client=SimpleNamespace(request=AsyncMock(return_value=response)))
+        team = AsyncRawTeamClient(client_wrapper=wrapper)
+        volumes = AsyncRawVolumesClient(client_wrapper=wrapper)
+        runtimes = AsyncRawRuntimesClient(client_wrapper=wrapper)
+        calls = (
+            lambda: team.patch_team(default_region="brq"),
+            lambda: team.mint_team_key(name="key"),
+            lambda: team.register_team_webhook(url="https://example.com"),
+            lambda: volumes.create_volume(name="data", size_bytes=1, family="co"),
+            lambda: runtimes.update_env("runtime", env={"KEY": "value"}),
+        )
+        for call in calls:
+            with self.assertRaises(UnprocessableEntityError) as caught:
+                await call()
+            self.assertIsInstance(caught.exception.body, PolicyRefusedError)
 
 
 if __name__ == "__main__":

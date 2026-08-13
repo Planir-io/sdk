@@ -16,6 +16,13 @@ test("a runtime handle exposes commands and pty", () => {
     }
 });
 
+test("dot-only runtime IDs are rejected", () => {
+    const runtimes = new PlanirClient({ token: "test" }).runtimes;
+    for (const runtimeId of [".", ".."]) {
+        assert.throws(() => runtimes.runtime(runtimeId), /dot path segment/);
+    }
+});
+
 test("streaming methods return async iterables without an extra await", () => {
     const commands = new PlanirClient({ token: "test" }).runtimes.runtime("rt_test").commands;
     for (const stream of [commands.start({}), commands.connect({})]) {
