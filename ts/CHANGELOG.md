@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.1.0-beta.8](https://github.com/Planir-io/sdk/compare/ts-v0.1.0-beta.7...ts-v0.1.0-beta.8) (2026-08-13)
+
+
+### Features
+
+* add Process SDK ([bd2fe21](https://github.com/Planir-io/sdk/commit/bd2fe212e7e64f52828fe946d2327cfed62e86c2))
+* sync published contract + regenerate SDKs ([8a21292](https://github.com/Planir-io/sdk/commit/8a21292859e528cb3b091636d275a7ed9b38ba1d))
+* sync published contract + regenerate SDKs ([19de2a6](https://github.com/Planir-io/sdk/commit/19de2a6dea5cf4195a5c8ea88afb5d5b7b1f1b8e))
+* sync published contract + regenerate SDKs ([#29](https://github.com/Planir-io/sdk/issues/29)) ([8ee237c](https://github.com/Planir-io/sdk/commit/8ee237cfde1c5679d70c4392418bb26971cef935))
+* sync published contract + regenerate SDKs (BREAKING) ([ec96767](https://github.com/Planir-io/sdk/commit/ec96767a6e363ec69bf232b29aed15ba0f299c93))
+* sync published contract + regenerate SDKs (BREAKING) ([79ca389](https://github.com/Planir-io/sdk/commit/79ca38987e7586c96d4f769acf5309272c4c47af))
+
+
+### Bug Fixes
+
+* align Process SDK request semantics ([82f2e93](https://github.com/Planir-io/sdk/commit/82f2e93c3e3c5d9d8ac136400217c09e9baacd57))
+* close Process SDK path and header gaps ([a957e4d](https://github.com/Planir-io/sdk/commit/a957e4d5ec313ad0f2a726e98e3487c41777bd84))
+* harden Process SDK generation ([d78c8e2](https://github.com/Planir-io/sdk/commit/d78c8e2768aa270ba7d8c52d74b875f4645f04bb))
+* honor custom Process transports ([f5f7e54](https://github.com/Planir-io/sdk/commit/f5f7e54447659761caef365ab187499e4500c43c))
+* preserve Process SDK stream and error types ([e386967](https://github.com/Planir-io/sdk/commit/e38696795acabcaf36f4243f80b0abcb4af70d4f))
+* preserve SDK path and policy error contracts ([c2e2e27](https://github.com/Planir-io/sdk/commit/c2e2e27576fcb52364e97a1ce5dbf0ee9147102c))
+
 ## [0.1.0-beta.7](https://github.com/Planir-io/sdk/compare/ts-v0.1.0-beta.6...ts-v0.1.0-beta.7) (2026-08-05)
 
 
