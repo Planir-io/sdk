@@ -8,11 +8,13 @@ version = "0.1.0-beta.7"
 description = "Official Python SDK for planir.io — hosted, hardware-isolated microVM runtimes with a stable public URL per runtime."
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["planir", "sandbox", "microvm", "agents", "runtime", "sdk"]
 dependencies = [
+    "connectrpc==0.11.1",
     "httpx>=0.21.2",
     "pydantic>=2.0",
+    "protobuf>=7.35.1,<8",
     "typing_extensions>=4.0",
 ]
 

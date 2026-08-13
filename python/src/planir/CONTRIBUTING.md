@@ -6,7 +6,7 @@ Thanks for your interest in contributing to this SDK! This document provides gui
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.10+
 - pip
 - poetry
 

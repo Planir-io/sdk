@@ -10,7 +10,7 @@ from ..core.serialization import FieldMetadata
 
 class CreateRuntimeRequestReadiness(UniversalBaseModel):
     """
-    Optional explicit HTTP readiness gate — `observed: running` then means this path answered. Omitted = a TCP probe on the FIRST declared port (or, with no declared ports, running = the container started). Exactly ONE probe ever. Create-time only — there is no replace verb.
+    Optional explicit HTTP readiness gate for public reach. The path must answer before reach is published. Omitted = a TCP probe on the FIRST declared port; with no declared ports there is no application probe or public reach. Readiness does not govern `observed.phase`. Exactly ONE probe ever. Create-time only.
     """
 
     port: int = pydantic.Field()

@@ -9,10 +9,9 @@
 # the backstop for the day someone forgets. No cross-repo push credential — that trade
 # was made deliberately (zero secrets) and polling-as-backstop is the standard posture.
 #
-# oasdiff classifies the contract diff. The contract is SOFT-FROZEN (additive only until
-# beta), so a breaking diff fails this run AFTER the PR is opened: the PR carries the full
-# diff + verdict for review, but the red run stops a breaking change from reading as a
-# friendly routine sync.
+# oasdiff and Buf classify both published contracts. A breaking diff fails this run AFTER
+# the PR is opened: pre-beta breaks remain mergeable after human review, but can never read
+# as a friendly routine sync.
 #
 # Note: the PR is created with SYNC_BOT_TOKEN (planir-bot fine-grained PAT, this repo only,
 # Contents + Pull requests write) so ci.yml's `on: pull_request` gate runs on sync PRs
@@ -45,10 +44,16 @@ jobs:
       - name: Fetch the published contract (public, no auth)
         run: |
           cp fern/openapi.json /tmp/openapi.previous.json
+          mkdir /tmp/process.previous
+          cp buf.yaml /tmp/process.previous/
+          cp -R proto /tmp/process.previous/
           curl -fsSL https://api.planir.io/openapi.json -o fern/openapi.json.new
+          curl -fsSL https://api.planir.io/process.proto -o proto/planir/runtime/v1/process.proto.new
           # Guard against a truncated/garbage response before it lands in the tree.
           jq empty fern/openapi.json.new
+          test -s proto/planir/runtime/v1/process.proto.new
           mv fern/openapi.json.new fern/openapi.json
+          mv proto/planir/runtime/v1/process.proto.new proto/planir/runtime/v1/process.proto
 
       - name: Classify the contract diff (oasdiff)
         id: oasdiff
@@ -80,6 +85,28 @@ jobs:
             echo "verdict=additive" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Classify the Process contract diff (buf breaking)
+        id: buf
+        run: |
+          : > /tmp/buf-breaking.txt
+          if git diff --quiet -- proto/planir/runtime/v1/process.proto; then
+            echo "verdict=unchanged" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          set +e
+          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
+            -v "$PWD:/workspace" -v /tmp/process.previous:/previous:ro \
+            -w /workspace bufbuild/buf:1.57.2@sha256:60dea959d4a9ea381a2c9d6f8760678845234e086f632ec01a64bb588143a226 \
+            breaking . --against /previous \
+            2>&1 | tee /tmp/buf-breaking.txt
+          breaking=${PIPESTATUS[0]}
+          set -e
+          if [ "$breaking" -ne 0 ]; then
+            echo "verdict=BREAKING" >> "$GITHUB_OUTPUT"
+          else
+            echo "verdict=additive" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Regenerate SDK source from the refreshed contract
         run: ./scripts/regen.sh
 
@@ -96,8 +123,13 @@ jobs:
             cat /tmp/oasdiff.txt
             echo '```'
             echo
-            echo "Pulled the latest published contract from"
-            echo '`https://api.planir.io/openapi.json` and regenerated the SDK source.'
+            echo "**Process verdict: ${{ steps.buf.outputs.verdict }}**"
+            echo
+            echo '```'
+            cat /tmp/buf-breaking.txt
+            echo '```'
+            echo
+            echo "Pulled the latest published OpenAPI and Process contracts and regenerated the SDK source."
             echo "Review the contract diff and the generated \`ts/src\` + \`python/src/planir\`"
             echo "diff together — they must land as one commit to keep the drift gate green."
           } > /tmp/pr-body.md
@@ -112,18 +144,19 @@ jobs:
           # published tarball carried none of the contract's durability text, the manifest sat at
           # 0.1.0-beta.2, and the last release came off a feat:. A regenerated client IS a feature to
           # consumers. Do not "tidy" this back to chore:.
-          title: "feat: sync published contract + regenerate SDKs (${{ steps.oasdiff.outputs.verdict }})"
+          title: "feat: sync contracts (OpenAPI ${{ steps.oasdiff.outputs.verdict }}, Process ${{ steps.buf.outputs.verdict }})"
           commit-message: "feat: sync published contract + regenerate SDKs"
           author: "planir-bot <300069359+planir-bot@users.noreply.github.com>"
           committer: "planir-bot <300069359+planir-bot@users.noreply.github.com>"
           body-path: /tmp/pr-body.md
           add-paths: |
             fern/openapi.json
+            proto/planir/runtime/v1/process.proto
             ts/src
             python/src/planir
 
-      - name: Enforce additive-only (contract soft freeze)
-        if: ${{ steps.oasdiff.outputs.verdict == 'BREAKING' }}
+      - name: Flag breaking contract changes for human review
+        if: ${{ steps.oasdiff.outputs.verdict == 'BREAKING' || steps.buf.outputs.verdict == 'BREAKING' }}
         run: |
-          echo "::error::Breaking contract change detected. The PR is open with the full oasdiff report — this red run exists so a breaking sync can never read as routine."
+          echo "::error::Breaking contract change detected. The PR carries both reports; this red run keeps the sync out of the routine merge path."
           exit 1

@@ -81,6 +81,8 @@ class SyncClientWrapper(BaseClientWrapper):
         max_stream_reconnection_attempts: typing.Optional[int] = None,
         logging: typing.Optional[typing.Union[LogConfig, Logger]] = None,
         httpx_client: httpx.Client,
+        uses_custom_httpx_client: bool = False,
+        process_http_client: typing.Any = None,
     ):
         super().__init__(
             token=token,
@@ -100,6 +102,8 @@ class SyncClientWrapper(BaseClientWrapper):
             base_max_retries=self.get_max_retries(),
             logging_config=self._logging,
         )
+        self._uses_custom_httpx_client = uses_custom_httpx_client
+        self._process_http_client = process_http_client
 
 
 class AsyncClientWrapper(BaseClientWrapper):
@@ -116,6 +120,8 @@ class AsyncClientWrapper(BaseClientWrapper):
         logging: typing.Optional[typing.Union[LogConfig, Logger]] = None,
         async_token: typing.Optional[typing.Callable[[], typing.Awaitable[str]]] = None,
         httpx_client: httpx.AsyncClient,
+        uses_custom_httpx_client: bool = False,
+        process_http_client: typing.Any = None,
     ):
         super().__init__(
             token=token,
@@ -137,6 +143,8 @@ class AsyncClientWrapper(BaseClientWrapper):
             async_base_headers=self.async_get_headers,
             logging_config=self._logging,
         )
+        self._uses_custom_httpx_client = uses_custom_httpx_client
+        self._process_http_client = process_http_client
 
     async def async_get_headers(self) -> typing.Dict[str, str]:
         headers = self.get_headers()

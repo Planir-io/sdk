@@ -6,6 +6,7 @@ import pydantic
 import typing_extensions
 from ..core.pydantic_utilities import UniversalBaseModel
 from ..core.serialization import FieldMetadata
+from .observed_entrypoint import ObservedEntrypoint
 from .observed_last_exit import ObservedLastExit
 from .observed_phase import ObservedPhase
 from .observed_waiting_reason import ObservedWaitingReason
@@ -18,7 +19,7 @@ class Observed(UniversalBaseModel):
 
     phase: ObservedPhase = pydantic.Field()
     """
-    Observed lifecycle phase. Convergence deadline: a runtime that stays `provisioning` for 5 minutes (300 000 ms) without coming healthy flips to `error` — pull failures, crash loops, and workloads that never pass readiness all surface this way. `error` is not terminal: the platform keeps retrying, and a workload that later comes healthy returns to `running`. `unschedulable` means the location is waiting on capacity for this runtime — distinct from `provisioning` (coming up) and `error` (crashed/stuck), exempt from the 5-minute deadline, and self-correcting: when capacity frees it converges to `running` with no client action. Compute bills zero in the span; destroying instead of waiting is the client's call. `stopping` covers the whole stop teardown — from the stop being acted on until the compute is fully released (`stopped`); compute bills until the scheduled allocation is released. The set is additive over time — treat unknown phases as not-yet-running.
+    Observed box lifecycle phase. `running` means the Planir agent container is running; application readiness and entrypoint state do not govern this field. A runtime that stays `provisioning` for 5 minutes (300 000 ms) without reaching box-running flips to `error` — image-pull, box-boot, and agent crash-loop failures surface this way. `error` is not terminal: the platform keeps retrying, and a box that later runs returns to `running`. `unschedulable` means the location is waiting on capacity for this runtime — distinct from `provisioning` (coming up) and `error` (crashed/stuck), exempt from the 5-minute deadline, and self-correcting: when capacity frees it converges to `running` with no client action. Compute bills zero in the span; destroying instead of waiting is the client's call. `stopping` covers the whole stop teardown — from the stop being acted on until the compute is fully released (`stopped`); compute bills until the scheduled allocation is released. The set is additive over time — treat unknown phases as not-yet-running.
     """
 
     generation: int = pydantic.Field()
@@ -29,7 +30,7 @@ class Observed(UniversalBaseModel):
     last_seen: typing_extensions.Annotated[str, FieldMetadata(alias="lastSeen"), pydantic.Field(alias="lastSeen")]
     restarts: typing.Optional[int] = pydantic.Field(default=None)
     """
-    Workload container restart count. Absent until compute has been observed. A climbing count while phase sits at `provisioning` means the workload is crashing at boot — a workload problem, not a provisioning delay.
+    Planir agent container restart count. Absent until compute has been observed. A climbing count while phase sits at `provisioning` means the box supervisor is crashing at boot.
     """
 
     last_exit: typing_extensions.Annotated[
@@ -38,9 +39,14 @@ class Observed(UniversalBaseModel):
         pydantic.Field(
             alias="lastExit",
             default=None,
-            description="The workload container's last terminal exit. Absent while it has never died. This is the WHY behind a crash loop — read it before filing a provisioning issue.",
+            description="The Planir agent container's last terminal exit. Absent while it has never died. Customer entrypoint state is reported separately in `observed.entrypoint`.",
         ),
     ]
+    entrypoint: typing.Optional[ObservedEntrypoint] = pydantic.Field(default=None)
+    """
+    Current customer entrypoint state from the in-box agent. Signal exits use `128 + signal`. Absent unless the box is running and current agent status was observed; last-only, with no exit history.
+    """
+
     waiting_reason: typing_extensions.Annotated[
         typing.Optional[ObservedWaitingReason],
         FieldMetadata(alias="waitingReason"),

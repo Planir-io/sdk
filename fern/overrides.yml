@@ -45,18 +45,6 @@ paths:
     post:
       x-fern-sdk-group-name: runtimes
       x-fern-sdk-method-name: restart
-  /v1/runtimes/{id}/exec:
-    post:
-      x-fern-sdk-group-name: runtimes
-      x-fern-sdk-method-name: exec
-  /v1/runtimes/{id}/exec/detached:
-    post:
-      x-fern-sdk-group-name: runtimes
-      x-fern-sdk-method-name: execDetached
-  /v1/runtimes/{id}/exec/{execId}:
-    get:
-      x-fern-sdk-group-name: runtimes
-      x-fern-sdk-method-name: getExec
   /v1/runtimes/{id}/config:
     put:
       x-fern-sdk-group-name: runtimes

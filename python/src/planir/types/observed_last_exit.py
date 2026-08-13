@@ -10,7 +10,7 @@ from ..core.serialization import FieldMetadata
 
 class ObservedLastExit(UniversalBaseModel):
     """
-    The workload container's last terminal exit. Absent while it has never died. This is the WHY behind a crash loop — read it before filing a provisioning issue.
+    The Planir agent container's last terminal exit. Absent while it has never died. Customer entrypoint state is reported separately in `observed.entrypoint`.
     """
 
     reason: str = pydantic.Field()

@@ -3,6 +3,8 @@
 Official TypeScript/JavaScript SDK for [planir.io](https://planir.io) — hosted,
 hardware-isolated microVM runtimes with a stable public URL per runtime.
 
+Requires Node.js 20 or newer.
+
 ## Install
 
 ```sh
@@ -29,8 +31,10 @@ console.log(runtime.urls);
 ```
 
 The client defaults to `https://api.planir.io`; pass `baseUrl` to point elsewhere
-(e.g. a mock server in tests). `client.runtimes.exec(...)` runs synchronously; `client.runtimes.execDetached(...)`
-returns an exec id you poll with `client.runtimes.getExec(...)`.
+(e.g. a mock server in tests). `client.runtimes.runtime(runtime.id).commands` and
+`.pty` expose the generated streaming Process client. Commands use argv; no shell is
+added implicitly. A custom `fetch` also requires `processTransportOptions`, because
+streaming Process calls use the native Connect transport.
 
 ## License
 

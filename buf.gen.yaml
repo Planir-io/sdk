@@ -1,0 +1,11 @@
+version: v2
+clean: true
+plugins:
+  - remote: buf.build/bufbuild/es:v2.13.0
+    out: ts/src/process/gen
+    opt: target=ts
+  - remote: buf.build/protocolbuffers/python:v35.1
+    out: python/src/planir/process/gen
+  - remote: buf.build/connectrpc/py:v0.11.1
+    out: python/src/planir/process/gen
+    opt: protobuf=google

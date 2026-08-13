@@ -153,7 +153,7 @@ export class TeamClient {
                     );
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
-                        _response.error.body as PlanirApi.PolicyRefusedError,
+                        _response.error.body as unknown,
                         _response.rawResponse,
                     );
                 case 429:
@@ -478,7 +478,7 @@ export class TeamClient {
                     );
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
-                        _response.error.body as PlanirApi.PolicyRefusedError,
+                        _response.error.body as unknown,
                         _response.rawResponse,
                     );
                 case 429:
@@ -818,7 +818,7 @@ export class TeamClient {
                     );
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
-                        _response.error.body as PlanirApi.PolicyRefusedError,
+                        _response.error.body as unknown,
                         _response.rawResponse,
                     );
                 case 429:

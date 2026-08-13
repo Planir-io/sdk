@@ -13,6 +13,7 @@ import dataclasses
 import datetime as dt
 from enum import Enum
 from pathlib import PurePath
+from urllib.parse import quote
 from types import GeneratorType
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 
@@ -117,4 +118,7 @@ def encode_path_param(obj: Any) -> str:
     """
     if isinstance(obj, bool):
         return "true" if obj else "false"
-    return str(jsonable_encoder(obj))
+    value = str(jsonable_encoder(obj))
+    if value in {".", ".."}:
+        raise ValueError("path parameter must not be a dot path segment")
+    return quote(value, safe="")

@@ -181,7 +181,7 @@ export class VolumesClient {
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
-                        _response.error.body as PlanirApi.PolicyRefusedError,
+                        _response.error.body as unknown,
                         _response.rawResponse,
                     );
                 case 429:

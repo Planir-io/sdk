@@ -7,6 +7,6 @@ export interface Event {
     type: string;
     /** ISO 8601 UTC timestamp (RFC 3339), e.g. `2026-07-04T19:53:02.497Z`. */
     occurredAt: string;
-    /** Free-form per-type payload. Observed-phase events (including `error`) carry `{generation}` only — no failure diagnosis, by design: events are wake-up signals, not state. The WHY of an `error` phase is read from the runtime itself — `observed.restarts` and `observed.lastExit {reason, exitCode, at}` distinguish a crash loop from a workload that never started, and `GET /v1/runtimes/{id}/logs` carries the workload’s own words. */
+    /** Free-form per-type payload. Observed-phase events (including `error`) carry `{generation}` only — no failure diagnosis, by design: events are wake-up signals, not state. The WHY of an `error` phase is read from the runtime itself — `observed.restarts` and `observed.lastExit {reason, exitCode, at}` describe the box agent, while `observed.entrypoint` describes the customer program. `GET /v1/runtimes/{id}/logs` carries the program’s own words. */
     data: Record<string, unknown>;
 }

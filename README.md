@@ -12,10 +12,10 @@ Both clients expose the same surface — class `PlanirClient` — over the publi
 
 ## Generated, not hand-written
 
-The SDK source under `ts/src` and `python/src/planir` is generated with
-[Fern](https://buildwithfern.com) from the published OpenAPI contract, pinned in
-[`fern/openapi.json`](fern/openapi.json). Do not edit generated code by hand — a CI
-drift gate regenerates from the pinned contract and fails if the committed tree differs.
+The lifecycle/resource clients are generated with [Fern](https://buildwithfern.com) from
+[`fern/openapi.json`](fern/openapi.json). The Process clients are generated with
+[Buf](https://buf.build) from [`process.proto`](proto/planir/runtime/v1/process.proto).
+Do not edit generated code by hand — CI regenerates both surfaces and fails on drift.
 To change the SDK surface, edit [`fern/overrides.yml`](fern/overrides.yml) and regenerate:
 
 ```sh
