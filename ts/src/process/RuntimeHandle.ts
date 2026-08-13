@@ -14,8 +14,9 @@ export class ProcessPlane {
     constructor(options: NormalizedClientOptionsWithAuth, runtimeId: string) {
         const auth: Interceptor = (next) => async (request) => {
             for (const [name, supplied] of Object.entries(options.headers ?? {})) {
+                if (request.header.has(name)) continue;
                 const value = await Supplier.get(supplied);
-                if (value != null && !request.header.has(name)) request.header.set(name, value);
+                if (value != null) request.header.set(name, value);
             }
             const { headers } = await options.authProvider.getAuthRequest();
             for (const [name, value] of Object.entries(headers)) {

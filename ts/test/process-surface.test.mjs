@@ -23,7 +23,7 @@ test("streaming methods return async iterables without an extra await", () => {
     }
 });
 
-test("Process requests carry SDK auth and custom headers", async (t) => {
+test("per-request Process headers override client suppliers", async (t) => {
     let headers;
     const adapter = connectNodeAdapter({
         routes: (router) => router.service(Process, {
@@ -43,7 +43,7 @@ test("Process requests carry SDK auth and custom headers", async (t) => {
     const client = new PlanirClient({
         baseUrl: `http://127.0.0.1:${address.port}`,
         token: "test-token",
-        headers: { "x-planir-test": "client" },
+        headers: { "x-planir-test": () => { throw new Error("overridden supplier ran"); } },
     });
 
     await client.runtimes.runtime("rt_test").commands.list({}, { headers: { "x-planir-test": "request" } });

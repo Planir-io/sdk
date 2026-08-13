@@ -6,6 +6,8 @@ from .gen.planir.runtime.v1.process_connect import ProcessClient, ProcessClientS
 
 
 def _address(wrapper: typing.Union[AsyncClientWrapper, SyncClientWrapper], runtime_id: str) -> str:
+    if runtime_id in {".", ".."}:
+        raise ValueError("runtime_id must not be a dot path segment")
     return f"{wrapper.get_base_url().rstrip('/')}/v1/runtimes/{quote(runtime_id, safe='')}"
 
 

@@ -19,6 +19,12 @@ class ProcessSurfaceTest(unittest.TestCase):
             "https://api.planir.io/v1/runtimes/rt_allowed%2F..%2Frt_victim%3F%23",
         )
 
+    def test_dot_only_runtime_ids_are_rejected(self) -> None:
+        wrapper = SimpleNamespace(get_base_url=lambda: "https://api.planir.io")
+        for runtime_id in (".", ".."):
+            with self.subTest(runtime_id=runtime_id), self.assertRaises(ValueError):
+                _address(wrapper, runtime_id)
+
     def test_process_messages_have_a_public_import(self) -> None:
         request = StartRequest(process=ProcessConfig(cmd="echo", args=["hello"]))
         self.assertEqual(request.process.cmd, "echo")
