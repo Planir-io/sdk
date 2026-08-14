@@ -13,10 +13,11 @@ Both clients expose the same surface — class `PlanirClient` — over the publi
 ## Generated, not hand-written
 
 The lifecycle/resource clients are generated with [Fern](https://buildwithfern.com) from
-[`fern/openapi.json`](fern/openapi.json). The Process clients are generated with
-[Buf](https://buf.build) from [`process.proto`](proto/planir/runtime/v1/process.proto).
-Do not edit generated code by hand — CI regenerates both surfaces and fails on drift.
-To change the SDK surface, edit [`fern/overrides.yml`](fern/overrides.yml) and regenerate:
+[`fern/openapi.json`](fern/openapi.json). Buf generates the Process wire clients from
+[`process.proto`](proto/planir/runtime/v1/process.proto); the small handwritten overlays
+in [`process-overlay/`](process-overlay/) provide the command and PTY handles. Do not edit
+generated code by hand — CI regenerates both packages and fails on drift. Change the
+contract or its overlay, then regenerate:
 
 ```sh
 ./scripts/regen.sh

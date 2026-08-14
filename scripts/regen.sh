@@ -34,5 +34,6 @@ docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$repo_root:/workspac
 docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$repo_root:/workspace" -w /workspace "bufbuild/buf:${BUF_VERSION}@${BUF_DIGEST}" generate
 cp process-overlay/ts/RuntimeHandle.ts ts/src/process/RuntimeHandle.ts
 cp process-overlay/python/__init__.py python/src/planir/process/__init__.py
+cp process-overlay/python/facade.py python/src/planir/process/facade.py
 cp process-overlay/python/runtime.py python/src/planir/process/runtime.py
 node scripts/apply-process-overlay.mjs
