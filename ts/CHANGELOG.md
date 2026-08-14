@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.0-beta.9](https://github.com/Planir-io/sdk/compare/ts-v0.1.0-beta.8...ts-v0.1.0-beta.9) (2026-08-14)
+
+
+### Features
+
+* add ergonomic Process SDK facade ([f68d05a](https://github.com/Planir-io/sdk/commit/f68d05a5d83daa3d25f88fdc07c94fa31e3c2404))
+* add Process SDK facade ([4958836](https://github.com/Planir-io/sdk/commit/49588369c0b6aab50dd61b0bcf1ac927903ac055))
+
+
+### Bug Fixes
+
+* harden Process facade inputs ([498971e](https://github.com/Planir-io/sdk/commit/498971e1b86ea34655458b4b61eed7de0892bfa0))
+
 ## [0.1.0-beta.8](https://github.com/Planir-io/sdk/compare/ts-v0.1.0-beta.7...ts-v0.1.0-beta.8) (2026-08-13)
 
 
