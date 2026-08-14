@@ -1,4 +1,3 @@
-import inspect
 import pickle
 import typing
 import unittest
@@ -10,7 +9,7 @@ import httpx
 from planir import AsyncPlanirClient, PlanirClient
 from planir.core.jsonable_encoder import encode_path_param
 from planir.errors import NotFoundError, UnprocessableEntityError
-from planir.process import ConnectRequest, ProcessConfig, StartRequest
+from planir.process.gen.planir.runtime.v1.process_pb2 import ProcessConfig, StartRequest
 from planir.process.runtime import _address
 from planir.runtimes.raw_client import AsyncRawRuntimesClient, RawRuntimesClient
 from planir.team.raw_client import AsyncRawTeamClient, RawTeamClient
@@ -19,9 +18,26 @@ from planir.volumes.raw_client import AsyncRawVolumesClient, RawVolumesClient
 
 
 class ProcessSurfaceTest(unittest.TestCase):
+    def test_process_package_exports_the_facade_not_wire_clients(self) -> None:
+        import planir.process as process
+
+        self.assertTrue(callable(process.CommandExitError))
+        self.assertTrue(callable(process.PtyExitError))
+        self.assertFalse(hasattr(process, "ProcessPlane"))
+        self.assertFalse(hasattr(process, "StartRequest"))
+
     def test_process_http_client_annotations_resolve(self) -> None:
         hints = typing.get_type_hints(PlanirClient.__init__)
         self.assertEqual(typing.get_args(hints["process_http_client"])[0].__name__, "SyncClient")
+
+    def test_process_facade_annotations_name_inputs_and_handles(self) -> None:
+        import planir.process as process
+
+        start = typing.get_type_hints(process.Commands.start)
+        create = typing.get_type_hints(process.AsyncPty.create)
+        self.assertEqual(typing.get_origin(start["argv"]), __import__("collections.abc").abc.Sequence)
+        self.assertIs(start["return"], process.CommandHandle)
+        self.assertIs(create["return"], process.AsyncPtyHandle)
 
     def test_process_messages_pickle_round_trip(self) -> None:
         request = StartRequest(process=ProcessConfig(cmd="echo", args=["hello"]))
@@ -63,15 +79,11 @@ class ProcessSurfaceTest(unittest.TestCase):
             with self.subTest(runtime_id=runtime_id), self.assertRaises(ValueError):
                 _address(wrapper, runtime_id)
 
-    def test_process_messages_have_a_public_import(self) -> None:
-        request = StartRequest(process=ProcessConfig(cmd="echo", args=["hello"]))
-        self.assertEqual(request.process.cmd, "echo")
-
     def test_runtime_handle_exposes_commands_and_pty(self) -> None:
         runtime = PlanirClient(token="test").runtimes.runtime("rt_test")
-        methods = ("start", "connect", "list", "stream_input", "send_input", "close_stdin", "update", "send_signal")
-        for method in methods:
+        for method in ("run", "start", "connect", "list"):
             self.assertTrue(callable(getattr(runtime.commands, method)))
+        for method in ("create", "connect"):
             self.assertTrue(callable(getattr(runtime.pty, method)))
 
     def test_custom_rest_client_requires_process_http_client(self) -> None:
@@ -89,13 +101,22 @@ class ProcessSurfaceTest(unittest.TestCase):
             process_http_client=process_http_client,
         ).runtimes.runtime("rt_test")
 
-        self.assertIs(runtime.commands._client._http_client, process_http_client)
+        self.assertIs(runtime.commands._plane._client._http_client, process_http_client)
+
+    def test_process_clients_inherit_the_configured_request_timeout(self) -> None:
+        clients = (PlanirClient(token="test", timeout=0.125),
+                   AsyncPlanirClient(token="test", timeout=0.125))
+
+        for client in clients:
+            with self.subTest(client=type(client).__name__):
+                runtime = client.runtimes.runtime("rt_test")
+                self.assertEqual(runtime.commands._plane._client._timeout_ms, 125)
 
     def test_async_runtime_handle_exposes_commands_and_pty(self) -> None:
         runtime = AsyncPlanirClient(token="test").runtimes.runtime("rt_test")
-        methods = ("start", "connect", "list", "stream_input", "send_input", "close_stdin", "update", "send_signal")
-        for method in methods:
+        for method in ("run", "start", "connect", "list"):
             self.assertTrue(callable(getattr(runtime.commands, method)))
+        for method in ("create", "connect"):
             self.assertTrue(callable(getattr(runtime.pty, method)))
 
     def test_async_custom_rest_client_requires_process_http_client(self) -> None:
@@ -113,18 +134,7 @@ class ProcessSurfaceTest(unittest.TestCase):
             process_http_client=process_http_client,
         ).runtimes.runtime("rt_test")
 
-        self.assertIs(runtime.commands._client._http_client, process_http_client)
-
-    def test_async_streaming_methods_return_async_iterables(self) -> None:
-        commands = AsyncPlanirClient(token="test").runtimes.runtime("rt_test").commands
-        streams = (commands.start(StartRequest()), commands.connect(ConnectRequest()))
-        try:
-            for stream in streams:
-                self.assertTrue(hasattr(stream, "__aiter__"))
-        finally:
-            for stream in streams:
-                if inspect.iscoroutine(stream):
-                    stream.close()
+        self.assertIs(runtime.commands._plane._client._http_client, process_http_client)
 
     def test_create_policy_failure_has_a_typed_body(self) -> None:
         payload = {"error": {"code": "UNSAFE_IMAGE_HOST", "message": "refused"}}

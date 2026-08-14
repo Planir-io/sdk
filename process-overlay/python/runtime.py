@@ -3,6 +3,7 @@ from urllib.parse import quote
 
 from ..core.client_wrapper import AsyncClientWrapper, SyncClientWrapper
 from .gen.planir.runtime.v1.process_connect import ProcessClient, ProcessClientSync
+from .facade import AsyncCommands, AsyncPty, Commands, Pty
 
 
 def _address(wrapper: typing.Union[AsyncClientWrapper, SyncClientWrapper], runtime_id: str) -> str:
@@ -11,12 +12,18 @@ def _address(wrapper: typing.Union[AsyncClientWrapper, SyncClientWrapper], runti
     return f"{wrapper.get_base_url().rstrip('/')}/v1/runtimes/{quote(runtime_id, safe='')}"
 
 
+def _timeout_ms(wrapper: typing.Union[AsyncClientWrapper, SyncClientWrapper]) -> typing.Optional[int]:
+    timeout = wrapper.get_timeout()
+    return None if timeout is None else int(timeout * 1000)
+
+
 class ProcessPlane:
     def __init__(self, wrapper: SyncClientWrapper, runtime_id: str) -> None:
         if wrapper._uses_custom_httpx_client and wrapper._process_http_client is None:
             raise ValueError("custom httpx_client does not serve Process calls; configure process_http_client")
         self._wrapper = wrapper
-        self._client = ProcessClientSync(_address(wrapper, runtime_id), http_client=wrapper._process_http_client)
+        self._client = ProcessClientSync(_address(wrapper, runtime_id), http_client=wrapper._process_http_client,
+                                         timeout_ms=_timeout_ms(wrapper))
 
     def _headers(self, headers):
         return {**self._wrapper.get_headers(), **(headers or {})}
@@ -48,7 +55,9 @@ class ProcessPlane:
 
 class RuntimeHandle:
     def __init__(self, wrapper: SyncClientWrapper, runtime_id: str) -> None:
-        self.commands = self.pty = ProcessPlane(wrapper, runtime_id)
+        plane = ProcessPlane(wrapper, runtime_id)
+        self.commands = Commands(plane)
+        self.pty = Pty(plane)
 
 
 class AsyncProcessPlane:
@@ -56,7 +65,8 @@ class AsyncProcessPlane:
         if wrapper._uses_custom_httpx_client and wrapper._process_http_client is None:
             raise ValueError("custom httpx_client does not serve Process calls; configure process_http_client")
         self._wrapper = wrapper
-        self._client = ProcessClient(_address(wrapper, runtime_id), http_client=wrapper._process_http_client)
+        self._client = ProcessClient(_address(wrapper, runtime_id), http_client=wrapper._process_http_client,
+                                     timeout_ms=_timeout_ms(wrapper))
 
     async def _headers(self, headers):
         return {**(await self._wrapper.async_get_headers()), **(headers or {})}
@@ -92,4 +102,6 @@ class AsyncProcessPlane:
 
 class AsyncRuntimeHandle:
     def __init__(self, wrapper: AsyncClientWrapper, runtime_id: str) -> None:
-        self.commands = self.pty = AsyncProcessPlane(wrapper, runtime_id)
+        plane = AsyncProcessPlane(wrapper, runtime_id)
+        self.commands = AsyncCommands(plane)
+        self.pty = AsyncPty(plane)

@@ -74,7 +74,7 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build
-      - run: node --test test/process-surface.test.mjs
+      - run: node --test test/*.test.mjs
       - name: Import smoke test
         run: node --input-type=module -e "import { PlanirClient } from './dist/index.js'; if (typeof PlanirClient !== 'function') { throw new Error('PlanirClient not exported'); }"
 

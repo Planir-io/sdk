@@ -27,12 +27,43 @@ runtime = client.runtimes.create(request={"image": "ghcr.io/acme/agent:latest"})
 print(runtime.urls)
 ```
 
+## Commands and terminals
+
+```python
+import sys
+
+# Run exact argv. Planir does not add a shell.
+box = client.runtimes.runtime(runtime.id)
+result = box.commands.run(["git", "status", "--short"])
+print(result.stdout)
+
+# Keep a process running and control it through one handle.
+command = box.commands.start(
+    ["python", "worker.py"], tag="worker"
+)
+command.send_input("work\n")
+command.close_stdin()
+completed = command.wait(on_stdout=sys.stdout.buffer.write)
+
+# Open a PTY when the program needs a terminal.
+terminal = box.pty.create(["/bin/sh"], cols=120, rows=30)
+terminal.send_input("pwd\n")
+terminal.resize(160, 40)
+```
+
+`run()` and `wait()` raise `CommandExitError` or `PtyExitError` on a non-zero
+exit; the error's `result` retains the exit code and captured output.
+
 The client defaults to `https://api.planir.io`; pass `base_url` to point elsewhere
 (e.g. a mock server in tests). An async client is available as `AsyncPlanirClient`.
-`client.runtimes.runtime(runtime.id).commands` and `.pty` expose the generated
-streaming Process client. Commands use argv; no shell is added implicitly.
-A custom `httpx_client` also requires `process_http_client`, because streaming Process
-calls use Connect's native Pyqwest client.
+Its Process methods use the same names and are awaitable. `commands.connect(pid_or_tag)`
+and `pty.connect(pid_or_tag)` reconnect to future output; output produced while
+disconnected is not replayed. `disconnect()` closes only the attachment; discard that
+handle and call `connect()` again to reattach. Use
+`capture=False` with an output callback for streams that must not be buffered in
+SDK memory. Sync callbacks run during `run()` or `wait()`; async callbacks start
+with the handle. A custom `httpx_client` also requires `process_http_client`, because
+Process calls use Connect's native Pyqwest client.
 
 ## License
 

@@ -53,7 +53,7 @@ await replaceOnce(
 await replaceOnce(
     "ts/src/index.ts",
     'export { PlanirClient } from "./Client.js";\n',
-    'export { PlanirClient } from "./Client.js";\nexport { ProcessPlane, RuntimeHandle } from "./process/RuntimeHandle.js";\nexport * from "./process/gen/planir/runtime/v1/process_pb.js";\n',
+    'export { PlanirClient } from "./Client.js";\nexport * from "./process/RuntimeHandle.js";\n',
 );
 await replaceOnce(
     "ts/src/BaseClient.ts",

@@ -7,13 +7,21 @@ import { connectNodeAdapter } from "@connectrpc/connect-node";
 import { PlanirClient } from "../dist/index.js";
 import { Process } from "../dist/process/gen/planir/runtime/v1/process_pb.js";
 
+test("the package root exposes facade errors, not the raw Process plane", async () => {
+    const sdk = await import("../dist/index.js");
+
+    assert.equal(typeof sdk.CommandExitError, "function");
+    assert.equal(typeof sdk.PtyExitError, "function");
+    assert.equal("ProcessPlane" in sdk, false);
+    assert.equal("Process" in sdk, false);
+});
+
 test("a runtime handle exposes commands and pty", () => {
     const runtime = new PlanirClient({ token: "test" }).runtimes.runtime("rt_test");
-    const methods = ["start", "connect", "list", "streamInput", "sendInput", "closeStdin", "update", "sendSignal"];
-    for (const method of methods) {
+    for (const method of ["run", "start", "connect", "list"]) {
         assert.equal(typeof runtime.commands[method], "function");
-        assert.equal(typeof runtime.pty[method], "function");
     }
+    for (const method of ["create", "connect"]) assert.equal(typeof runtime.pty[method], "function");
 });
 
 test("dot-only runtime IDs are rejected", () => {
@@ -23,14 +31,7 @@ test("dot-only runtime IDs are rejected", () => {
     }
 });
 
-test("streaming methods return async iterables without an extra await", () => {
-    const commands = new PlanirClient({ token: "test" }).runtimes.runtime("rt_test").commands;
-    for (const stream of [commands.start({}), commands.connect({})]) {
-        assert.equal(typeof stream[Symbol.asyncIterator], "function");
-    }
-});
-
-test("per-request Process headers override client suppliers", async (t) => {
+test("Process requests include configured authentication and headers", async (t) => {
     let headers;
     const adapter = connectNodeAdapter({
         routes: (router) => router.service(Process, {
@@ -50,13 +51,13 @@ test("per-request Process headers override client suppliers", async (t) => {
     const client = new PlanirClient({
         baseUrl: `http://127.0.0.1:${address.port}`,
         token: "test-token",
-        headers: { "x-planir-test": () => { throw new Error("overridden supplier ran"); } },
+        headers: { "x-planir-test": "configured" },
     });
 
-    await client.runtimes.runtime("rt_test").commands.list({}, { headers: { "x-planir-test": "request" } });
+    await client.runtimes.runtime("rt_test").commands.list();
 
     assert.equal(headers.get("authorization"), "Bearer test-token");
-    assert.equal(headers.get("x-planir-test"), "request");
+    assert.equal(headers.get("x-planir-test"), "configured");
 });
 
 test("Process requests inherit the configured client timeout", async (t) => {
@@ -81,7 +82,7 @@ test("Process requests inherit the configured client timeout", async (t) => {
         timeoutInSeconds: 0.01,
     }).runtimes.runtime("rt_test").commands;
 
-    await assert.rejects(commands.list({}), (error) => error.code === Code.DeadlineExceeded);
+    await assert.rejects(commands.list(), (error) => error.code === Code.DeadlineExceeded);
 });
 
 test("custom REST fetch requires explicit Process transport options", () => {
@@ -117,7 +118,7 @@ test("explicit Process transport options are applied", async (t) => {
         processTransportOptions: { useBinaryFormat: false },
     }).runtimes.runtime("rt_test").commands;
 
-    await commands.list({});
+    await commands.list();
 
     assert.match(contentType, /json/);
 });
