@@ -169,11 +169,16 @@ test("commands.list rejects malformed process metadata instead of inventing defa
     await assert.rejects(commands.list(), /missing config/);
 });
 
-test("command inputs reject empty argv and unsafe process timeouts before transport", async () => {
-    const commands = new PlanirClient({ token: "test" }).runtimes.runtime("rt_test").commands;
+test("command and PTY inputs reject malformed argv before transport", async () => {
+    const runtime = new PlanirClient({ token: "test" }).runtimes.runtime("rt_test");
+    const commands = runtime.commands;
 
     await assert.rejects(commands.start([]), /executable/);
+    await assert.rejects(commands.start("true"), /sequence of strings/);
+    await assert.rejects(commands.start(["true", 1]), /sequence of strings/);
     await assert.rejects(commands.start(["true"], { timeoutMs: -1 }), /non-negative safe integer/);
+    await assert.rejects(runtime.pty.create("sh", { cols: 80, rows: 24 }), /sequence of strings/);
+    await assert.rejects(runtime.pty.create(["sh", 1], { cols: 80, rows: 24 }), /sequence of strings/);
 });
 
 test("pty.connect resumes future binary output", async (t) => {
@@ -193,34 +198,50 @@ test("pty.connect resumes future binary output", async (t) => {
     assert.deepEqual(result.outputBytes, new Uint8Array([0, 255]));
 });
 
-test("disconnect cancels only the attachment without an unhandled rejection", async (t) => {
-    const gate = new Promise(() => {});
+test("command disconnect closes the attachment without signaling the process", async (t) => {
+    let markDetached;
+    const detached = new Promise((resolve) => { markDetached = resolve; });
+    let signals = 0;
     const baseUrl = await serveProcess(t, {
-        async *connect() {
-            yield { event: { event: { case: "start", value: { pid: 88 } } } };
-            await gate;
+        async *connect(_request, context) {
+            try {
+                yield { event: { event: { case: "start", value: { pid: 88 } } } };
+                await new Promise((resolve) => context.signal.addEventListener("abort", resolve, { once: true }));
+            } finally {
+                markDetached();
+            }
         },
+        sendSignal() { signals += 1; return {}; },
     });
     const handle = await new PlanirClient({ baseUrl, token: "test" })
         .runtimes.runtime("rt_test").commands.connect(88);
 
     handle.disconnect();
-    await new Promise((resolve) => setImmediate(resolve));
+    await detached;
+    assert.equal(signals, 0);
 });
 
-test("pty disconnect also consumes the canceled attachment", async (t) => {
-    const gate = new Promise(() => {});
+test("PTY disconnect closes the attachment without signaling the process", async (t) => {
+    let markDetached;
+    const detached = new Promise((resolve) => { markDetached = resolve; });
+    let signals = 0;
     const baseUrl = await serveProcess(t, {
-        async *connect() {
-            yield { event: { event: { case: "start", value: { pid: 89 } } } };
-            await gate;
+        async *connect(_request, context) {
+            try {
+                yield { event: { event: { case: "start", value: { pid: 89 } } } };
+                await new Promise((resolve) => context.signal.addEventListener("abort", resolve, { once: true }));
+            } finally {
+                markDetached();
+            }
         },
+        sendSignal() { signals += 1; return {}; },
     });
     const handle = await new PlanirClient({ baseUrl, token: "test" })
         .runtimes.runtime("rt_test").pty.connect(89);
 
     handle.disconnect();
-    await new Promise((resolve) => setImmediate(resolve));
+    await detached;
+    assert.equal(signals, 0);
 });
 
 test("wait closes the attachment after the terminal event", async () => {

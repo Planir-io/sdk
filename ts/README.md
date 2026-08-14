@@ -53,10 +53,14 @@ await terminal.sendInput("pwd\n");
 await terminal.resize(160, 40);
 ```
 
+`run()` and `wait()` throw `CommandExitError` or `PtyExitError` on a non-zero
+exit; the error's `result` retains the exit code and captured output.
+
 The client defaults to `https://api.planir.io`; pass `baseUrl` to point elsewhere
 (e.g. a mock server in tests). `commands.connect(pidOrTag)` and
 `pty.connect(pidOrTag)` reconnect to future output; output produced while disconnected
-is not replayed. `disconnect()` closes only the attachment. Use `capture: false` with
+is not replayed. `disconnect()` closes only the attachment; discard that handle and
+call `connect()` again to reattach. Use `capture: false` with
 an output callback for long-running streams that must not be buffered in SDK memory.
 A custom `fetch` also requires `processTransportOptions`, because Process calls use
 the native Connect transport.

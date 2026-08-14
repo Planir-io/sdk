@@ -51,11 +51,15 @@ terminal.send_input("pwd\n")
 terminal.resize(160, 40)
 ```
 
+`run()` and `wait()` raise `CommandExitError` or `PtyExitError` on a non-zero
+exit; the error's `result` retains the exit code and captured output.
+
 The client defaults to `https://api.planir.io`; pass `base_url` to point elsewhere
 (e.g. a mock server in tests). An async client is available as `AsyncPlanirClient`.
 Its Process methods use the same names and are awaitable. `commands.connect(pid_or_tag)`
 and `pty.connect(pid_or_tag)` reconnect to future output; output produced while
-disconnected is not replayed. `disconnect()` closes only the attachment. Use
+disconnected is not replayed. `disconnect()` closes only the attachment; discard that
+handle and call `connect()` again to reattach. Use
 `capture=False` with an output callback for streams that must not be buffered in
 SDK memory. Sync callbacks run during `run()` or `wait()`; async callbacks start
 with the handle. A custom `httpx_client` also requires `process_http_client`, because

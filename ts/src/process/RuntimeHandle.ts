@@ -67,6 +67,13 @@ function processTimeout(value: number | undefined): bigint | undefined {
     return BigInt(value);
 }
 
+function validateArgv(argv: readonly string[]): void {
+    if (!Array.isArray(argv) || argv.some((value) => typeof value !== "string")) {
+        throw new TypeError("argv must be a sequence of strings");
+    }
+    if (argv.length === 0 || argv[0] === "") throw new TypeError("argv must contain an executable");
+}
+
 export interface CommandResult {
     pid: number;
     exitCode: number;
@@ -291,7 +298,7 @@ export class Commands {
     constructor(private readonly plane: ProcessPlane) {}
 
     async start(argv: readonly string[], options: RunOptions = {}): Promise<CommandHandle> {
-        if (argv.length === 0 || argv[0] === "") throw new TypeError("argv must contain an executable");
+        validateArgv(argv);
         const controller = new AbortController();
         const signal = options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal;
         const events = this.plane.start({
@@ -331,7 +338,7 @@ export class Pty {
     constructor(private readonly plane: ProcessPlane) {}
 
     async create(argv: readonly string[], options: PtyOptions): Promise<PtyHandle> {
-        if (argv.length === 0 || argv[0] === "") throw new TypeError("argv must contain an executable");
+        validateArgv(argv);
         if (options.cols <= 0 || options.rows <= 0) throw new RangeError("PTY dimensions must be positive");
         const controller = new AbortController();
         const signal = options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal;
