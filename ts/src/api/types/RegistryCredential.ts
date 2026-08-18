@@ -2,10 +2,10 @@
 
 export interface RegistryCredential {
     id: string;
-    /** The normalized registry host this credential is used for — auto-matched against every image pull on the team by host equality; `POST /v1/runtimes` needs no field. */
+    /** The normalized registry host used for automatic team-scoped matching; `POST /v1/runtimes` needs no credential field. */
     host: string;
     username: string;
     createdAt: string;
-    /** Moves on rotate — when this is recent, pulls are already using the new secret. */
+    /** Moves when the stored credential changes. This timestamp does not prove propagation to later pulls. */
     updatedAt: string;
 }
