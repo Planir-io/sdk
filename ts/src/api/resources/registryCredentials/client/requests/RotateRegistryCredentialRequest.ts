@@ -12,6 +12,6 @@ export interface RotateRegistryCredentialRequest {
     id: string;
     /** The replacement username (may be unchanged). */
     username: string;
-    /** The replacement password / token (write-only). Running runtimes are untouched; the next pull uses it. */
+    /** The replacement password / token (write-only). Running runtimes are untouched. Later origin pulls can use it after asynchronous propagation; the prior state can remain effective until then. */
     password: string;
 }

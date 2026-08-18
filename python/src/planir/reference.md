@@ -1688,7 +1688,7 @@ client.registry_credentials.list_registry_credentials()
 <dl>
 <dd>
 
-From now on, EVERY pull from this host on the team authenticates with it — auto-matched by image host, public images included, no anonymous fallback while it exists (delete restores anonymous pulls). Existing runtimes self-heal: a runtime wedged on `ImagePullBackOff` retries onto the new credential within its backoff cycle, no verbs needed. Static basic-auth registries only (Docker Hub, GHCR, GitLab, quay, GAR `_json_key`, ACR service principal); ECR is NOT supported — its 12-hour tokens need token-refresh machinery this platform does not run yet.
+Stored for automatic team-and-host matching. Fresh create uses the current committed credential when it contacts the host origin. Later origin pulls can use it after asynchronous propagation; the prior state can remain effective until then. A rejected effective credential is not retried anonymously at that origin. Compatible static credentials include GHCR PAT, GitLab deploy token, quay robot, GAR `_json_key`, and ACR service principal. ECR is unsupported because its 12-hour tokens require refresh.
 </dd>
 </dl>
 </dd>
@@ -1731,7 +1731,7 @@ client.registry_credentials.create_registry_credential(
 <dl>
 <dd>
 
-**host:** `str` — The registry host this credential authenticates, e.g. `ghcr.io`, `docker.io`, `myregistry.example:8443`. Normalized on write (lowercased, scheme stripped, Docker Hub aliases folded to `docker.io`); a path (`ghcr.io/org`) is refused — credentials are host-scoped. At most ONE credential per host: it is used for EVERY pull from that host, public images included (no anonymous fallback while it exists), so a wrong credential blocks that whole host until rotated or deleted.
+**host:** `str` — The registry host this credential authenticates, e.g. `ghcr.io`, `docker.io`, `myregistry.example:8443`. Normalized on write (lowercased, scheme stripped, Docker Hub aliases folded to `docker.io`); a path (`ghcr.io/org`) is refused — credentials are host-scoped. At most one credential exists per host. Fresh create uses the current committed credential when it contacts that host's origin. Later origin pulls observe changes only after asynchronous propagation; the prior state can remain effective until then. Rejected effective credentials are not retried anonymously.
     
 </dd>
 </dl>
@@ -1747,7 +1747,7 @@ client.registry_credentials.create_registry_credential(
 <dl>
 <dd>
 
-**password:** `str` — Registry password / token (write-only — no read ever returns it). Use a scoped, long-lived pull secret: Docker Hub PAT, GHCR PAT (`read:packages`), GitLab deploy token, quay robot token, GAR service-account JSON, ACR service-principal password.
+**password:** `str` — Registry password / token (write-only — no read ever returns it). Use a scoped, long-lived pull secret: GHCR PAT (`read:packages`), GitLab deploy token, quay robot token, GAR service-account JSON, ACR service-principal password.
     
 </dd>
 </dl>
@@ -1838,7 +1838,7 @@ client.registry_credentials.get_registry_credential(
 <dl>
 <dd>
 
-Running runtimes are untouched — pulls read credentials at pull time, so the next pull simply uses the new secret. The host cannot change: it is the credential's identity (one per host) — re-pointing to a different registry is delete + create. A WRONG rotation blocks every pull from this host (public images included) until fixed — visible as the runtime's `observed` waiting reason.
+Running runtimes are untouched. Later origin pulls can use the replacement after asynchronous propagation; the prior state can remain effective until then. The host cannot change: it is the credential's identity (one per host), so re-pointing to a different registry is delete + create. A rejected effective credential fails visibly.
 </dd>
 </dl>
 </dd>
@@ -1897,7 +1897,7 @@ client.registry_credentials.rotate_registry_credential(
 <dl>
 <dd>
 
-**password:** `str` — The replacement password / token (write-only). Running runtimes are untouched; the next pull uses it.
+**password:** `str` — The replacement password / token (write-only). Running runtimes are untouched. Later origin pulls can use it after asynchronous propagation; the prior state can remain effective until then.
     
 </dd>
 </dl>
@@ -1929,7 +1929,7 @@ client.registry_credentials.rotate_registry_credential(
 <dl>
 <dd>
 
-Nothing references a credential (binding is by host match), so delete never 409s. Deletion takes effect asynchronously and running containers continue. After deletion takes effect, the next pull authenticates normally: anonymous access resumes for public images, while private images fail visibly without another valid credential. Cached content does not bypass authentication.
+Nothing references a credential (binding is by host match), so delete never 409s. Deletion propagates asynchronously and running containers continue. The prior state can remain effective until propagation completes. After that, an origin pull that still requires the credential fails visibly. Public content served without origin contact is outside that failure statement.
 </dd>
 </dl>
 </dd>

@@ -9,10 +9,10 @@
  *     }
  */
 export interface CreateRegistryCredentialRequest {
-    /** The registry host this credential authenticates, e.g. `ghcr.io`, `docker.io`, `myregistry.example:8443`. Normalized on write (lowercased, scheme stripped, Docker Hub aliases folded to `docker.io`); a path (`ghcr.io/org`) is refused — credentials are host-scoped. At most ONE credential per host: it is used for EVERY pull from that host, public images included (no anonymous fallback while it exists), so a wrong credential blocks that whole host until rotated or deleted. */
+    /** The registry host this credential authenticates, e.g. `ghcr.io`, `docker.io`, `myregistry.example:8443`. Normalized on write (lowercased, scheme stripped, Docker Hub aliases folded to `docker.io`); a path (`ghcr.io/org`) is refused — credentials are host-scoped. At most one credential exists per host. Fresh create uses the current committed credential when it contacts that host's origin. Later origin pulls observe changes only after asynchronous propagation; the prior state can remain effective until then. Rejected effective credentials are not retried anonymously. */
     host: string;
     /** Registry username — provider-specific (`_json_key` for GAR, `org+robot` for quay). */
     username: string;
-    /** Registry password / token (write-only — no read ever returns it). Use a scoped, long-lived pull secret: Docker Hub PAT, GHCR PAT (`read:packages`), GitLab deploy token, quay robot token, GAR service-account JSON, ACR service-principal password. */
+    /** Registry password / token (write-only — no read ever returns it). Use a scoped, long-lived pull secret: GHCR PAT (`read:packages`), GitLab deploy token, quay robot token, GAR service-account JSON, ACR service-principal password. */
     password: string;
 }

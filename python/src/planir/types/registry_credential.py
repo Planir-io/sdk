@@ -13,7 +13,7 @@ class RegistryCredential(UniversalBaseModel):
     id: str
     host: str = pydantic.Field()
     """
-    The normalized registry host this credential is used for — auto-matched against every image pull on the team by host equality; `POST /v1/runtimes` needs no field.
+    The normalized registry host used for automatic team-scoped matching; `POST /v1/runtimes` needs no credential field.
     """
 
     username: str
@@ -25,7 +25,7 @@ class RegistryCredential(UniversalBaseModel):
         FieldMetadata(alias="updatedAt"),
         pydantic.Field(
             alias="updatedAt",
-            description="Moves on rotate — when this is recent, pulls are already using the new secret.",
+            description="Moves when the stored credential changes. This timestamp does not prove propagation to later pulls.",
         ),
     ]
 
