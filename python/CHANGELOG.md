@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.0-beta.10](https://github.com/Planir-io/sdk/compare/python-v0.1.0-beta.9...python-v0.1.0-beta.10) (2026-08-20)
+
+
+### Features
+
+* sync contracts (OpenAPI additive, Process unchanged) ([41aa9db](https://github.com/Planir-io/sdk/commit/41aa9db2a2e4a0cd0b1e081271f5cb4b5f410f17))
+* sync contracts (OpenAPI additive, Process unchanged) ([8ee37d4](https://github.com/Planir-io/sdk/commit/8ee37d4046b629381f09d7d6abee2335826bb75d))
+* sync published contract + regenerate SDKs ([3587c7a](https://github.com/Planir-io/sdk/commit/3587c7ab85123b59f1b9fa19dbddc49da4dc2772))
+* sync published contract + regenerate SDKs ([53fb00a](https://github.com/Planir-io/sdk/commit/53fb00a73ad919b801291f8d8bb3f98b8cfb2f58))
+
 ## [0.1.0-beta.9](https://github.com/Planir-io/sdk/compare/python-v0.1.0-beta.8...python-v0.1.0-beta.9) (2026-08-14)
 
 
