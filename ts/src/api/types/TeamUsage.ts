@@ -8,13 +8,13 @@ export interface TeamUsage {
     windows: PlanirApi.TeamUsageWindow[];
     /** Detached standalone-volume accruals for the month (volumes-v2). A volume attached all month has no line here — its storage billed through the runtime windows above. */
     volumeWindows: PlanirApi.TeamUsageVolumeWindow[];
-    /** Sums across the returned windows — this team's month total. Derived from the window rows themselves (the invoice lines); no money is re-computed on read. */
+    /** Money and duration sum the returned invoice windows. Network bytes sum retained runtime egress rows; the current allowance comes from live team entitlements. */
     totals: TeamUsage.Totals;
 }
 
 export namespace TeamUsage {
     /**
-     * Sums across the returned windows — this team's month total. Derived from the window rows themselves (the invoice lines); no money is re-computed on read.
+     * Money and duration sum the returned invoice windows. Network bytes sum retained runtime egress rows; the current allowance comes from live team entitlements.
      */
     export interface Totals {
         /** Runtime windows + volume accruals together — the month total. */
@@ -22,5 +22,11 @@ export namespace TeamUsage {
         meteredMs: number;
         attachedVolumeMs: number;
         detachedMs: number;
+        /** Sum of retained runtime-interface ingress bytes for the requested UTC month. Ingress is free and unshaped. */
+        ingressBytes: string;
+        /** Sum of retained runtime-interface egress bytes for the requested UTC month. Includes Process traffic, excludes image pulls, and normally trails live traffic by one sampling interval. Fair-use only; never billed. */
+        egressBytes: string;
+        /** Live shared team allowance for the current UTC month; null for any other month. */
+        egressAllowanceBytes: string | null;
     }
 }
