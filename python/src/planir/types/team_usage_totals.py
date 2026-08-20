@@ -10,7 +10,7 @@ from ..core.serialization import FieldMetadata
 
 class TeamUsageTotals(UniversalBaseModel):
     """
-    Sums across the returned windows — this team's month total. Derived from the window rows themselves (the invoice lines); no money is re-computed on read.
+    Money and duration sum the returned invoice windows. Network bytes sum retained runtime egress rows; the current allowance comes from live team entitlements.
     """
 
     billed_microcents: typing_extensions.Annotated[
@@ -25,5 +25,30 @@ class TeamUsageTotals(UniversalBaseModel):
         int, FieldMetadata(alias="attachedVolumeMs"), pydantic.Field(alias="attachedVolumeMs")
     ]
     detached_ms: typing_extensions.Annotated[int, FieldMetadata(alias="detachedMs"), pydantic.Field(alias="detachedMs")]
+    ingress_bytes: typing_extensions.Annotated[
+        str,
+        FieldMetadata(alias="ingressBytes"),
+        pydantic.Field(
+            alias="ingressBytes",
+            description="Sum of retained runtime-interface ingress bytes for the requested UTC month. Ingress is free and unshaped.",
+        ),
+    ]
+    egress_bytes: typing_extensions.Annotated[
+        str,
+        FieldMetadata(alias="egressBytes"),
+        pydantic.Field(
+            alias="egressBytes",
+            description="Sum of retained runtime-interface egress bytes for the requested UTC month. Includes Process traffic, excludes image pulls, and normally trails live traffic by one sampling interval. Fair-use only; never billed.",
+        ),
+    ]
+    egress_allowance_bytes: typing_extensions.Annotated[
+        typing.Optional[str],
+        FieldMetadata(alias="egressAllowanceBytes"),
+        pydantic.Field(
+            alias="egressAllowanceBytes",
+            default=None,
+            description="Live shared team allowance for the current UTC month; null for any other month.",
+        ),
+    ]
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

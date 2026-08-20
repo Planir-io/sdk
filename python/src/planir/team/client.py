@@ -100,7 +100,7 @@ class TeamClient:
         self, *, period: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None
     ) -> TeamUsage:
         """
-        Every billing window for the caller's team in one UTC calendar month (`?period=YYYY-MM`, default the current month), plus the month totals. Each window is an invoice line: the accrued quantities and the prices it carries. A malformed period is 400.
+        Billing windows and measured network totals for the caller's team in one UTC month (`?period=YYYY-MM`, default the current month). The live shared egress allowance appears only for the current month. A malformed period is 400.
 
         Parameters
         ----------
@@ -634,7 +634,7 @@ class AsyncTeamClient:
         self, *, period: typing.Optional[str] = None, request_options: typing.Optional[RequestOptions] = None
     ) -> TeamUsage:
         """
-        Every billing window for the caller's team in one UTC calendar month (`?period=YYYY-MM`, default the current month), plus the month totals. Each window is an invoice line: the accrued quantities and the prices it carries. A malformed period is 400.
+        Billing windows and measured network totals for the caller's team in one UTC month (`?period=YYYY-MM`, default the current month). The live shared egress allowance appears only for the current month. A malformed period is 400.
 
         Parameters
         ----------

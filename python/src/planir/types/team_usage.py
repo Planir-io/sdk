@@ -28,7 +28,7 @@ class TeamUsage(UniversalBaseModel):
     ]
     totals: TeamUsageTotals = pydantic.Field()
     """
-    Sums across the returned windows — this team's month total. Derived from the window rows themselves (the invoice lines); no money is re-computed on read.
+    Money and duration sum the returned invoice windows. Network bytes sum retained runtime egress rows; the current allowance comes from live team entitlements.
     """
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

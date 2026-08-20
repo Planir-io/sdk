@@ -9,6 +9,8 @@ export interface Usage {
     storageByteSeconds: string;
     /** Counter, not money: compressed runtime-layer bytes recorded for committed rootfs images integrated over billable presence. Excludes allocated rootfs tiers, shared base-image layers, volume capacity, and storage-system overhead. */
     preservedRootfsByteSeconds: string;
-    /** NOT YET METERED — always "0". Placeholder until per-runtime egress metering lands; a biller MUST NOT treat this as a measured value. */
+    /** Current UTC month interface-level ingress bytes, regardless of the usage query window. Ingress is free and uncapped. */
+    ingressBytes: string;
+    /** Current UTC month measured egress bytes, regardless of the usage query window. This interface-level counter includes everything crossing the runtime workload network interface, including exec/Process traffic, but exec/Process transport is outside the rate cap; image pulls do not cross it. Values trail live traffic by one sampling interval normally and remain stale through a sampling outage until recovery books the full delta. That delta belongs to the later sample month; final churn may under-read, and a UTC boundary can skew by one interval or the recovery delta. Measured for fair-use only and never a billing input. */
     egressBytes: string;
 }
