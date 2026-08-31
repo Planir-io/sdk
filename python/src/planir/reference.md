@@ -2067,7 +2067,7 @@ client.presets.list_presets()
 <dl>
 <dd>
 
-Every location on offer, with per-family `available` derived live — the picker's "can I order here now" truth. `region` values are plain strings (e.g. "brq"), never an enum: new locations appear additively; send one as `region` on create. `available` means an unpinned create using the family's smallest preset can be placed now, so a larger preset's create may still refuse 503 at the capacity margin. Unavailable means full, draining, or not ready — a create naming that location refuses 503 until it flips (re-read rather than remember; no pagination, the list is a menu).
+Every location on offer, with per-family `available` derived live — the picker's "can I order here now" truth. `region` values are plain strings (e.g. "brq"), never an enum; send one as `region` on create. `available` means an unpinned create using the family's smallest preset can be placed now, so a larger preset's create may still refuse 503 at the capacity margin. Unavailable means full, draining, or not ready — a create naming that location refuses 503 until it flips (re-read rather than remember; no pagination, the list is a menu).
 </dd>
 </dl>
 </dd>
@@ -2131,7 +2131,7 @@ client.regions.list_regions()
 <dl>
 <dd>
 
-The team the credential belongs to — its identity, package summary, and current ledger balance. No path parameter: a caller can only ever read its own team.
+The team the credential belongs to — its identity, package summary, and available balance after projected open usage. No path parameter: a caller can only read its own team.
 </dd>
 </dl>
 </dd>
@@ -2336,7 +2336,7 @@ client.team.get_team_usage()
 <dl>
 <dd>
 
-The append-only money log for the caller's team, newest first. Pages via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Each row is signed integer microcents; the balance is their sum.
+The append-only money log for the caller's team, newest first. Pages via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Each row is posted signed integer microcents; open usage is not a ledger row.
 </dd>
 </dl>
 </dd>
@@ -2784,7 +2784,7 @@ client.team.list_team_webhooks()
 <dl>
 <dd>
 
-Registers a receiver URL for signed lifecycle event POSTs (at-least-once delivery; deduplicate by the `webhook-id` header / payload `id`). The response carries the signing `secret` exactly once — it is never stored retrievably or shown again. Refused with 422 when the team is at its endpoint cap; delete an endpoint to free a slot.
+Registers a receiver URL for signed lifecycle event POSTs (at-least-once delivery; deduplicate by the `webhook-id` header / payload `id`). The response carries the signing `secret` exactly once — it is never stored retrievably or shown again. It receives only events appended after its registration commits. Refused with 422 when the team is at its endpoint cap; delete an endpoint to free a slot.
 </dd>
 </dl>
 </dd>
@@ -2865,7 +2865,7 @@ client.team.register_team_webhook(
 <dl>
 <dd>
 
-Removes the endpoint and its delivery log; in-flight and pending deliveries stop. An endpoint id that is unknown or belongs to another team is a 404, indistinguishable either way.
+Removes the endpoint and its pending delivery rows. A request already in worker memory may finish network I/O, but its settle has no stored effect. An endpoint id that is unknown or belongs to another team is a 404, indistinguishable either way.
 </dd>
 </dl>
 </dd>
@@ -3084,7 +3084,7 @@ client.team.enable_team_webhook(
 <dl>
 <dd>
 
-The diagnostics lane behind one endpoint: each row is one (event, endpoint) delivery with its attempt state, schedule, and last outcome, newest first. Retention is bounded (settled rows are pruned after ~30 days) — the runtime event log is the durable record.
+The diagnostics lane behind one endpoint: each row is one (event, endpoint) delivery with its attempt state, schedule, and last outcome, newest by creation time then event cursor. No cross-event delivery order is promised. Retention is bounded (settled rows are pruned after ~30 days) — the runtime event log is the durable record.
 </dd>
 </dl>
 </dd>

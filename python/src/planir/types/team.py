@@ -30,12 +30,12 @@ class Team(UniversalBaseModel):
             description="The saved default location (`PATCH /v1/team`): where a create that names no `region` places, consumed exactly as if the call had sent it — an explicit per-call `region` always wins, and a default whose location stops offering the preset refuses with 422 rather than silently re-routing. Null = no default (a region-less create places cheapest-available).",
         ),
     ]
-    balance_microcents: typing_extensions.Annotated[
+    available_balance_microcents: typing_extensions.Annotated[
         int,
-        FieldMetadata(alias="balanceMicrocents"),
+        FieldMetadata(alias="availableBalanceMicrocents"),
         pydantic.Field(
-            alias="balanceMicrocents",
-            description="Current ledger balance in integer microcents (1 USD = 100,000,000) — the sum of every ledger row (topups and bonuses add, usage debits subtract). Metered teams must keep this above zero to create or start runtimes; flat teams (root included) ignore it. Integer over the wire (Stripe-style); exact for every realistic balance (orders of magnitude below 2^53).",
+            alias="availableBalanceMicrocents",
+            description="Available balance in integer microcents (1 USD = 100,000,000) — posted ledger money minus exact projected open-window usage. Metered teams must keep this above zero to create or start runtimes; flat teams (root included) ignore it. Integer over the wire (Stripe-style); exact for every realistic balance (orders of magnitude below 2^53).",
         ),
     ]
 

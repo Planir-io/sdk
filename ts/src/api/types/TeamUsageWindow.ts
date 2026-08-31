@@ -8,7 +8,7 @@ export interface TeamUsageWindow {
     meteredMs: number;
     /** Provisioned milliseconds assigned to this runtime's active volume attachment; stopped time remains attached. */
     attachedVolumeMs: number;
-    /** What this window has billed so far, integer microcents. 0 for a flat/root window (quantities accrue, nothing is debited) and for a priceless (non-preset) window. */
+    /** Projected while open and final when closed, in integer microcents. 0 for a flat/root window (quantities accrue, nothing is debited) and for a priceless (non-preset) window. */
     billedMicrocents: number;
     /** The window's own carried prices, resolved once when it opened — a reprice or renegotiation never rewrites a month in progress. Null AS A UNIT for a non-preset shape (priceless window): quantities still accrue, billedMicrocents stays 0. */
     prices: TeamUsageWindow.Prices | null;

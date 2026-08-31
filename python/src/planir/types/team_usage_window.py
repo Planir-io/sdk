@@ -38,7 +38,7 @@ class TeamUsageWindow(UniversalBaseModel):
         FieldMetadata(alias="billedMicrocents"),
         pydantic.Field(
             alias="billedMicrocents",
-            description="What this window has billed so far, integer microcents. 0 for a flat/root window (quantities accrue, nothing is debited) and for a priceless (non-preset) window.",
+            description="Projected while open and final when closed, in integer microcents. 0 for a flat/root window (quantities accrue, nothing is debited) and for a priceless (non-preset) window.",
         ),
     ]
     prices: typing.Optional[TeamUsageWindowPrices] = pydantic.Field(default=None)

@@ -6,7 +6,7 @@ export interface TeamUsageVolumeWindow {
     period: string;
     /** Milliseconds the volume sat DETACHED in the month. Attached time never appears here — it bills through the holding runtime's window storage line. */
     detachedMs: number;
-    /** What this accrual has billed so far, integer microcents — provisioned bytes × the carried rate × detached time, NO free allowance (parked capacity bills from byte zero). 0 on flat packages (quantities accrue, nothing is debited). */
+    /** Projected while open and final when closed, in integer microcents — provisioned bytes × the carried rate × detached time, NO free allowance (parked capacity bills from byte zero). 0 on flat packages (quantities accrue, nothing is debited). */
     billedMicrocents: number;
     /** The accrual's own carried storage rate, copied from the package when it opened — a reprice never rewrites a month in progress. */
     storageMicrocentsPerGibMonth: number;

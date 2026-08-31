@@ -17,7 +17,7 @@ class WebhookEventEnvelope(UniversalBaseModel):
 
     version: WebhookEventEnvelopeVersion = pydantic.Field()
     """
-    Envelope version. New event types arrive additively and never change it.
+    Envelope version.
     """
 
     type: WebhookEventType

@@ -9,7 +9,7 @@ export interface WebhookEndpoint {
     url: string;
     /** The event-type filter; absent = all lifecycle types. */
     eventTypes?: PlanirApi.WebhookEventType[] | undefined;
-    /** false = deliveries are stopped (auto-disabled after sustained failure, per the delivery policy). Re-enable explicitly via POST …/{id}/enable; pending deliveries resume. */
+    /** false = deliveries are stopped (auto-disabled after sustained failure, per the delivery policy). Events appended while disabled are not replayed; read missed events through `GET /v1/runtimes/{id}/events`. Re-enable explicitly via POST …/{id}/enable; pending deliveries resume. */
     enabled: boolean;
     /** Display prefix of the signing secret: `whsec_` + the first 4 characters — enough to recognise it, never enough to verify with. */
     prefixHint: string;
