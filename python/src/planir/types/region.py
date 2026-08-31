@@ -10,7 +10,7 @@ from .region_family_availability import RegionFamilyAvailability
 class Region(UniversalBaseModel):
     region: str = pydantic.Field()
     """
-    The public location label (e.g. "brq") — a plain string, never an enum; new locations appear additively. The value create requests accept as `region`.
+    The public location label (e.g. "brq") — a plain string, never an enum. The value create requests accept as `region`.
     """
 
     families: typing.List[RegionFamilyAvailability] = pydantic.Field()

@@ -23,7 +23,7 @@ export class TeamClient {
     }
 
     /**
-     * The team the credential belongs to — its identity, package summary, and current ledger balance. No path parameter: a caller can only ever read its own team.
+     * The team the credential belongs to — its identity, package summary, and available balance after projected open usage. No path parameter: a caller can only read its own team.
      *
      * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -255,7 +255,7 @@ export class TeamClient {
     }
 
     /**
-     * The append-only money log for the caller's team, newest first. Pages via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Each row is signed integer microcents; the balance is their sum.
+     * The append-only money log for the caller's team, newest first. Pages via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Each row is posted signed integer microcents; open usage is not a ledger row.
      *
      * @param {PlanirApi.GetTeamLedgerRequest} request
      * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -743,7 +743,7 @@ export class TeamClient {
     }
 
     /**
-     * Registers a receiver URL for signed lifecycle event POSTs (at-least-once delivery; deduplicate by the `webhook-id` header / payload `id`). The response carries the signing `secret` exactly once — it is never stored retrievably or shown again. Refused with 422 when the team is at its endpoint cap; delete an endpoint to free a slot.
+     * Registers a receiver URL for signed lifecycle event POSTs (at-least-once delivery; deduplicate by the `webhook-id` header / payload `id`). The response carries the signing `secret` exactly once — it is never stored retrievably or shown again. It receives only events appended after its registration commits. Refused with 422 when the team is at its endpoint cap; delete an endpoint to free a slot.
      *
      * @param {PlanirApi.CreateWebhookRequest} request
      * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -836,7 +836,7 @@ export class TeamClient {
     }
 
     /**
-     * Removes the endpoint and its delivery log; in-flight and pending deliveries stop. An endpoint id that is unknown or belongs to another team is a 404, indistinguishable either way.
+     * Removes the endpoint and its pending delivery rows. A request already in worker memory may finish network I/O, but its settle has no stored effect. An endpoint id that is unknown or belongs to another team is a 404, indistinguishable either way.
      *
      * @param {PlanirApi.DeleteTeamWebhookRequest} request
      * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -1092,7 +1092,7 @@ export class TeamClient {
     }
 
     /**
-     * The diagnostics lane behind one endpoint: each row is one (event, endpoint) delivery with its attempt state, schedule, and last outcome, newest first. Retention is bounded (settled rows are pruned after ~30 days) — the runtime event log is the durable record.
+     * The diagnostics lane behind one endpoint: each row is one (event, endpoint) delivery with its attempt state, schedule, and last outcome, newest by creation time then event cursor. No cross-event delivery order is promised. Retention is bounded (settled rows are pruned after ~30 days) — the runtime event log is the durable record.
      *
      * @param {PlanirApi.ListTeamWebhookDeliveriesRequest} request
      * @param {TeamClient.RequestOptions} requestOptions - Request-specific configuration.

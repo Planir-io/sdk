@@ -5,7 +5,7 @@ import type * as PlanirApi from "../index.js";
 export interface WebhookEventEnvelope {
     /** The event id (`evt_<n>`, monotonic) — identical to the `webhook-id` header, and STABLE across retries and manual redelivery: deduplicate by it. */
     id: string;
-    /** Envelope version. New event types arrive additively and never change it. */
+    /** Envelope version. */
     version: WebhookEventEnvelope.Version;
     type: PlanirApi.WebhookEventType;
     /** When the event occurred (not when this delivery was attempted). */
@@ -19,7 +19,7 @@ export interface WebhookEventEnvelope {
 }
 
 export namespace WebhookEventEnvelope {
-    /** Envelope version. New event types arrive additively and never change it. */
+    /** Envelope version. */
     export const Version = {
         V1: "v1",
     } as const;

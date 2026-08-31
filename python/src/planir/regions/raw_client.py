@@ -24,7 +24,7 @@ class RawRegionsClient:
 
     def list_regions(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[RegionsList]:
         """
-        Every location on offer, with per-family `available` derived live — the picker's "can I order here now" truth. `region` values are plain strings (e.g. "brq"), never an enum: new locations appear additively; send one as `region` on create. `available` means an unpinned create using the family's smallest preset can be placed now, so a larger preset's create may still refuse 503 at the capacity margin. Unavailable means full, draining, or not ready — a create naming that location refuses 503 until it flips (re-read rather than remember; no pagination, the list is a menu).
+        Every location on offer, with per-family `available` derived live — the picker's "can I order here now" truth. `region` values are plain strings (e.g. "brq"), never an enum; send one as `region` on create. `available` means an unpinned create using the family's smallest preset can be placed now, so a larger preset's create may still refuse 503 at the capacity margin. Unavailable means full, draining, or not ready — a create naming that location refuses 503 until it flips (re-read rather than remember; no pagination, the list is a menu).
 
         Parameters
         ----------
@@ -102,7 +102,7 @@ class AsyncRawRegionsClient:
         self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RegionsList]:
         """
-        Every location on offer, with per-family `available` derived live — the picker's "can I order here now" truth. `region` values are plain strings (e.g. "brq"), never an enum: new locations appear additively; send one as `region` on create. `available` means an unpinned create using the family's smallest preset can be placed now, so a larger preset's create may still refuse 503 at the capacity margin. Unavailable means full, draining, or not ready — a create naming that location refuses 503 until it flips (re-read rather than remember; no pagination, the list is a menu).
+        Every location on offer, with per-family `available` derived live — the picker's "can I order here now" truth. `region` values are plain strings (e.g. "brq"), never an enum; send one as `region` on create. `available` means an unpinned create using the family's smallest preset can be placed now, so a larger preset's create may still refuse 503 at the capacity margin. Unavailable means full, draining, or not ready — a create naming that location refuses 503 until it flips (re-read rather than remember; no pagination, the list is a menu).
 
         Parameters
         ----------

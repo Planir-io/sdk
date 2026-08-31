@@ -29,7 +29,7 @@ class TeamUsageVolumeWindow(UniversalBaseModel):
         FieldMetadata(alias="billedMicrocents"),
         pydantic.Field(
             alias="billedMicrocents",
-            description="What this accrual has billed so far, integer microcents — provisioned bytes × the carried rate × detached time, NO free allowance (parked capacity bills from byte zero). 0 on flat packages (quantities accrue, nothing is debited).",
+            description="Projected while open and final when closed, in integer microcents — provisioned bytes × the carried rate × detached time, NO free allowance (parked capacity bills from byte zero). 0 on flat packages (quantities accrue, nothing is debited).",
         ),
     ]
     storage_microcents_per_gib_month: typing_extensions.Annotated[

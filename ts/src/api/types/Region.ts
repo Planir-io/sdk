@@ -3,7 +3,7 @@
 import type * as PlanirApi from "../index.js";
 
 export interface Region {
-    /** The public location label (e.g. "brq") — a plain string, never an enum; new locations appear additively. The value create requests accept as `region`. */
+    /** The public location label (e.g. "brq") — a plain string, never an enum. The value create requests accept as `region`. */
     region: string;
     /** Per-family availability at this location, family-ASC. A catalogued-but-full family stays LISTED with `available: false`; an EMPTY array means no family is catalogued here at all (the label listed so it is discoverable ahead of commissioning) — two different facts. */
     families: PlanirApi.RegionFamilyAvailability[];
