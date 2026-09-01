@@ -20,6 +20,10 @@ stage_root="$(mktemp -d "${TMPDIR:-/tmp}/planir-sdk-regen.XXXXXX")"
 trap 'rm -rf "$stage_root"' EXIT
 mkdir -p "$stage_root/ts/src" "$stage_root/python/src/planir"
 cp -R "$repo_root/fern" "$stage_root/fern"
+# Seed Fern's supported custom-file boundary into the otherwise fresh stage.
+cp "$repo_root/ts/src/.fernignore" "$repo_root/ts/src/runtimeUrl.ts" "$stage_root/ts/src/"
+cp "$repo_root/python/src/planir/.fernignore" "$repo_root/python/src/planir/runtime_url.py" \
+  "$stage_root/python/src/planir/"
 cd "$stage_root/fern"
 
 # --force: non-interactive overwrite (an interactive prompt would hang CI).

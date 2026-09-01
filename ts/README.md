@@ -15,6 +15,7 @@ npm install planir
 
 ```ts
 import { PlanirClient } from "planir";
+import { runtimeUrl } from "planir/runtime-url";
 
 const client = new PlanirClient({ token: process.env.PLANIR_TOKEN });
 
@@ -27,7 +28,7 @@ for await (const runtime of await client.runtimes.list()) {
 const runtime = await client.runtimes.create({
   body: { image: "ghcr.io/acme/agent:latest" },
 });
-console.log(runtime.urls);
+console.log(runtimeUrl(runtime.id, 3000));
 ```
 
 ## Commands and terminals

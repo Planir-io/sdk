@@ -1277,65 +1277,6 @@ client.runtimes.get_events(
 </dl>
 </details>
 
-<details><summary><code>client.runtimes.<a href="src/planir/runtimes/client.py">reach</a>(...)</code></summary>
-<dl>
-<dd>
-
-#### 🔌 Usage
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-```python
-from planir import PlanirClient
-from planir.environment import PlanirClientEnvironment
-
-client = PlanirClient(
-    token="<token>",
-    environment=PlanirClientEnvironment.DEFAULT,
-)
-
-client.runtimes.reach(
-    id="id",
-)
-
-```
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### ⚙️ Parameters
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-**id:** `str` 
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
-    
-</dd>
-</dl>
-</dd>
-</dl>
-
-
-</dd>
-</dl>
-</details>
-
 ## Volumes
 <details><summary><code>client.volumes.<a href="src/planir/volumes/client.py">list_volumes</a>() -> VolumesList</code></summary>
 <dl>

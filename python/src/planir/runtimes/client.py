@@ -603,33 +603,6 @@ class RuntimesClient:
         _response = self._raw_client.get_events(id, cursor=cursor, request_options=request_options)
         return _response.data
 
-    def reach(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        from planir import PlanirClient
-
-        client = PlanirClient(
-            token="YOUR_TOKEN",
-        )
-        client.runtimes.reach(
-            id="id",
-        )
-        """
-        _response = self._raw_client.reach(id, request_options=request_options)
-        return _response.data
-
 
 class AsyncRuntimesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
@@ -1338,39 +1311,4 @@ class AsyncRuntimesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.get_events(id, cursor=cursor, request_options=request_options)
-        return _response.data
-
-    async def reach(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
-        """
-        Parameters
-        ----------
-        id : str
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        None
-
-        Examples
-        --------
-        import asyncio
-
-        from planir import AsyncPlanirClient
-
-        client = AsyncPlanirClient(
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.runtimes.reach(
-                id="id",
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.reach(id, request_options=request_options)
         return _response.data
