@@ -17,6 +17,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./runtime-url": {
+      "types": "./dist/runtimeUrl.d.ts",
+      "import": "./dist/runtimeUrl.js",
+      "default": "./dist/runtimeUrl.js"
     }
   },
   "files": [

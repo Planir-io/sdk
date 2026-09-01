@@ -14,6 +14,7 @@ pip install planir
 ```python
 import os
 from planir import PlanirClient
+from planir.runtime_url import runtime_url
 
 client = PlanirClient(token=os.environ["PLANIR_TOKEN"])
 
@@ -24,7 +25,7 @@ for runtime in page.runtimes:
 
 # Create a runtime
 runtime = client.runtimes.create(request={"image": "ghcr.io/acme/agent:latest"})
-print(runtime.urls)
+print(runtime_url(runtime.id, 3000))
 ```
 
 ## Commands and terminals

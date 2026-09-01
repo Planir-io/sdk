@@ -19,15 +19,15 @@ WORK="$(mktemp -d)"
 MOCK_PID=""
 trap '[ -n "$MOCK_PID" ] && kill "$MOCK_PID" 2>/dev/null; rm -rf "$WORK"' EXIT
 
-# Surgical mock-only edits: drop nextCursor so auto-pagination terminates, and drop the
-# Runtime constraint-only oneOf blocks because Prism otherwise emits only a timeout-state
-# branch and omits the required base object. The client still builds from the unmodified
-# pinned contract; this transform supplies no hand-written response fields.
+# Surgical mock-only edits: terminate pagination, keep Runtime's base object, and make its
+# existing id field use the server-issued UUID shape required by the public URL helper.
 jq -e '.components.schemas.RuntimesList.properties.nextCursor and
-  .components.schemas.Runtime.oneOf and .components.schemas.RuntimeWithObserved.oneOf' \
+  .components.schemas.Runtime.properties.id and .components.schemas.Runtime.oneOf and
+  .components.schemas.RuntimeWithObserved.oneOf' \
   "$ROOT/fern/openapi.json" >/dev/null || { echo "FAIL: README mock transform targets changed shape"; exit 1; }
 jq 'del(.components.schemas.RuntimesList.properties.nextCursor,
-  .components.schemas.Runtime.oneOf, .components.schemas.RuntimeWithObserved.oneOf)' \
+  .components.schemas.Runtime.oneOf, .components.schemas.RuntimeWithObserved.oneOf) |
+  .components.schemas.Runtime.properties.id.example = "01900000-0000-7000-8000-000000000001"' \
   "$ROOT/fern/openapi.json" > "$WORK/openapi.mock.json"
 
 npx --yes "@stoplight/prism-cli@${PRISM_VERSION}" mock "$WORK/openapi.mock.json" -p 8787 &

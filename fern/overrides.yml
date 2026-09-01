@@ -57,10 +57,6 @@ paths:
     put:
       x-fern-sdk-group-name: runtimes
       x-fern-sdk-method-name: updateNetwork
-  /v1/runtimes/{id}/reach:
-    post:
-      x-fern-sdk-group-name: runtimes
-      x-fern-sdk-method-name: reach
   /v1/runtimes/{id}/logs:
     get:
       x-fern-sdk-group-name: runtimes
