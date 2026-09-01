@@ -139,6 +139,8 @@ export class RuntimesClient {
     }
 
     /**
+     * An HTTP application listening on `0.0.0.0` uses `https://{port}-{runtimeId}.planir.dev` for integer ports 1-65535 except the private Planir agent port 62000. The same URL supports WebSocket and SSE. Raw TCP, UDP, and customer TLS passthrough are not supported.
+     *
      * @param {PlanirApi.CreateRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -1140,99 +1142,6 @@ export class RuntimesClient {
     }
 
     /**
-     * @param {PlanirApi.ReachRequest} request
-     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link PlanirApi.BadRequestError}
-     * @throws {@link PlanirApi.UnauthorizedError}
-     * @throws {@link PlanirApi.ForbiddenError}
-     * @throws {@link PlanirApi.NotFoundError}
-     * @throws {@link PlanirApi.ConflictError}
-     * @throws {@link PlanirApi.TooManyRequestsError}
-     *
-     * @example
-     *     await client.runtimes.reach({
-     *         id: "id",
-     *         port: 1
-     *     })
-     */
-    public reach(
-        request: PlanirApi.ReachRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): core.HttpResponsePromise<PlanirApi.Reach> {
-        return core.HttpResponsePromise.fromPromise(this.__reach(request, requestOptions));
-    }
-
-    private async __reach(
-        request: PlanirApi.ReachRequest,
-        requestOptions?: RuntimesClient.RequestOptions,
-    ): Promise<core.WithRawResponse<PlanirApi.Reach>> {
-        const { id, ..._body } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (await core.Supplier.get(this._options.environment)) ??
-                    environments.PlanirApiEnvironment.Default,
-                `v1/runtimes/${core.url.encodePathParam(id)}/reach`,
-            ),
-            method: "POST",
-            headers: _headers,
-            contentType: "application/json",
-            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
-            requestType: "json",
-            body: _body,
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: _response.body as PlanirApi.Reach, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 400:
-                    throw new PlanirApi.BadRequestError(
-                        _response.error.body as PlanirApi.InvalidRequestError,
-                        _response.rawResponse,
-                    );
-                case 401:
-                    throw new PlanirApi.UnauthorizedError(
-                        _response.error.body as PlanirApi.UnauthenticatedError,
-                        _response.rawResponse,
-                    );
-                case 403:
-                    throw new PlanirApi.ForbiddenError(
-                        _response.error.body as PlanirApi.TeamBlockedError,
-                        _response.rawResponse,
-                    );
-                case 404:
-                    throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
-                case 409:
-                    throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
-                case 429:
-                    throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
-                default:
-                    throw new errors.PlanirApiError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/runtimes/{id}/reach");
-    }
-
-    /**
      * Whole-map replace, validated identically to create. Labels are NOT desired state: no `generation` bump, no engine interaction, no restart — the new map is visible immediately on reads and list filters. Allowed in every non-destroyed state.
      *
      * @param {PlanirApi.MetadataRequest} request
@@ -1607,5 +1516,63 @@ export class RuntimesClient {
         }
 
         return handleNonStatusCodeError(_response.error, _response.rawResponse, "GET", "/v1/runtimes/{id}/events");
+    }
+
+    /**
+     * @param {PlanirApi.ReachRuntimesRequest} request
+     * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
+     *
+     * @example
+     *     await client.runtimes.reach({
+     *         id: "id"
+     *     })
+     */
+    public reach(
+        request: PlanirApi.ReachRuntimesRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): core.HttpResponsePromise<void> {
+        return core.HttpResponsePromise.fromPromise(this.__reach(request, requestOptions));
+    }
+
+    private async __reach(
+        request: PlanirApi.ReachRuntimesRequest,
+        requestOptions?: RuntimesClient.RequestOptions,
+    ): Promise<core.WithRawResponse<void>> {
+        const { id } = request;
+        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+            _authRequest.headers,
+            this._options?.headers,
+            requestOptions?.headers,
+        );
+        const _response = await core.fetcher({
+            url: core.url.join(
+                (await core.Supplier.get(this._options.baseUrl)) ??
+                    (await core.Supplier.get(this._options.environment)) ??
+                    environments.PlanirApiEnvironment.Default,
+                `v1/runtimes/${core.url.encodePathParam(id)}/reach`,
+            ),
+            method: "POST",
+            headers: _headers,
+            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+            abortSignal: requestOptions?.abortSignal,
+            fetchFn: this._options?.fetch,
+            logging: this._options.logging,
+        });
+        if (_response.ok) {
+            return { data: undefined, rawResponse: _response.rawResponse };
+        }
+
+        if (_response.error.reason === "status-code") {
+            throw new errors.PlanirApiError({
+                statusCode: _response.error.statusCode,
+                body: _response.error.body,
+                rawResponse: _response.rawResponse,
+            });
+        }
+
+        return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/runtimes/{id}/reach");
     }
 }

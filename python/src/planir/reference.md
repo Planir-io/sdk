@@ -207,6 +207,20 @@ client.runtimes.list()
 <dl>
 <dd>
 
+#### 📝 Description
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+An HTTP application listening on `0.0.0.0` uses `https://{port}-{runtimeId}.planir.dev` for integer ports 1-65535 except the private Planir agent port 62000. The same URL supports WebSocket and SSE. Raw TCP, UDP, and customer TLS passthrough are not supported.
+</dd>
+</dl>
+</dd>
+</dl>
+
 #### 🔌 Usage
 
 <dl>
@@ -956,74 +970,6 @@ client.runtimes.update_network(
 </dl>
 </details>
 
-<details><summary><code>client.runtimes.<a href="src/planir/runtimes/client.py">reach</a>(...) -> Reach</code></summary>
-<dl>
-<dd>
-
-#### 🔌 Usage
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-```python
-from planir import PlanirClient
-from planir.environment import PlanirClientEnvironment
-
-client = PlanirClient(
-    token="<token>",
-    environment=PlanirClientEnvironment.DEFAULT,
-)
-
-client.runtimes.reach(
-    id="id",
-    port=1,
-)
-
-```
-</dd>
-</dl>
-</dd>
-</dl>
-
-#### ⚙️ Parameters
-
-<dl>
-<dd>
-
-<dl>
-<dd>
-
-**id:** `str` 
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**port:** `int` — The internal port to resolve. The caller always names it.
-    
-</dd>
-</dl>
-
-<dl>
-<dd>
-
-**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
-    
-</dd>
-</dl>
-</dd>
-</dl>
-
-
-</dd>
-</dl>
-</details>
-
 <details><summary><code>client.runtimes.<a href="src/planir/runtimes/client.py">update_runtime_metadata</a>(...) -> Runtime</code></summary>
 <dl>
 <dd>
@@ -1312,6 +1258,65 @@ client.runtimes.get_events(
 <dd>
 
 **cursor:** `typing.Optional[int]` — Return only events whose cursor is strictly greater than this value.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.runtimes.<a href="src/planir/runtimes/client.py">reach</a>(...)</code></summary>
+<dl>
+<dd>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.runtimes.reach(
+    id="id",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**id:** `str` 
     
 </dd>
 </dl>

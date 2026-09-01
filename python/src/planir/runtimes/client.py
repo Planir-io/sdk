@@ -9,7 +9,6 @@ from ..types.api_key import ApiKey
 from ..types.create_runtime_request import CreateRuntimeRequest
 from ..types.events_list import EventsList
 from ..types.network_spec import NetworkSpec
-from ..types.reach import Reach
 from ..types.runtime import Runtime
 from ..types.runtime_with_observed import RuntimeWithObserved
 from ..types.runtimes_list import RuntimesList
@@ -111,6 +110,8 @@ class RuntimesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RuntimeWithObserved:
         """
+        An HTTP application listening on `0.0.0.0` uses `https://{port}-{runtimeId}.planir.dev` for integer ports 1-65535 except the private Planir agent port 62000. The same URL supports WebSocket and SSE. Raw TCP, UDP, and customer TLS passthrough are not supported.
+
         Parameters
         ----------
         request : CreateRuntimeRequest
@@ -453,38 +454,6 @@ class RuntimesClient:
         _response = self._raw_client.update_network(id, network=network, request_options=request_options)
         return _response.data
 
-    def reach(self, id: str, *, port: int, request_options: typing.Optional[RequestOptions] = None) -> Reach:
-        """
-        Parameters
-        ----------
-        id : str
-
-        port : int
-            The internal port to resolve. The caller always names it.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        Reach
-            A reach handle for the named port.
-
-        Examples
-        --------
-        from planir import PlanirClient
-
-        client = PlanirClient(
-            token="YOUR_TOKEN",
-        )
-        client.runtimes.reach(
-            id="id",
-            port=1,
-        )
-        """
-        _response = self._raw_client.reach(id, port=port, request_options=request_options)
-        return _response.data
-
     def update_runtime_metadata(
         self, id: str, *, metadata: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
@@ -634,6 +603,33 @@ class RuntimesClient:
         _response = self._raw_client.get_events(id, cursor=cursor, request_options=request_options)
         return _response.data
 
+    def reach(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        from planir import PlanirClient
+
+        client = PlanirClient(
+            token="YOUR_TOKEN",
+        )
+        client.runtimes.reach(
+            id="id",
+        )
+        """
+        _response = self._raw_client.reach(id, request_options=request_options)
+        return _response.data
+
 
 class AsyncRuntimesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
@@ -729,6 +725,8 @@ class AsyncRuntimesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> RuntimeWithObserved:
         """
+        An HTTP application listening on `0.0.0.0` uses `https://{port}-{runtimeId}.planir.dev` for integer ports 1-65535 except the private Planir agent port 62000. The same URL supports WebSocket and SSE. Raw TCP, UDP, and customer TLS passthrough are not supported.
+
         Parameters
         ----------
         request : CreateRuntimeRequest
@@ -1159,46 +1157,6 @@ class AsyncRuntimesClient:
         _response = await self._raw_client.update_network(id, network=network, request_options=request_options)
         return _response.data
 
-    async def reach(self, id: str, *, port: int, request_options: typing.Optional[RequestOptions] = None) -> Reach:
-        """
-        Parameters
-        ----------
-        id : str
-
-        port : int
-            The internal port to resolve. The caller always names it.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        Reach
-            A reach handle for the named port.
-
-        Examples
-        --------
-        import asyncio
-
-        from planir import AsyncPlanirClient
-
-        client = AsyncPlanirClient(
-            token="YOUR_TOKEN",
-        )
-
-
-        async def main() -> None:
-            await client.runtimes.reach(
-                id="id",
-                port=1,
-            )
-
-
-        asyncio.run(main())
-        """
-        _response = await self._raw_client.reach(id, port=port, request_options=request_options)
-        return _response.data
-
     async def update_runtime_metadata(
         self, id: str, *, metadata: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
@@ -1380,4 +1338,39 @@ class AsyncRuntimesClient:
         asyncio.run(main())
         """
         _response = await self._raw_client.get_events(id, cursor=cursor, request_options=request_options)
+        return _response.data
+
+    async def reach(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> None:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        import asyncio
+
+        from planir import AsyncPlanirClient
+
+        client = AsyncPlanirClient(
+            token="YOUR_TOKEN",
+        )
+
+
+        async def main() -> None:
+            await client.runtimes.reach(
+                id="id",
+            )
+
+
+        asyncio.run(main())
+        """
+        _response = await self._raw_client.reach(id, request_options=request_options)
         return _response.data
