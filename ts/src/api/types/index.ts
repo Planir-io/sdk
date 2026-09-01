@@ -20,8 +20,6 @@ export * from "./Preset.js";
 export * from "./PresetsList.js";
 export * from "./ProvisioningUnavailableError.js";
 export * from "./RateLimitedError.js";
-export * from "./Reach.js";
-export * from "./ReadinessSpec.js";
 export * from "./Region.js";
 export * from "./RegionFamilyAvailability.js";
 export * from "./RegionsList.js";

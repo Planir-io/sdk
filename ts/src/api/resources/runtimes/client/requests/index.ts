@@ -9,7 +9,7 @@ export type { GetUsageRuntimesRequest } from "./GetUsageRuntimesRequest.js";
 export type { ListRuntimesRequest } from "./ListRuntimesRequest.js";
 export type { MetadataRequest } from "./MetadataRequest.js";
 export type { NetworkRequest } from "./NetworkRequest.js";
-export type { ReachRequest } from "./ReachRequest.js";
+export type { ReachRuntimesRequest } from "./ReachRuntimesRequest.js";
 export type { RestartRuntimesRequest } from "./RestartRuntimesRequest.js";
 export type { RotateRuntimeKeyRequest } from "./RotateRuntimeKeyRequest.js";
 export type { SetRuntimeTimeoutBody } from "./SetRuntimeTimeoutBody.js";

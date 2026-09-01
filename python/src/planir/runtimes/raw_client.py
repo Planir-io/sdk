@@ -29,7 +29,6 @@ from ..types.insufficient_balance_error import InsufficientBalanceError
 from ..types.invalid_request_error import InvalidRequestError
 from ..types.policy_refused_error import PolicyRefusedError
 from ..types.network_spec import NetworkSpec
-from ..types.reach import Reach
 from ..types.runtime import Runtime
 from ..types.runtime_create_policy_error import RuntimeCreatePolicyError
 from ..types.runtime_with_observed import RuntimeWithObserved
@@ -174,6 +173,8 @@ class RawRuntimesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[RuntimeWithObserved]:
         """
+        An HTTP application listening on `0.0.0.0` uses `https://{port}-{runtimeId}.planir.dev` for integer ports 1-65535 except the private Planir agent port 62000. The same URL supports WebSocket and SSE. Raw TCP, UDP, and customer TLS passthrough are not supported.
+
         Parameters
         ----------
         request : CreateRuntimeRequest
@@ -1357,122 +1358,6 @@ class RawRuntimesClient:
             )
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    def reach(
-        self, id: str, *, port: int, request_options: typing.Optional[RequestOptions] = None
-    ) -> HttpResponse[Reach]:
-        """
-        Parameters
-        ----------
-        id : str
-
-        port : int
-            The internal port to resolve. The caller always names it.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        HttpResponse[Reach]
-            A reach handle for the named port.
-        """
-        _response = self._client_wrapper.httpx_client.request(
-            f"v1/runtimes/{encode_path_param(id)}/reach",
-            method="POST",
-            json={
-                "port": port,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    Reach,
-                    parse_obj_as(
-                        type_=Reach,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return HttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        InvalidRequestError,
-                        parse_obj_as(
-                            type_=InvalidRequestError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        UnauthenticatedError,
-                        parse_obj_as(
-                            type_=UnauthenticatedError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 403:
-                raise ForbiddenError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        TeamBlockedError,
-                        parse_obj_as(
-                            type_=TeamBlockedError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 409:
-                raise ConflictError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        except ValidationError as e:
-            raise ParsingError(
-                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
-            )
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     def update_runtime_metadata(
         self, id: str, *, metadata: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[Runtime]:
@@ -1902,6 +1787,36 @@ class RawRuntimesClient:
             )
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
+    def reach(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[None]:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        HttpResponse[None]
+        """
+        _response = self._client_wrapper.httpx_client.request(
+            f"v1/runtimes/{encode_path_param(id)}/reach",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return HttpResponse(response=_response, data=None)
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
 
 class AsyncRawRuntimesClient:
     def __init__(self, *, client_wrapper: AsyncClientWrapper):
@@ -2030,6 +1945,8 @@ class AsyncRawRuntimesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[RuntimeWithObserved]:
         """
+        An HTTP application listening on `0.0.0.0` uses `https://{port}-{runtimeId}.planir.dev` for integer ports 1-65535 except the private Planir agent port 62000. The same URL supports WebSocket and SSE. Raw TCP, UDP, and customer TLS passthrough are not supported.
+
         Parameters
         ----------
         request : CreateRuntimeRequest
@@ -3221,122 +3138,6 @@ class AsyncRawRuntimesClient:
             )
         raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
 
-    async def reach(
-        self, id: str, *, port: int, request_options: typing.Optional[RequestOptions] = None
-    ) -> AsyncHttpResponse[Reach]:
-        """
-        Parameters
-        ----------
-        id : str
-
-        port : int
-            The internal port to resolve. The caller always names it.
-
-        request_options : typing.Optional[RequestOptions]
-            Request-specific configuration.
-
-        Returns
-        -------
-        AsyncHttpResponse[Reach]
-            A reach handle for the named port.
-        """
-        _response = await self._client_wrapper.httpx_client.request(
-            f"v1/runtimes/{encode_path_param(id)}/reach",
-            method="POST",
-            json={
-                "port": port,
-            },
-            headers={
-                "content-type": "application/json",
-            },
-            request_options=request_options,
-            omit=OMIT,
-        )
-        try:
-            if 200 <= _response.status_code < 300:
-                _data = typing.cast(
-                    Reach,
-                    parse_obj_as(
-                        type_=Reach,  # type: ignore
-                        object_=_response.json(),
-                    ),
-                )
-                return AsyncHttpResponse(response=_response, data=_data)
-            if _response.status_code == 400:
-                raise BadRequestError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        InvalidRequestError,
-                        parse_obj_as(
-                            type_=InvalidRequestError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 401:
-                raise UnauthorizedError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        UnauthenticatedError,
-                        parse_obj_as(
-                            type_=UnauthenticatedError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 403:
-                raise ForbiddenError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        TeamBlockedError,
-                        parse_obj_as(
-                            type_=TeamBlockedError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 404:
-                raise NotFoundError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 409:
-                raise ConflictError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 429:
-                raise TooManyRequestsError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        typing.Any,
-                        parse_obj_as(
-                            type_=typing.Any,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            _response_json = _response.json()
-        except JSONDecodeError:
-            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
-        except ValidationError as e:
-            raise ParsingError(
-                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
-            )
-        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
-
     async def update_runtime_metadata(
         self, id: str, *, metadata: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Runtime]:
@@ -3757,6 +3558,38 @@ class AsyncRawRuntimesClient:
                         ),
                     ),
                 )
+            _response_json = _response.json()
+        except JSONDecodeError:
+            raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
+        except ValidationError as e:
+            raise ParsingError(
+                status_code=_response.status_code, headers=dict(_response.headers), body=_response.json(), cause=e
+            )
+        raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response_json)
+
+    async def reach(
+        self, id: str, *, request_options: typing.Optional[RequestOptions] = None
+    ) -> AsyncHttpResponse[None]:
+        """
+        Parameters
+        ----------
+        id : str
+
+        request_options : typing.Optional[RequestOptions]
+            Request-specific configuration.
+
+        Returns
+        -------
+        AsyncHttpResponse[None]
+        """
+        _response = await self._client_wrapper.httpx_client.request(
+            f"v1/runtimes/{encode_path_param(id)}/reach",
+            method="POST",
+            request_options=request_options,
+        )
+        try:
+            if 200 <= _response.status_code < 300:
+                return AsyncHttpResponse(response=_response, data=None)
             _response_json = _response.json()
         except JSONDecodeError:
             raise ApiError(status_code=_response.status_code, headers=dict(_response.headers), body=_response.text)
