@@ -12,6 +12,7 @@ from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..errors.bad_request_error import BadRequestError
 from ..errors.conflict_error import ConflictError
+from ..errors.content_too_large_error import ContentTooLargeError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
 from ..errors.payment_required_error import PaymentRequiredError
@@ -222,6 +223,17 @@ class RawVolumesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 422:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
@@ -409,6 +421,17 @@ class RawVolumesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -625,6 +648,17 @@ class AsyncRawVolumesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 422:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
@@ -816,6 +850,17 @@ class AsyncRawVolumesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

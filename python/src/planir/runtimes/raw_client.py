@@ -15,6 +15,7 @@ from ..core.request_options import RequestOptions
 from ..core.serialization import convert_and_respect_annotation_metadata
 from ..errors.bad_request_error import BadRequestError
 from ..errors.conflict_error import ConflictError
+from ..errors.content_too_large_error import ContentTooLargeError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
 from ..errors.payment_required_error import PaymentRequiredError
@@ -279,6 +280,17 @@ class RawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 422:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
@@ -467,6 +479,17 @@ class RawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -572,6 +595,17 @@ class RawRuntimesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -682,6 +716,17 @@ class RawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -788,6 +833,17 @@ class RawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -883,6 +939,17 @@ class RawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -974,6 +1041,17 @@ class RawRuntimesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1094,6 +1172,17 @@ class RawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -1206,6 +1295,17 @@ class RawRuntimesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1338,6 +1438,17 @@ class RawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -1452,6 +1563,17 @@ class RawRuntimesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2021,6 +2143,17 @@ class AsyncRawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 422:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
@@ -2211,6 +2344,17 @@ class AsyncRawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -2316,6 +2460,17 @@ class AsyncRawRuntimesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2428,6 +2583,17 @@ class AsyncRawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -2536,6 +2702,17 @@ class AsyncRawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -2633,6 +2810,17 @@ class AsyncRawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -2724,6 +2912,17 @@ class AsyncRawRuntimesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2844,6 +3043,17 @@ class AsyncRawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -2956,6 +3166,17 @@ class AsyncRawRuntimesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3088,6 +3309,17 @@ class AsyncRawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -3202,6 +3434,17 @@ class AsyncRawRuntimesClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
