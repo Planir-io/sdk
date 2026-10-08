@@ -12,6 +12,7 @@ from ..core.parse_error import ParsingError
 from ..core.pydantic_utilities import parse_obj_as
 from ..core.request_options import RequestOptions
 from ..errors.bad_request_error import BadRequestError
+from ..errors.content_too_large_error import ContentTooLargeError
 from ..errors.forbidden_error import ForbiddenError
 from ..errors.not_found_error import NotFoundError
 from ..errors.service_unavailable_error import ServiceUnavailableError
@@ -164,6 +165,17 @@ class RawTeamClient:
                         TeamBlockedError,
                         parse_obj_as(
                             type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -507,6 +519,17 @@ class RawTeamClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 422:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
@@ -600,6 +623,17 @@ class RawTeamClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -707,6 +741,17 @@ class RawTeamClient:
                         TeamBlockedError,
                         parse_obj_as(
                             type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -897,6 +942,17 @@ class RawTeamClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 422:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
@@ -982,6 +1038,17 @@ class RawTeamClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1072,6 +1139,17 @@ class RawTeamClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -1154,6 +1232,17 @@ class RawTeamClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1349,6 +1438,17 @@ class RawTeamClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -1493,6 +1593,17 @@ class AsyncRawTeamClient:
                         TeamBlockedError,
                         parse_obj_as(
                             type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -1838,6 +1949,17 @@ class AsyncRawTeamClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 422:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
@@ -1931,6 +2053,17 @@ class AsyncRawTeamClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2038,6 +2171,17 @@ class AsyncRawTeamClient:
                         TeamBlockedError,
                         parse_obj_as(
                             type_=TeamBlockedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2228,6 +2372,17 @@ class AsyncRawTeamClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 422:
                 raise UnprocessableEntityError(
                     headers=dict(_response.headers),
@@ -2313,6 +2468,17 @@ class AsyncRawTeamClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2403,6 +2569,17 @@ class AsyncRawTeamClient:
                         ),
                     ),
                 )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -2485,6 +2662,17 @@ class AsyncRawTeamClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2676,6 +2864,17 @@ class AsyncRawTeamClient:
                         typing.Any,
                         parse_obj_as(
                             type_=typing.Any,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 413:
+                raise ContentTooLargeError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        InvalidRequestError,
+                        parse_obj_as(
+                            type_=InvalidRequestError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

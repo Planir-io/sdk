@@ -150,6 +150,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      * @throws {@link PlanirApi.ServiceUnavailableError}
@@ -229,6 +230,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
                         _response.error.body as unknown,
@@ -337,6 +343,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -396,6 +403,11 @@ export class RuntimesClient {
                     );
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -421,6 +433,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -493,6 +506,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -518,6 +536,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      * @throws {@link PlanirApi.ServiceUnavailableError}
      *
@@ -585,6 +604,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 case 503:
@@ -611,6 +635,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -672,6 +697,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -696,6 +726,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -757,6 +788,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -779,6 +815,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -840,6 +877,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -863,6 +905,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -933,6 +976,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -956,6 +1004,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -1029,6 +1078,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
                         _response.error.body as unknown,
@@ -1057,6 +1111,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -1127,6 +1182,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -1152,6 +1212,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -1224,6 +1285,11 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 409:
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:

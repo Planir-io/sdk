@@ -93,6 +93,7 @@ export class TeamClient {
      *
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -149,6 +150,11 @@ export class TeamClient {
                 case 403:
                     throw new PlanirApi.ForbiddenError(
                         _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 422:
@@ -413,6 +419,7 @@ export class TeamClient {
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -476,6 +483,11 @@ export class TeamClient {
                         _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
                         _response.error.body as unknown,
@@ -504,6 +516,7 @@ export class TeamClient {
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -563,6 +576,11 @@ export class TeamClient {
                     );
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -586,6 +604,7 @@ export class TeamClient {
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      * @throws {@link PlanirApi.ServiceUnavailableError}
      *
@@ -651,6 +670,11 @@ export class TeamClient {
                 case 403:
                     throw new PlanirApi.ForbiddenError(
                         _response.error.body as PlanirApi.TeamBlockedError,
+                        _response.rawResponse,
+                    );
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
                         _response.rawResponse,
                     );
                 case 429:
@@ -751,6 +775,7 @@ export class TeamClient {
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
@@ -816,6 +841,11 @@ export class TeamClient {
                         _response.error.body as PlanirApi.TeamBlockedError,
                         _response.rawResponse,
                     );
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 422:
                     throw new PlanirApi.UnprocessableEntityError(
                         _response.error.body as unknown,
@@ -844,6 +874,7 @@ export class TeamClient {
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -903,6 +934,11 @@ export class TeamClient {
                     );
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -926,6 +962,7 @@ export class TeamClient {
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -985,6 +1022,11 @@ export class TeamClient {
                     );
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -1013,6 +1055,7 @@ export class TeamClient {
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -1072,6 +1115,11 @@ export class TeamClient {
                     );
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
@@ -1200,6 +1248,7 @@ export class TeamClient {
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
+     * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -1260,6 +1309,11 @@ export class TeamClient {
                     );
                 case 404:
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
+                case 413:
+                    throw new PlanirApi.ContentTooLargeError(
+                        _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
                 default:
