@@ -106,9 +106,16 @@ const typedCreatePolicy = "if _response.status_code == 422:\n                rai
 const typedPolicyRefused = "if _response.status_code == 422:\n                raise UnprocessableEntityError(\n                    headers=dict(_response.headers),\n                    body=typing.cast(\n                        PolicyRefusedError,\n                        parse_obj_as(\n                            type_=PolicyRefusedError,  # type: ignore";
 await replaceWithin("python/src/planir/runtimes/raw_client.py", "\n    def create(\n", "\n    def get(\n", untypedCreatePolicy, typedCreatePolicy);
 await replaceWithin("python/src/planir/runtimes/raw_client.py", "\n    async def create(\n", "\n    async def get(\n", untypedCreatePolicy, typedCreatePolicy);
-await replaceExactCount("python/src/planir/team/raw_client.py", untypedCreatePolicy, typedPolicyRefused, 6);
-await replaceExactCount("python/src/planir/volumes/raw_client.py", untypedCreatePolicy, typedPolicyRefused, 2);
-await replaceExactCount("python/src/planir/runtimes/raw_client.py", untypedCreatePolicy, typedPolicyRefused, 2);
+const contract = JSON.parse(await readFile(resolve(root, "fern/openapi.json"), "utf8"));
+for (const resource of ["team", "volumes", "runtimes"]) {
+    const policyRefusals = Object.values(contract.paths)
+        .flatMap((operations) => Object.values(operations))
+        .filter((operation) => operation.tags?.includes(resource)
+            && operation.responses?.["422"]?.content?.["application/json"]?.schema?.$ref
+                === "#/components/schemas/PolicyRefusedError").length;
+    await replaceExactCount(`python/src/planir/${resource}/raw_client.py`, untypedCreatePolicy, typedPolicyRefused,
+        policyRefusals * 2); // Fern emits one synchronous and one asynchronous handler.
+}
 await replaceOnce(
     "python/src/planir/core/jsonable_encoder.py",
     "from pathlib import PurePath\n",
