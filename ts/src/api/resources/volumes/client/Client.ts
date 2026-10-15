@@ -15,6 +15,9 @@ export declare namespace VolumesClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Standalone persistent volumes and their lifecycle.
+ */
 export class VolumesClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<VolumesClient.Options>;
 
@@ -207,6 +210,8 @@ export class VolumesClient {
     }
 
     /**
+     * Returns the volume configuration and current derived lifecycle state, including attachment when present.
+     *
      * @param {PlanirApi.GetVolumeRequest} request
      * @param {VolumesClient.RequestOptions} requestOptions - Request-specific configuration.
      *

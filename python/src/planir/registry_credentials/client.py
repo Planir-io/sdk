@@ -31,6 +31,8 @@ class RegistryCredentialsClient:
         self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RegistryCredentialsList:
         """
+        Returns stored registry credential metadata in newest-first order. Passwords and tokens are never returned.
+
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
@@ -100,6 +102,8 @@ class RegistryCredentialsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RegistryCredential:
         """
+        Returns metadata for one registry credential owned by the caller. The stored password or token is never returned.
+
         Parameters
         ----------
         id : str
@@ -217,6 +221,8 @@ class AsyncRegistryCredentialsClient:
         self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RegistryCredentialsList:
         """
+        Returns stored registry credential metadata in newest-first order. Passwords and tokens are never returned.
+
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
@@ -302,6 +308,8 @@ class AsyncRegistryCredentialsClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> RegistryCredential:
         """
+        Returns metadata for one registry credential owned by the caller. The stored password or token is never returned.
+
         Parameters
         ----------
         id : str

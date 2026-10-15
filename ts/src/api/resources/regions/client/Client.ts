@@ -15,6 +15,9 @@ export declare namespace RegionsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Public locations and current resource availability.
+ */
 export class RegionsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<RegionsClient.Options>;
 

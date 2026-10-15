@@ -108,6 +108,8 @@ class VolumesClient:
 
     def get_volume(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Volume:
         """
+        Returns the volume configuration and current derived lifecycle state, including attachment when present.
+
         Parameters
         ----------
         id : str
@@ -275,6 +277,8 @@ class AsyncVolumesClient:
 
     async def get_volume(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Volume:
         """
+        Returns the volume configuration and current derived lifecycle state, including attachment when present.
+
         Parameters
         ----------
         id : str

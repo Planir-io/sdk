@@ -26,6 +26,8 @@ export class MetaClient {
     }
 
     /**
+     * Returns the published API version for the authenticated caller.
+     *
      * @param {MetaClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}

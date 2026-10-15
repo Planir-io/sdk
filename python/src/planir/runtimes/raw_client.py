@@ -337,6 +337,8 @@ class RawRuntimesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[RuntimeWithObserved]:
         """
+        Read the durable runtime intent and latest observed workload state. `observed` is absent until the platform reports its first observation.
+
         Parameters
         ----------
         id : str
@@ -419,6 +421,8 @@ class RawRuntimesClient:
 
     def destroy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[Runtime]:
         """
+        Sets desired state to destroyed and starts asynchronous cleanup. Runtime-managed volumes are deleted; standalone volumes detach and remain available. The terminal runtime stays readable.
+
         Parameters
         ----------
         id : str
@@ -974,6 +978,8 @@ class RawRuntimesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[ApiKey]:
         """
+        Replaces the runtime-bound API key and propagates the successor asynchronously. Returns display metadata only; the plaintext key is never returned.
+
         Parameters
         ----------
         id : str
@@ -1080,12 +1086,14 @@ class RawRuntimesClient:
         self, id: str, *, config: str, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[Runtime]:
         """
+        Replaces the base64-encoded workload configuration. Changed bytes restart a running workload; a stopped runtime remains stopped and uses the new configuration on its next start. Identical bytes are a no-op. The runtime volume is retained.
+
         Parameters
         ----------
         id : str
 
         config : str
-            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls the workload only when the decoded bytes change; a byte-identical replace does not restart it.
+            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls a running workload only when the decoded bytes change; a stopped runtime remains stopped and uses the new config on its next start. A byte-identical replace does not restart it.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1093,7 +1101,7 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[Runtime]
-            Config replaced; the workload restarts to pick it up.
+            Config replaced; a running workload restarts to pick it up. A stopped runtime remains stopped.
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/config",
@@ -1207,12 +1215,14 @@ class RawRuntimesClient:
         self, id: str, *, env: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[Runtime]:
         """
+        Replaces the complete environment map. Changed values restart a running workload; a stopped runtime remains stopped and uses the new environment on its next start. A canonically identical map is a no-op. Omitted keys are removed.
+
         Parameters
         ----------
         id : str
 
         env : typing.Dict[str, str]
-            Plain environment variables delivered to the workload process. Keys match [A-Za-z_][A-Za-z0-9_]*; the JSON-encoded map is capped at 128 KiB. Replacing env rolls the workload only when the map actually changes; a byte-identical replace does not restart it. Echoed on reads; never logged or echoed in error bodies.
+            Plain environment variables delivered to the workload process. Keys match [A-Za-z_][A-Za-z0-9_]*; the JSON-encoded map is capped at 128 KiB. Replacing env rolls a running workload only when the map actually changes; a stopped runtime remains stopped and uses the new environment on its next start. A canonically identical replace does not restart it. Echoed on reads; never logged or echoed in error bodies.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1220,7 +1230,7 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[Runtime]
-            Env replaced; the workload restarts to pick it up. A canonically-identical map is a no-op (still 202, no restart).
+            Env replaced; a running workload restarts to pick it up. A stopped runtime remains stopped. A canonically-identical map is a no-op (still 202, no restart).
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/env",
@@ -1345,6 +1355,8 @@ class RawRuntimesClient:
         self, id: str, *, network: NetworkSpec, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[Runtime]:
         """
+        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+
         Parameters
         ----------
         id : str
@@ -1707,6 +1719,8 @@ class RawRuntimesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[UsageList]:
         """
+        Returns allocation and storage counters for the requested time window. Network counters cover the current UTC month regardless of that window; they are measurements, not billing inputs.
+
         Parameters
         ----------
         id : str
@@ -1812,6 +1826,8 @@ class RawRuntimesClient:
         self, id: str, *, cursor: typing.Optional[int] = None, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[EventsList]:
         """
+        Returns events after the supplied cursor in ascending cursor order. Concurrent transactions can make lower cursors visible later; re-read a trailing window and deduplicate by cursor.
+
         Parameters
         ----------
         id : str
@@ -2200,6 +2216,8 @@ class AsyncRawRuntimesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[RuntimeWithObserved]:
         """
+        Read the durable runtime intent and latest observed workload state. `observed` is absent until the platform reports its first observation.
+
         Parameters
         ----------
         id : str
@@ -2284,6 +2302,8 @@ class AsyncRawRuntimesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Runtime]:
         """
+        Sets desired state to destroyed and starts asynchronous cleanup. Runtime-managed volumes are deleted; standalone volumes detach and remain available. The terminal runtime stays readable.
+
         Parameters
         ----------
         id : str
@@ -2845,6 +2865,8 @@ class AsyncRawRuntimesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[ApiKey]:
         """
+        Replaces the runtime-bound API key and propagates the successor asynchronously. Returns display metadata only; the plaintext key is never returned.
+
         Parameters
         ----------
         id : str
@@ -2951,12 +2973,14 @@ class AsyncRawRuntimesClient:
         self, id: str, *, config: str, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Runtime]:
         """
+        Replaces the base64-encoded workload configuration. Changed bytes restart a running workload; a stopped runtime remains stopped and uses the new configuration on its next start. Identical bytes are a no-op. The runtime volume is retained.
+
         Parameters
         ----------
         id : str
 
         config : str
-            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls the workload only when the decoded bytes change; a byte-identical replace does not restart it.
+            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls a running workload only when the decoded bytes change; a stopped runtime remains stopped and uses the new config on its next start. A byte-identical replace does not restart it.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -2964,7 +2988,7 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[Runtime]
-            Config replaced; the workload restarts to pick it up.
+            Config replaced; a running workload restarts to pick it up. A stopped runtime remains stopped.
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/config",
@@ -3078,12 +3102,14 @@ class AsyncRawRuntimesClient:
         self, id: str, *, env: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Runtime]:
         """
+        Replaces the complete environment map. Changed values restart a running workload; a stopped runtime remains stopped and uses the new environment on its next start. A canonically identical map is a no-op. Omitted keys are removed.
+
         Parameters
         ----------
         id : str
 
         env : typing.Dict[str, str]
-            Plain environment variables delivered to the workload process. Keys match [A-Za-z_][A-Za-z0-9_]*; the JSON-encoded map is capped at 128 KiB. Replacing env rolls the workload only when the map actually changes; a byte-identical replace does not restart it. Echoed on reads; never logged or echoed in error bodies.
+            Plain environment variables delivered to the workload process. Keys match [A-Za-z_][A-Za-z0-9_]*; the JSON-encoded map is capped at 128 KiB. Replacing env rolls a running workload only when the map actually changes; a stopped runtime remains stopped and uses the new environment on its next start. A canonically identical replace does not restart it. Echoed on reads; never logged or echoed in error bodies.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -3091,7 +3117,7 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[Runtime]
-            Env replaced; the workload restarts to pick it up. A canonically-identical map is a no-op (still 202, no restart).
+            Env replaced; a running workload restarts to pick it up. A stopped runtime remains stopped. A canonically-identical map is a no-op (still 202, no restart).
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/env",
@@ -3216,6 +3242,8 @@ class AsyncRawRuntimesClient:
         self, id: str, *, network: NetworkSpec, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Runtime]:
         """
+        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+
         Parameters
         ----------
         id : str
@@ -3578,6 +3606,8 @@ class AsyncRawRuntimesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[UsageList]:
         """
+        Returns allocation and storage counters for the requested time window. Network counters cover the current UTC month regardless of that window; they are measurements, not billing inputs.
+
         Parameters
         ----------
         id : str
@@ -3683,6 +3713,8 @@ class AsyncRawRuntimesClient:
         self, id: str, *, cursor: typing.Optional[int] = None, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[EventsList]:
         """
+        Returns events after the supplied cursor in ascending cursor order. Concurrent transactions can make lower cursors visible later; re-read a trailing window and deduplicate by cursor.
+
         Parameters
         ----------
         id : str

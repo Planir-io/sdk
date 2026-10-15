@@ -26,6 +26,8 @@ export class HealthClient {
     }
 
     /**
+     * The control plane process responds. This does not report runtime or dependency readiness.
+     *
      * @param {HealthClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @example

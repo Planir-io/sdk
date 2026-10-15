@@ -17,7 +17,7 @@ export declare namespace RuntimesClient {
 }
 
 /**
- * Runtime lifecycle, config, reach, logs, usage, events.
+ * Runtime lifecycle, configuration, logs, usage, and events.
  */
 export class RuntimesClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<RuntimesClient.Options>;
@@ -257,6 +257,8 @@ export class RuntimesClient {
     }
 
     /**
+     * Read the durable runtime intent and latest observed workload state. `observed` is absent until the platform reports its first observation.
+     *
      * @param {PlanirApi.GetRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -337,6 +339,8 @@ export class RuntimesClient {
     }
 
     /**
+     * Sets desired state to destroyed and starts asynchronous cleanup. Runtime-managed volumes are deleted; standalone volumes detach and remain available. The terminal runtime stays readable.
+     *
      * @param {PlanirApi.DestroyRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -808,6 +812,8 @@ export class RuntimesClient {
     }
 
     /**
+     * Replaces the runtime-bound API key and propagates the successor asynchronously. Returns display metadata only; the plaintext key is never returned.
+     *
      * @param {PlanirApi.RotateRuntimeKeyRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -897,6 +903,8 @@ export class RuntimesClient {
     }
 
     /**
+     * Replaces the base64-encoded workload configuration. Changed bytes restart a running workload; a stopped runtime remains stopped and uses the new configuration on its next start. Identical bytes are a no-op. The runtime volume is retained.
+     *
      * @param {PlanirApi.ConfigRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -996,6 +1004,8 @@ export class RuntimesClient {
     }
 
     /**
+     * Replaces the complete environment map. Changed values restart a running workload; a stopped runtime remains stopped and uses the new environment on its next start. A canonically identical map is a no-op. Omitted keys are removed.
+     *
      * @param {PlanirApi.EnvRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -1103,6 +1113,8 @@ export class RuntimesClient {
     }
 
     /**
+     * Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+     *
      * @param {PlanirApi.NetworkRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -1398,6 +1410,8 @@ export class RuntimesClient {
     }
 
     /**
+     * Returns allocation and storage counters for the requested time window. Network counters cover the current UTC month regardless of that window; they are measurements, not billing inputs.
+     *
      * @param {PlanirApi.GetUsageRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
@@ -1492,6 +1506,8 @@ export class RuntimesClient {
     }
 
     /**
+     * Returns events after the supplied cursor in ascending cursor order. Concurrent transactions can make lower cursors visible later; re-read a trailing window and deduplicate by cursor.
+     *
      * @param {PlanirApi.GetEventsRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *

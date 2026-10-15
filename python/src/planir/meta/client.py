@@ -25,6 +25,8 @@ class MetaClient:
 
     def get_version(self, *, request_options: typing.Optional[RequestOptions] = None) -> ApiVersionInfo:
         """
+        Returns the published API version for the authenticated caller.
+
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
@@ -65,6 +67,8 @@ class AsyncMetaClient:
 
     async def get_version(self, *, request_options: typing.Optional[RequestOptions] = None) -> ApiVersionInfo:
         """
+        Returns the published API version for the authenticated caller.
+
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]

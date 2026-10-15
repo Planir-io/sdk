@@ -15,6 +15,9 @@ export declare namespace PresetsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Resource allocations and prices available to the caller.
+ */
 export class PresetsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<PresetsClient.Options>;
 

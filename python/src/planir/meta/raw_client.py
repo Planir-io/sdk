@@ -24,6 +24,8 @@ class RawMetaClient:
 
     def get_version(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[ApiVersionInfo]:
         """
+        Returns the published API version for the authenticated caller.
+
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
@@ -100,6 +102,8 @@ class AsyncRawMetaClient:
         self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[ApiVersionInfo]:
         """
+        Returns the published API version for the authenticated caller.
+
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]

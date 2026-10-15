@@ -19,6 +19,8 @@ class RawHealthClient:
 
     def check(self, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[HealthStatus]:
         """
+        The control plane process responds. This does not report runtime or dependency readiness.
+
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
@@ -62,6 +64,8 @@ class AsyncRawHealthClient:
         self, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[HealthStatus]:
         """
+        The control plane process responds. This does not report runtime or dependency readiness.
+
         Parameters
         ----------
         request_options : typing.Optional[RequestOptions]
