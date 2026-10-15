@@ -541,6 +541,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.ContentTooLargeError}
+     * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      * @throws {@link PlanirApi.ServiceUnavailableError}
      *
@@ -611,6 +612,11 @@ export class RuntimesClient {
                 case 413:
                     throw new PlanirApi.ContentTooLargeError(
                         _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
+                case 422:
+                    throw new PlanirApi.UnprocessableEntityError(
+                        _response.error.body as unknown,
                         _response.rawResponse,
                     );
                 case 429:

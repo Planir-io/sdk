@@ -164,6 +164,7 @@ class ProcessSurfaceTest(unittest.TestCase):
             lambda: team.register_team_webhook(url="https://example.com"),
             lambda: volumes.create_volume(name="data", size_bytes=1, family="co"),
             lambda: runtimes.update_env("runtime", env={"KEY": "value"}),
+            lambda: runtimes.start("runtime"),
         )
         for call in calls:
             with self.assertRaises(UnprocessableEntityError) as caught:
@@ -199,6 +200,7 @@ class AsyncPolicyErrorTest(unittest.IsolatedAsyncioTestCase):
             lambda: team.register_team_webhook(url="https://example.com"),
             lambda: volumes.create_volume(name="data", size_bytes=1, family="co"),
             lambda: runtimes.update_env("runtime", env={"KEY": "value"}),
+            lambda: runtimes.start("runtime"),
         )
         for call in calls:
             with self.assertRaises(UnprocessableEntityError) as caught:
