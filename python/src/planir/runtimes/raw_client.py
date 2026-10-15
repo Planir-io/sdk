@@ -731,6 +731,17 @@ class RawRuntimesClient:
                         ),
                     ),
                 )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
             if _response.status_code == 429:
                 raise TooManyRequestsError(
                     headers=dict(_response.headers),
@@ -2610,6 +2621,17 @@ class AsyncRawRuntimesClient:
                         InvalidRequestError,
                         parse_obj_as(
                             type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),

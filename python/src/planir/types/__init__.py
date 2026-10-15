@@ -130,7 +130,6 @@ if typing.TYPE_CHECKING:
     from .team_ledger_entry import TeamLedgerEntry
     from .team_ledger_entry_kind import TeamLedgerEntryKind
     from .team_limits import TeamLimits
-    from .team_limits_families_value import TeamLimitsFamiliesValue
     from .team_package_summary import TeamPackageSummary
     from .team_package_summary_billing_mode import TeamPackageSummaryBillingMode
     from .team_usage import TeamUsage
@@ -298,7 +297,6 @@ _dynamic_imports: typing.Dict[str, str] = {
     "TeamLedgerEntry": ".team_ledger_entry",
     "TeamLedgerEntryKind": ".team_ledger_entry_kind",
     "TeamLimits": ".team_limits",
-    "TeamLimitsFamiliesValue": ".team_limits_families_value",
     "TeamPackageSummary": ".team_package_summary",
     "TeamPackageSummaryBillingMode": ".team_package_summary_billing_mode",
     "TeamUsage": ".team_usage",
@@ -490,7 +488,6 @@ __all__ = [
     "TeamLedgerEntry",
     "TeamLedgerEntryKind",
     "TeamLimits",
-    "TeamLimitsFamiliesValue",
     "TeamPackageSummary",
     "TeamPackageSummaryBillingMode",
     "TeamUsage",
