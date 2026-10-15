@@ -6,6 +6,7 @@ import pydantic
 import typing_extensions
 from ..core.pydantic_utilities import UniversalBaseModel
 from ..core.serialization import FieldMetadata
+from .team_limits_api import TeamLimitsApi
 
 
 class TeamLimits(UniversalBaseModel):
@@ -52,5 +53,6 @@ class TeamLimits(UniversalBaseModel):
             description="Gate C ceiling on running memory bytes across every preset, location, and family. Null is uncapped.",
         ),
     ]
+    api: TeamLimitsApi
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

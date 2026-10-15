@@ -11,4 +11,13 @@ export interface TeamLimits {
     maxRunningVcpuMillis: number | null;
     /** Gate C ceiling on running memory bytes across every preset, location, and family. Null is uncapped. */
     maxRunningMemoryBytes: number | null;
+    api: TeamLimits.Api;
+}
+
+export namespace TeamLimits {
+    export interface Api {
+        generalPerMinute: number;
+        creationsPerMinute: number;
+        lifecyclePerMinute: number;
+    }
 }
