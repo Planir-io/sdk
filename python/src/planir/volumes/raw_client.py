@@ -278,6 +278,8 @@ class RawVolumesClient:
 
     def get_volume(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> HttpResponse[Volume]:
         """
+        Returns the volume configuration and current derived lifecycle state, including attachment when present.
+
         Parameters
         ----------
         id : str
@@ -705,6 +707,8 @@ class AsyncRawVolumesClient:
         self, id: str, *, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Volume]:
         """
+        Returns the volume configuration and current derived lifecycle state, including attachment when present.
+
         Parameters
         ----------
         id : str

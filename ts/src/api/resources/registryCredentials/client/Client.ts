@@ -15,6 +15,9 @@ export declare namespace RegistryCredentialsClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Private image registry credentials; reads return metadata only.
+ */
 export class RegistryCredentialsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<RegistryCredentialsClient.Options>;
 
@@ -23,6 +26,8 @@ export class RegistryCredentialsClient {
     }
 
     /**
+     * Returns stored registry credential metadata in newest-first order. Passwords and tokens are never returned.
+     *
      * @param {RegistryCredentialsClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.UnauthorizedError}
@@ -192,6 +197,8 @@ export class RegistryCredentialsClient {
     }
 
     /**
+     * Returns metadata for one registry credential owned by the caller. The stored password or token is never returned.
+     *
      * @param {PlanirApi.GetRegistryCredentialRequest} request
      * @param {RegistryCredentialsClient.RequestOptions} requestOptions - Request-specific configuration.
      *

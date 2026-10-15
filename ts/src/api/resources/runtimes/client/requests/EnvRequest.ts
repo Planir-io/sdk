@@ -11,6 +11,6 @@
  */
 export interface EnvRequest {
     id: string;
-    /** Plain environment variables delivered to the workload process. Keys match [A-Za-z_][A-Za-z0-9_]*; the JSON-encoded map is capped at 128 KiB. Replacing env rolls the workload only when the map actually changes; a byte-identical replace does not restart it. Echoed on reads; never logged or echoed in error bodies. */
+    /** Plain environment variables delivered to the workload process. Keys match [A-Za-z_][A-Za-z0-9_]*; the JSON-encoded map is capped at 128 KiB. Replacing env rolls a running workload only when the map actually changes; a stopped runtime remains stopped and uses the new environment on its next start. A canonically identical replace does not restart it. Echoed on reads; never logged or echoed in error bodies. */
     env: Record<string, string>;
 }

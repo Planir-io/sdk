@@ -15,6 +15,9 @@ export declare namespace TeamClient {
     export interface RequestOptions extends BaseRequestOptions {}
 }
 
+/**
+ * Team settings, limits, billing, API keys, and webhooks.
+ */
 export class TeamClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<TeamClient.Options>;
 

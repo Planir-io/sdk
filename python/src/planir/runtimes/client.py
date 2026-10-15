@@ -145,6 +145,8 @@ class RuntimesClient:
 
     def get(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> RuntimeWithObserved:
         """
+        Read the durable runtime intent and latest observed workload state. `observed` is absent until the platform reports its first observation.
+
         Parameters
         ----------
         id : str
@@ -173,6 +175,8 @@ class RuntimesClient:
 
     def destroy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Runtime:
         """
+        Sets desired state to destroyed and starts asynchronous cleanup. Runtime-managed volumes are deleted; standalone volumes detach and remain available. The terminal runtime stays readable.
+
         Parameters
         ----------
         id : str
@@ -327,6 +331,8 @@ class RuntimesClient:
 
     def rotate_runtime_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApiKey:
         """
+        Replaces the runtime-bound API key and propagates the successor asynchronously. Returns display metadata only; the plaintext key is never returned.
+
         Parameters
         ----------
         id : str
@@ -357,12 +363,14 @@ class RuntimesClient:
         self, id: str, *, config: str, request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
         """
+        Replaces the base64-encoded workload configuration. Changed bytes restart a running workload; a stopped runtime remains stopped and uses the new configuration on its next start. Identical bytes are a no-op. The runtime volume is retained.
+
         Parameters
         ----------
         id : str
 
         config : str
-            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls the workload only when the decoded bytes change; a byte-identical replace does not restart it.
+            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls a running workload only when the decoded bytes change; a stopped runtime remains stopped and uses the new config on its next start. A byte-identical replace does not restart it.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -370,7 +378,7 @@ class RuntimesClient:
         Returns
         -------
         Runtime
-            Config replaced; the workload restarts to pick it up.
+            Config replaced; a running workload restarts to pick it up. A stopped runtime remains stopped.
 
         Examples
         --------
@@ -391,12 +399,14 @@ class RuntimesClient:
         self, id: str, *, env: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
         """
+        Replaces the complete environment map. Changed values restart a running workload; a stopped runtime remains stopped and uses the new environment on its next start. A canonically identical map is a no-op. Omitted keys are removed.
+
         Parameters
         ----------
         id : str
 
         env : typing.Dict[str, str]
-            Plain environment variables delivered to the workload process. Keys match [A-Za-z_][A-Za-z0-9_]*; the JSON-encoded map is capped at 128 KiB. Replacing env rolls the workload only when the map actually changes; a byte-identical replace does not restart it. Echoed on reads; never logged or echoed in error bodies.
+            Plain environment variables delivered to the workload process. Keys match [A-Za-z_][A-Za-z0-9_]*; the JSON-encoded map is capped at 128 KiB. Replacing env rolls a running workload only when the map actually changes; a stopped runtime remains stopped and uses the new environment on its next start. A canonically identical replace does not restart it. Echoed on reads; never logged or echoed in error bodies.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -404,7 +414,7 @@ class RuntimesClient:
         Returns
         -------
         Runtime
-            Env replaced; the workload restarts to pick it up. A canonically-identical map is a no-op (still 202, no restart).
+            Env replaced; a running workload restarts to pick it up. A stopped runtime remains stopped. A canonically-identical map is a no-op (still 202, no restart).
 
         Examples
         --------
@@ -425,6 +435,8 @@ class RuntimesClient:
         self, id: str, *, network: NetworkSpec, request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
         """
+        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+
         Parameters
         ----------
         id : str
@@ -538,6 +550,8 @@ class RuntimesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UsageList:
         """
+        Returns allocation and storage counters for the requested time window. Network counters cover the current UTC month regardless of that window; they are measurements, not billing inputs.
+
         Parameters
         ----------
         id : str
@@ -574,6 +588,8 @@ class RuntimesClient:
         self, id: str, *, cursor: typing.Optional[int] = None, request_options: typing.Optional[RequestOptions] = None
     ) -> EventsList:
         """
+        Returns events after the supplied cursor in ascending cursor order. Concurrent transactions can make lower cursors visible later; re-read a trailing window and deduplicate by cursor.
+
         Parameters
         ----------
         id : str
@@ -741,6 +757,8 @@ class AsyncRuntimesClient:
 
     async def get(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> RuntimeWithObserved:
         """
+        Read the durable runtime intent and latest observed workload state. `observed` is absent until the platform reports its first observation.
+
         Parameters
         ----------
         id : str
@@ -777,6 +795,8 @@ class AsyncRuntimesClient:
 
     async def destroy(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Runtime:
         """
+        Sets desired state to destroyed and starts asynchronous cleanup. Runtime-managed volumes are deleted; standalone volumes detach and remain available. The terminal runtime stays readable.
+
         Parameters
         ----------
         id : str
@@ -971,6 +991,8 @@ class AsyncRuntimesClient:
 
     async def rotate_runtime_key(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> ApiKey:
         """
+        Replaces the runtime-bound API key and propagates the successor asynchronously. Returns display metadata only; the plaintext key is never returned.
+
         Parameters
         ----------
         id : str
@@ -1009,12 +1031,14 @@ class AsyncRuntimesClient:
         self, id: str, *, config: str, request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
         """
+        Replaces the base64-encoded workload configuration. Changed bytes restart a running workload; a stopped runtime remains stopped and uses the new configuration on its next start. Identical bytes are a no-op. The runtime volume is retained.
+
         Parameters
         ----------
         id : str
 
         config : str
-            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls the workload only when the decoded bytes change; a byte-identical replace does not restart it.
+            Opaque workload config, base64 over the wire. Never parsed. Max 1 MiB encoded. Delivery: the DECODED bytes are mounted read-only at `/etc/planir/config` inside the workload — no env-var channel exists. Handling: held server-side solely for delivery; never parsed, logged, or echoed in error bodies. Replacing config rolls a running workload only when the decoded bytes change; a stopped runtime remains stopped and uses the new config on its next start. A byte-identical replace does not restart it.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1022,7 +1046,7 @@ class AsyncRuntimesClient:
         Returns
         -------
         Runtime
-            Config replaced; the workload restarts to pick it up.
+            Config replaced; a running workload restarts to pick it up. A stopped runtime remains stopped.
 
         Examples
         --------
@@ -1051,12 +1075,14 @@ class AsyncRuntimesClient:
         self, id: str, *, env: typing.Dict[str, str], request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
         """
+        Replaces the complete environment map. Changed values restart a running workload; a stopped runtime remains stopped and uses the new environment on its next start. A canonically identical map is a no-op. Omitted keys are removed.
+
         Parameters
         ----------
         id : str
 
         env : typing.Dict[str, str]
-            Plain environment variables delivered to the workload process. Keys match [A-Za-z_][A-Za-z0-9_]*; the JSON-encoded map is capped at 128 KiB. Replacing env rolls the workload only when the map actually changes; a byte-identical replace does not restart it. Echoed on reads; never logged or echoed in error bodies.
+            Plain environment variables delivered to the workload process. Keys match [A-Za-z_][A-Za-z0-9_]*; the JSON-encoded map is capped at 128 KiB. Replacing env rolls a running workload only when the map actually changes; a stopped runtime remains stopped and uses the new environment on its next start. A canonically identical replace does not restart it. Echoed on reads; never logged or echoed in error bodies.
 
         request_options : typing.Optional[RequestOptions]
             Request-specific configuration.
@@ -1064,7 +1090,7 @@ class AsyncRuntimesClient:
         Returns
         -------
         Runtime
-            Env replaced; the workload restarts to pick it up. A canonically-identical map is a no-op (still 202, no restart).
+            Env replaced; a running workload restarts to pick it up. A stopped runtime remains stopped. A canonically-identical map is a no-op (still 202, no restart).
 
         Examples
         --------
@@ -1093,6 +1119,8 @@ class AsyncRuntimesClient:
         self, id: str, *, network: NetworkSpec, request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
         """
+        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+
         Parameters
         ----------
         id : str
@@ -1232,6 +1260,8 @@ class AsyncRuntimesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> UsageList:
         """
+        Returns allocation and storage counters for the requested time window. Network counters cover the current UTC month regardless of that window; they are measurements, not billing inputs.
+
         Parameters
         ----------
         id : str
@@ -1276,6 +1306,8 @@ class AsyncRuntimesClient:
         self, id: str, *, cursor: typing.Optional[int] = None, request_options: typing.Optional[RequestOptions] = None
     ) -> EventsList:
         """
+        Returns events after the supplied cursor in ascending cursor order. Concurrent transactions can make lower cursors visible later; re-read a trailing window and deduplicate by cursor.
+
         Parameters
         ----------
         id : str
