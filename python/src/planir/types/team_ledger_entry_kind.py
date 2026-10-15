@@ -2,4 +2,6 @@
 
 import typing
 
-TeamLedgerEntryKind = typing.Union[typing.Literal["topup", "usage_debit", "adjustment", "bonus"], typing.Any]
+TeamLedgerEntryKind = typing.Union[
+    typing.Literal["topup", "usage_debit", "adjustment", "bonus", "reversal", "reinstatement"], typing.Any
+]

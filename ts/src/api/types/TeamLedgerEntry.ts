@@ -2,25 +2,31 @@
 
 export interface TeamLedgerEntry {
     id: string;
-    /** topup / bonus add to the balance (positive); usage_debit subtracts (negative); adjustment is a signed correction (either way, never zero). */
+    /** The immutable money movement kind. */
     kind: TeamLedgerEntry.Kind;
     /** Signed integer microcents — positive adds to the balance, negative subtracts. Exact for every realistic amount (orders of magnitude below 2^53). */
     amountMicrocents: number;
     /** The row's dedup handle: your own key on a topup/adjustment, or a self-describing `usage:{runtime}:{period}:{total}` on a usage debit — how you correlate a row to the write that produced it. */
     idempotencyKey: string;
-    /** The Stripe event id on a webhook topup; null on every other row. */
+    /** The Stripe object that anchors a Stripe-origin row; null on operator and platform rows. */
     stripeRef: string | null;
+    /** The ledger row reversed or reinstated; otherwise null. */
+    reversesEntryId: string | null;
+    /** When a qualifying payment movement took effect; otherwise null. */
+    effectiveAt: string | null;
     /** When the row was appended (ISO-8601 UTC). */
     createdAt: string;
 }
 
 export namespace TeamLedgerEntry {
-    /** topup / bonus add to the balance (positive); usage_debit subtracts (negative); adjustment is a signed correction (either way, never zero). */
+    /** The immutable money movement kind. */
     export const Kind = {
         Topup: "topup",
         UsageDebit: "usage_debit",
         Adjustment: "adjustment",
         Bonus: "bonus",
+        Reversal: "reversal",
+        Reinstatement: "reinstatement",
     } as const;
     export type Kind = (typeof Kind)[keyof typeof Kind];
 }
