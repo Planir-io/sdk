@@ -14,7 +14,7 @@ class TeamLedgerEntry(UniversalBaseModel):
     id: str
     kind: TeamLedgerEntryKind = pydantic.Field()
     """
-    topup / bonus add to the balance (positive); usage_debit subtracts (negative); adjustment is a signed correction (either way, never zero).
+    The immutable money movement kind.
     """
 
     amount_microcents: typing_extensions.Annotated[
@@ -39,7 +39,23 @@ class TeamLedgerEntry(UniversalBaseModel):
         pydantic.Field(
             alias="stripeRef",
             default=None,
-            description="The Stripe event id on a webhook topup; null on every other row.",
+            description="The Stripe object that anchors a Stripe-origin row; null on operator and platform rows.",
+        ),
+    ]
+    reverses_entry_id: typing_extensions.Annotated[
+        typing.Optional[str],
+        FieldMetadata(alias="reversesEntryId"),
+        pydantic.Field(
+            alias="reversesEntryId", default=None, description="The ledger row reversed or reinstated; otherwise null."
+        ),
+    ]
+    effective_at: typing_extensions.Annotated[
+        typing.Optional[dt.datetime],
+        FieldMetadata(alias="effectiveAt"),
+        pydantic.Field(
+            alias="effectiveAt",
+            default=None,
+            description="When a qualifying payment movement took effect; otherwise null.",
         ),
     ]
     created_at: typing_extensions.Annotated[
