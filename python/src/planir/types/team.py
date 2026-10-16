@@ -9,6 +9,7 @@ from ..core.serialization import FieldMetadata
 from .team_kind import TeamKind
 from .team_limits import TeamLimits
 from .team_package_summary import TeamPackageSummary
+from .team_qualification import TeamQualification
 
 
 class Team(UniversalBaseModel):
@@ -21,6 +22,7 @@ class Team(UniversalBaseModel):
 
     package: TeamPackageSummary
     limits: TeamLimits
+    qualification: typing.Optional[TeamQualification] = None
     default_region: typing_extensions.Annotated[
         typing.Optional[str],
         FieldMetadata(alias="defaultRegion"),

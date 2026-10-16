@@ -16,7 +16,7 @@ class TeamLimits(UniversalBaseModel):
         FieldMetadata(alias="maxConcurrentRuntimes"),
         pydantic.Field(
             alias="maxConcurrentRuntimes",
-            description="Gate B — the running-runtime count cap (the same value as `package.concurrencyLimit`; breach = 429 CONCURRENCY_LIMIT).",
+            description="Gate B — the running-runtime count cap; breach = 429 CONCURRENCY_LIMIT).",
         ),
     ]
     max_total_storage_bytes: typing_extensions.Annotated[

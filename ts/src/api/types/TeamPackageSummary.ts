@@ -2,12 +2,11 @@
 
 export interface TeamPackageSummary {
     id: string;
-    /** Package name (e.g. `standard`, `free`, or a custom deal). */
+    /** Effective package name. */
     name: string;
     /** metered = per-usage debits against the balance; flat = a monthly price with no per-usage debits (root and VIP deals). */
     billingMode: TeamPackageSummary.BillingMode;
-    /** The EFFECTIVE concurrency ceiling admission enforces — the team-level override when one is set, otherwise the package cap (coalesce(team override, package cap)). The most running runtimes this team may hold at once. */
-    concurrencyLimit: number;
+    assignment: TeamPackageSummary.Assignment;
 }
 
 export namespace TeamPackageSummary {
@@ -17,4 +16,9 @@ export namespace TeamPackageSummary {
         Flat: "flat",
     } as const;
     export type BillingMode = (typeof BillingMode)[keyof typeof BillingMode];
+    export const Assignment = {
+        Automatic: "automatic",
+        Manual: "manual",
+    } as const;
+    export type Assignment = (typeof Assignment)[keyof typeof Assignment];
 }
