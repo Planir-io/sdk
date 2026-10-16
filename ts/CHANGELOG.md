@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.1.0-beta.10](https://github.com/Planir-io/sdk/compare/ts-v0.1.0-beta.9...ts-v0.1.0-beta.10) (2026-10-16)
+
+
+### Features
+
+* add deterministic runtime URL helpers ([5bb25ed](https://github.com/Planir-io/sdk/commit/5bb25edfc59b895b9b0ab21092f0919434402ced))
+* add deterministic runtime URL helpers ([f7ae9d7](https://github.com/Planir-io/sdk/commit/f7ae9d741550df7588754d5417e9060b55985aa2))
+* sync contracts (OpenAPI additive, Process unchanged) ([9afeb00](https://github.com/Planir-io/sdk/commit/9afeb007edccf8d1582d86aafa0e4817b3fda53e))
+* sync contracts (OpenAPI additive, Process unchanged) ([d77cae6](https://github.com/Planir-io/sdk/commit/d77cae65f5f9dcb8e31f56f94435512cf4ed0a02))
+* sync contracts (OpenAPI additive, Process unchanged) ([200993a](https://github.com/Planir-io/sdk/commit/200993a0b21c3d0f3aa83af47f45bf15fac00a75))
+* sync contracts (OpenAPI additive, Process unchanged) ([41aa9db](https://github.com/Planir-io/sdk/commit/41aa9db2a2e4a0cd0b1e081271f5cb4b5f410f17))
+* sync contracts (OpenAPI additive, Process unchanged) ([8ee37d4](https://github.com/Planir-io/sdk/commit/8ee37d4046b629381f09d7d6abee2335826bb75d))
+* sync contracts (OpenAPI BREAKING, Process unchanged) ([e1ca55c](https://github.com/Planir-io/sdk/commit/e1ca55c5f330ce0e6cd6b92f8ae5f138861b7498))
+* sync contracts (OpenAPI BREAKING, Process unchanged) ([055dcd3](https://github.com/Planir-io/sdk/commit/055dcd30ece4b5cf5d7e2e0d2a020ae32ffbce2a))
+* sync contracts (OpenAPI BREAKING, Process unchanged) ([6994e27](https://github.com/Planir-io/sdk/commit/6994e278a1cfcfc98d6ee24ff9f7f4c2da1b73ce))
+* sync contracts (OpenAPI BREAKING, Process unchanged) ([8380988](https://github.com/Planir-io/sdk/commit/83809884c690d5ae25091cb9fe62104398c70586))
+* sync published contract + regenerate SDKs ([977e5d0](https://github.com/Planir-io/sdk/commit/977e5d0397bc773301b0fa048e5019df23e0df6b))
+* sync published contract + regenerate SDKs ([09efbba](https://github.com/Planir-io/sdk/commit/09efbbae45677bc7196ab8369033c0beb6a855f2))
+* sync published contract + regenerate SDKs ([cf7bff6](https://github.com/Planir-io/sdk/commit/cf7bff6735b426b8befa3d49188a69aabffed551))
+* sync published contract + regenerate SDKs ([594043f](https://github.com/Planir-io/sdk/commit/594043f92692685029e17b2bdedd20b6679d81d5))
+* sync published contract + regenerate SDKs ([4f629e3](https://github.com/Planir-io/sdk/commit/4f629e366d0e97c1eb67270799ba38cf7d745802))
+* sync published contract + regenerate SDKs ([11b2bed](https://github.com/Planir-io/sdk/commit/11b2bed24c40843a6a1ddc1a51ebe1fd7858162b))
+* sync published contract + regenerate SDKs ([9b29459](https://github.com/Planir-io/sdk/commit/9b29459afd2cd346302e9d76ba8bfc8bbd8a1162))
+* sync published contract + regenerate SDKs ([c370919](https://github.com/Planir-io/sdk/commit/c370919400984cb75b4b170c7194e148ad2597b1))
+* sync published contract + regenerate SDKs ([3587c7a](https://github.com/Planir-io/sdk/commit/3587c7ab85123b59f1b9fa19dbddc49da4dc2772))
+* sync published contract + regenerate SDKs ([53fb00a](https://github.com/Planir-io/sdk/commit/53fb00a73ad919b801291f8d8bb3f98b8cfb2f58))
+* sync published contract + regenerate SDKs ([#42](https://github.com/Planir-io/sdk/issues/42)) ([14f8617](https://github.com/Planir-io/sdk/commit/14f8617da64373e7b08dec5fe2f4ac1c18e5f52f))
+
+
+### Bug Fixes
+
+* stop SDK retries for permanent zero quotas ([a9621aa](https://github.com/Planir-io/sdk/commit/a9621aaed46c849eb2b9610c300f52d0cae983b4))
+* sync API quotas and stop retries for permanent refusals ([2726fe2](https://github.com/Planir-io/sdk/commit/2726fe2869463b380d3050979458337cd83bc5c1))
+
 ## [0.1.0-beta.9](https://github.com/Planir-io/sdk/compare/ts-v0.1.0-beta.8...ts-v0.1.0-beta.9) (2026-08-14)
 
 
