@@ -1012,7 +1012,7 @@ client.runtimes.update_env(
 <dl>
 <dd>
 
-Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the package Internet default; a canonically identical policy is a no-op.
 </dd>
 </dl>
 </dd>

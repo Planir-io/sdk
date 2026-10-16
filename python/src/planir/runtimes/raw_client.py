@@ -1366,7 +1366,7 @@ class RawRuntimesClient:
         self, id: str, *, network: NetworkSpec, request_options: typing.Optional[RequestOptions] = None
     ) -> HttpResponse[Runtime]:
         """
-        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the package Internet default; a canonically identical policy is a no-op.
 
         Parameters
         ----------
@@ -1380,7 +1380,7 @@ class RawRuntimesClient:
         Returns
         -------
         HttpResponse[Runtime]
-            Posture replaced; it takes effect on the RUNNING runtime with no restart — the workload keeps running through the change. `{}` clears to the open-egress default. A canonically-identical posture is a no-op (still 202).
+            Posture replaced; it takes effect on the RUNNING runtime with no restart — the workload keeps running through the change. `{}` clears to the package Internet default. A canonically-identical posture is a no-op (still 202).
         """
         _response = self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/network",
@@ -1468,6 +1468,17 @@ class RawRuntimesClient:
                         InvalidRequestError,
                         parse_obj_as(
                             type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -3264,7 +3275,7 @@ class AsyncRawRuntimesClient:
         self, id: str, *, network: NetworkSpec, request_options: typing.Optional[RequestOptions] = None
     ) -> AsyncHttpResponse[Runtime]:
         """
-        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the package Internet default; a canonically identical policy is a no-op.
 
         Parameters
         ----------
@@ -3278,7 +3289,7 @@ class AsyncRawRuntimesClient:
         Returns
         -------
         AsyncHttpResponse[Runtime]
-            Posture replaced; it takes effect on the RUNNING runtime with no restart — the workload keeps running through the change. `{}` clears to the open-egress default. A canonically-identical posture is a no-op (still 202).
+            Posture replaced; it takes effect on the RUNNING runtime with no restart — the workload keeps running through the change. `{}` clears to the package Internet default. A canonically-identical posture is a no-op (still 202).
         """
         _response = await self._client_wrapper.httpx_client.request(
             f"v1/runtimes/{encode_path_param(id)}/network",
@@ -3366,6 +3377,17 @@ class AsyncRawRuntimesClient:
                         InvalidRequestError,
                         parse_obj_as(
                             type_=InvalidRequestError,  # type: ignore
+                            object_=_response.json(),
+                        ),
+                    ),
+                )
+            if _response.status_code == 422:
+                raise UnprocessableEntityError(
+                    headers=dict(_response.headers),
+                    body=typing.cast(
+                        PolicyRefusedError,
+                        parse_obj_as(
+                            type_=PolicyRefusedError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
