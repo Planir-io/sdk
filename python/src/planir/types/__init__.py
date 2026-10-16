@@ -133,7 +133,10 @@ if typing.TYPE_CHECKING:
     from .team_limits_api import TeamLimitsApi
     from .team_limits_internet_access import TeamLimitsInternetAccess
     from .team_package_summary import TeamPackageSummary
+    from .team_package_summary_assignment import TeamPackageSummaryAssignment
     from .team_package_summary_billing_mode import TeamPackageSummaryBillingMode
+    from .team_qualification import TeamQualification
+    from .team_qualification_next_package import TeamQualificationNextPackage
     from .team_usage import TeamUsage
     from .team_usage_totals import TeamUsageTotals
     from .team_usage_volume_window import TeamUsageVolumeWindow
@@ -302,7 +305,10 @@ _dynamic_imports: typing.Dict[str, str] = {
     "TeamLimitsApi": ".team_limits_api",
     "TeamLimitsInternetAccess": ".team_limits_internet_access",
     "TeamPackageSummary": ".team_package_summary",
+    "TeamPackageSummaryAssignment": ".team_package_summary_assignment",
     "TeamPackageSummaryBillingMode": ".team_package_summary_billing_mode",
+    "TeamQualification": ".team_qualification",
+    "TeamQualificationNextPackage": ".team_qualification_next_package",
     "TeamUsage": ".team_usage",
     "TeamUsageTotals": ".team_usage_totals",
     "TeamUsageVolumeWindow": ".team_usage_volume_window",
@@ -495,7 +501,10 @@ __all__ = [
     "TeamLimitsApi",
     "TeamLimitsInternetAccess",
     "TeamPackageSummary",
+    "TeamPackageSummaryAssignment",
     "TeamPackageSummaryBillingMode",
+    "TeamQualification",
+    "TeamQualificationNextPackage",
     "TeamUsage",
     "TeamUsageTotals",
     "TeamUsageVolumeWindow",

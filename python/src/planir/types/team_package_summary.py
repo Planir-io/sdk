@@ -6,6 +6,7 @@ import pydantic
 import typing_extensions
 from ..core.pydantic_utilities import UniversalBaseModel
 from ..core.serialization import FieldMetadata
+from .team_package_summary_assignment import TeamPackageSummaryAssignment
 from .team_package_summary_billing_mode import TeamPackageSummaryBillingMode
 
 
@@ -13,7 +14,7 @@ class TeamPackageSummary(UniversalBaseModel):
     id: str
     name: str = pydantic.Field()
     """
-    Package name (e.g. `standard`, `free`, or a custom deal).
+    Effective package name.
     """
 
     billing_mode: typing_extensions.Annotated[
@@ -24,13 +25,6 @@ class TeamPackageSummary(UniversalBaseModel):
             description="metered = per-usage debits against the balance; flat = a monthly price with no per-usage debits (root and VIP deals).",
         ),
     ]
-    concurrency_limit: typing_extensions.Annotated[
-        int,
-        FieldMetadata(alias="concurrencyLimit"),
-        pydantic.Field(
-            alias="concurrencyLimit",
-            description="The EFFECTIVE concurrency ceiling admission enforces — the team-level override when one is set, otherwise the package cap (coalesce(team override, package cap)). The most running runtimes this team may hold at once.",
-        ),
-    ]
+    assignment: TeamPackageSummaryAssignment
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)
