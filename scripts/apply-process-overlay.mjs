@@ -40,6 +40,33 @@ async function normalizeGenerated(path) {
     await writeFile(absolute, `${source.replace(/[ \t]+$/gm, "").trimEnd()}\n`);
 }
 
+// Zero-quota refusals cannot recover with time; finite limits keep Fern's retries.
+await replaceOnce(
+    "ts/src/core/fetcher/requestWithRetries.ts",
+    "function isRetryableStatusCode(statusCode: number): boolean {\n    return [408, 429].includes(statusCode) || statusCode >= 500;\n}",
+    `function isRetryableResponse(response: Response): boolean {
+    if (response.status === 429 && !response.headers.has("Retry-After")
+        && /;\\s*q=0\\s*(?:;|,|$)/.test(response.headers.get("RateLimit-Policy") ?? "")) {
+        return false;
+    }
+    return [408, 429].includes(response.status) || response.status >= 500;
+}`,
+);
+await replaceOnce(
+    "ts/src/core/fetcher/requestWithRetries.ts",
+    "isRetryableStatusCode(response.status)",
+    "isRetryableResponse(response)",
+);
+await replaceOnce(
+    "python/src/planir/core/http_client.py",
+    "def _should_retry(response: httpx.Response) -> bool:\n",
+    `def _should_retry(response: httpx.Response) -> bool:
+    if (response.status_code == 429 and "retry-after" not in response.headers
+            and re.search(r";\\s*q=0\\s*(?:;|,|$)", response.headers.get("ratelimit-policy", ""))):
+        return False
+`,
+);
+
 await replaceOnce(
     "ts/src/api/resources/runtimes/client/Client.ts",
     'import * as PlanirApi from "../../../index.js";\n',
