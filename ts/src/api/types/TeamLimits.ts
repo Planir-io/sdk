@@ -12,6 +12,10 @@ export interface TeamLimits {
     /** Gate C ceiling on running memory bytes across every preset, location, and family. Null is uncapped. */
     maxRunningMemoryBytes: number | null;
     api: TeamLimits.Api;
+    /** The effective package Internet floor. */
+    internetAccess: TeamLimits.InternetAccess;
+    /** The package destination floor when internetAccess is allowlist; null otherwise. A `*.domain` entry matches one label, not the apex or deeper names. */
+    allowedDestinations: string[] | null;
 }
 
 export namespace TeamLimits {
@@ -20,4 +24,12 @@ export namespace TeamLimits {
         creationsPerMinute: number;
         lifecyclePerMinute: number;
     }
+
+    /** The effective package Internet floor. */
+    export const InternetAccess = {
+        None: "none",
+        Allowlist: "allowlist",
+        Open: "open",
+    } as const;
+    export type InternetAccess = (typeof InternetAccess)[keyof typeof InternetAccess];
 }

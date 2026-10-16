@@ -7,6 +7,7 @@ import typing_extensions
 from ..core.pydantic_utilities import UniversalBaseModel
 from ..core.serialization import FieldMetadata
 from .team_limits_api import TeamLimitsApi
+from .team_limits_internet_access import TeamLimitsInternetAccess
 
 
 class TeamLimits(UniversalBaseModel):
@@ -54,5 +55,19 @@ class TeamLimits(UniversalBaseModel):
         ),
     ]
     api: TeamLimitsApi
+    internet_access: typing_extensions.Annotated[
+        TeamLimitsInternetAccess,
+        FieldMetadata(alias="internetAccess"),
+        pydantic.Field(alias="internetAccess", description="The effective package Internet floor."),
+    ]
+    allowed_destinations: typing_extensions.Annotated[
+        typing.Optional[typing.List[str]],
+        FieldMetadata(alias="allowedDestinations"),
+        pydantic.Field(
+            alias="allowedDestinations",
+            default=None,
+            description="The package destination floor when internetAccess is allowlist; null otherwise. A `*.domain` entry matches one label, not the apex or deeper names.",
+        ),
+    ]
 
     model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

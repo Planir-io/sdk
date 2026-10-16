@@ -10,7 +10,7 @@ from ..core.serialization import FieldMetadata
 
 class CreateRuntimeRequestNetwork(UniversalBaseModel):
     """
-    Optional egress posture (see NetworkSpec). Omitted = open egress minus the standing SSRF/private deny. Replaceable later via PUT /network (applies live, no restart).
+    Optional egress posture (see NetworkSpec). Omitted = the package Internet default. Replaceable later via PUT /network (applies live, no restart).
     """
 
     allow_out: typing_extensions.Annotated[
@@ -19,7 +19,7 @@ class CreateRuntimeRequestNetwork(UniversalBaseModel):
         pydantic.Field(
             alias="allowOut",
             default=None,
-            description="Allowlist mode when present: ONLY these destinations are reachable. Entries: IPv4 CIDRs or domain patterns (`*.` prefix wildcard). Domain rules follow DNS resolution — the documented industry limitation.",
+            description="Customer allowlist, intersected with the package Internet floor shown by GET /v1/team. Entries are IPv4 CIDRs or domain patterns. A `*.domain` wildcard matches one label such as `api.domain`, not the apex or `deep.api.domain`. Domain rules follow DNS resolution — the documented industry limitation.",
         ),
     ]
     deny_out: typing_extensions.Annotated[
@@ -28,7 +28,7 @@ class CreateRuntimeRequestNetwork(UniversalBaseModel):
         pydantic.Field(
             alias="denyOut",
             default=None,
-            description="Destinations denied even when allowed (deny wins). IPv4 CIDRs ONLY — no platform on this substrate class denies by domain; use allowOut to constrain by domain. Alone (no allowOut): open egress minus these ranges.",
+            description="Destinations denied even when allowed (deny wins). IPv4 CIDRs ONLY — no platform on this substrate class denies by domain; use allowOut to constrain by domain. Alone (no allowOut): the package default minus these ranges.",
         ),
     ]
 

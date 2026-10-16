@@ -1119,7 +1119,7 @@ export class RuntimesClient {
     }
 
     /**
-     * Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+     * Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the package Internet default; a canonically identical policy is a no-op.
      *
      * @param {PlanirApi.NetworkRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -1130,6 +1130,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.ContentTooLargeError}
+     * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
      *
      * @example
@@ -1203,6 +1204,11 @@ export class RuntimesClient {
                 case 413:
                     throw new PlanirApi.ContentTooLargeError(
                         _response.error.body as PlanirApi.InvalidRequestError,
+                        _response.rawResponse,
+                    );
+                case 422:
+                    throw new PlanirApi.UnprocessableEntityError(
+                        _response.error.body as unknown,
                         _response.rawResponse,
                     );
                 case 429:

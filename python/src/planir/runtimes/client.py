@@ -435,7 +435,7 @@ class RuntimesClient:
         self, id: str, *, network: NetworkSpec, request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
         """
-        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the package Internet default; a canonically identical policy is a no-op.
 
         Parameters
         ----------
@@ -449,7 +449,7 @@ class RuntimesClient:
         Returns
         -------
         Runtime
-            Posture replaced; it takes effect on the RUNNING runtime with no restart — the workload keeps running through the change. `{}` clears to the open-egress default. A canonically-identical posture is a no-op (still 202).
+            Posture replaced; it takes effect on the RUNNING runtime with no restart — the workload keeps running through the change. `{}` clears to the package Internet default. A canonically-identical posture is a no-op (still 202).
 
         Examples
         --------
@@ -1119,7 +1119,7 @@ class AsyncRuntimesClient:
         self, id: str, *, network: NetworkSpec, request_options: typing.Optional[RequestOptions] = None
     ) -> Runtime:
         """
-        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the default open-egress policy; a canonically identical policy is a no-op.
+        Replaces the complete egress policy asynchronously without restarting the workload. An empty object restores the package Internet default; a canonically identical policy is a no-op.
 
         Parameters
         ----------
@@ -1133,7 +1133,7 @@ class AsyncRuntimesClient:
         Returns
         -------
         Runtime
-            Posture replaced; it takes effect on the RUNNING runtime with no restart — the workload keeps running through the change. `{}` clears to the open-egress default. A canonically-identical posture is a no-op (still 202).
+            Posture replaced; it takes effect on the RUNNING runtime with no restart — the workload keeps running through the change. `{}` clears to the package Internet default. A canonically-identical posture is a no-op (still 202).
 
         Examples
         --------
