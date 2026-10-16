@@ -9,7 +9,7 @@ from .rate_limited_error_error import RateLimitedErrorError
 
 class RateLimitedError(UniversalBaseModel):
     """
-    The per-key request-rate budget is exhausted; wait `Retry-After` seconds and retry.
+    A team request-rate budget is exhausted. Retry-After is omitted when its quota is zero.
     """
 
     error: RateLimitedErrorError

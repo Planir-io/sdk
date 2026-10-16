@@ -125,6 +125,9 @@ def _retry_timeout_from_retries(retries: int) -> float:
 
 
 def _should_retry(response: httpx.Response) -> bool:
+    if (response.status_code == 429 and "retry-after" not in response.headers
+            and re.search(r";\s*q=0\s*(?:;|,|$)", response.headers.get("ratelimit-policy", ""))):
+        return False
     return response.status_code >= 500 or response.status_code in [429, 408, 409]
 
 

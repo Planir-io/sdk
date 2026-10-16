@@ -3,8 +3,12 @@ const MAX_RETRY_DELAY = 60000; // in milliseconds
 const DEFAULT_MAX_RETRIES = 2;
 const JITTER_FACTOR = 0.2; // 20% random jitter
 
-function isRetryableStatusCode(statusCode: number): boolean {
-    return [408, 429].includes(statusCode) || statusCode >= 500;
+function isRetryableResponse(response: Response): boolean {
+    if (response.status === 429 && !response.headers.has("Retry-After")
+        && /;\s*q=0\s*(?:;|,|$)/.test(response.headers.get("RateLimit-Policy") ?? "")) {
+        return false;
+    }
+    return [408, 429].includes(response.status) || response.status >= 500;
 }
 
 function addPositiveJitter(delay: number): number {
@@ -55,7 +59,7 @@ export async function requestWithRetries(
     let response: Response = await requestFn();
 
     for (let i = 0; i < maxRetries; ++i) {
-        if (isRetryableStatusCode(response.status)) {
+        if (isRetryableResponse(response)) {
             const delay = getRetryDelayFromHeaders(response, i);
 
             await new Promise((resolve) => setTimeout(resolve, delay));
