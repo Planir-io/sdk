@@ -63,6 +63,115 @@ client.health.check()
 </dl>
 </details>
 
+## Account
+<details><summary><code>client.account.<a href="src/planir/account/client.py">get_customer_account</a>() -> CustomerAccount</code></summary>
+<dl>
+<dd>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.account.get_customer_account()
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
+<details><summary><code>client.account.<a href="src/planir/account/client.py">bootstrap_customer_account</a>(...) -> CustomerAccount</code></summary>
+<dl>
+<dd>
+
+#### 🔌 Usage
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+```python
+from planir import PlanirClient
+from planir.environment import PlanirClientEnvironment
+
+client = PlanirClient(
+    token="<token>",
+    environment=PlanirClientEnvironment.DEFAULT,
+)
+
+client.account.bootstrap_customer_account(
+    name="name",
+)
+
+```
+</dd>
+</dl>
+</dd>
+</dl>
+
+#### ⚙️ Parameters
+
+<dl>
+<dd>
+
+<dl>
+<dd>
+
+**name:** `str` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**request_options:** `typing.Optional[RequestOptions]` — Request-specific configuration.
+    
+</dd>
+</dl>
+</dd>
+</dl>
+
+
+</dd>
+</dl>
+</details>
+
 ## meta
 <details><summary><code>client.meta.<a href="src/planir/meta/client.py">get_version</a>() -> ApiVersionInfo</code></summary>
 <dl>

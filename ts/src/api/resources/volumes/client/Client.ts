@@ -33,6 +33,7 @@ export class VolumesClient {
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.volumes.listVolumes()
@@ -84,6 +85,8 @@ export class VolumesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -219,6 +222,7 @@ export class VolumesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.volumes.getVolume({
@@ -279,6 +283,8 @@ export class VolumesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -303,6 +309,7 @@ export class VolumesClient {
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.volumes.deleteVolume({
@@ -370,6 +377,8 @@ export class VolumesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,

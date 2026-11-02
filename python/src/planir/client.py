@@ -11,6 +11,7 @@ from .core.logging import LogConfig, Logger
 from .environment import PlanirClientEnvironment
 
 if typing.TYPE_CHECKING:
+    from .account.client import AccountClient, AsyncAccountClient
     from .health.client import AsyncHealthClient, HealthClient
     from .meta.client import AsyncMetaClient, MetaClient
     from .presets.client import AsyncPresetsClient, PresetsClient
@@ -112,6 +113,7 @@ class PlanirClient:
             process_http_client=process_http_client,
         )
         self._health: typing.Optional[HealthClient] = None
+        self._account: typing.Optional[AccountClient] = None
         self._meta: typing.Optional[MetaClient] = None
         self._runtimes: typing.Optional[RuntimesClient] = None
         self._volumes: typing.Optional[VolumesClient] = None
@@ -127,6 +129,14 @@ class PlanirClient:
 
             self._health = HealthClient(client_wrapper=self._client_wrapper)
         return self._health
+
+    @property
+    def account(self):
+        if self._account is None:
+            from .account.client import AccountClient  # noqa: E402
+
+            self._account = AccountClient(client_wrapper=self._client_wrapper)
+        return self._account
 
     @property
     def meta(self):
@@ -297,6 +307,7 @@ class AsyncPlanirClient:
             process_http_client=process_http_client,
         )
         self._health: typing.Optional[AsyncHealthClient] = None
+        self._account: typing.Optional[AsyncAccountClient] = None
         self._meta: typing.Optional[AsyncMetaClient] = None
         self._runtimes: typing.Optional[AsyncRuntimesClient] = None
         self._volumes: typing.Optional[AsyncVolumesClient] = None
@@ -312,6 +323,14 @@ class AsyncPlanirClient:
 
             self._health = AsyncHealthClient(client_wrapper=self._client_wrapper)
         return self._health
+
+    @property
+    def account(self):
+        if self._account is None:
+            from .account.client import AsyncAccountClient  # noqa: E402
+
+            self._account = AsyncAccountClient(client_wrapper=self._client_wrapper)
+        return self._account
 
     @property
     def meta(self):

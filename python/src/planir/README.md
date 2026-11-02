@@ -42,8 +42,8 @@ client = PlanirClient(
     token="<token>",
 )
 
-client.runtimes.create(
-    request={"key": "value"},
+client.account.bootstrap_customer_account(
+    name="name",
 )
 ```
 
@@ -75,8 +75,8 @@ client = AsyncPlanirClient(
 
 
 async def main() -> None:
-    await client.runtimes.create(
-        request={"key": "value"},
+    await client.account.bootstrap_customer_account(
+        name="name",
     )
 
 
@@ -92,7 +92,7 @@ will be thrown.
 from planir.core.api_error import ApiError
 
 try:
-    client.runtimes.create(...)
+    client.account.bootstrap_customer_account(...)
 except ApiError as e:
     print(e.status_code)
     print(e.body)
@@ -132,7 +132,7 @@ The `.with_raw_response` property returns a "raw" client that can be used to acc
 from planir import PlanirClient
 
 client = PlanirClient(...)
-response = client.runtimes.with_raw_response.create(...)
+response = client.account.with_raw_response.bootstrap_customer_account(...)
 print(response.headers)  # access the response headers
 print(response.status_code)  # access the response status code
 print(response.data)  # access the underlying object
@@ -163,7 +163,7 @@ Which status codes are retried depends on the `retryStatusCodes` generator confi
 Use the `max_retries` request option to configure this behavior.
 
 ```python
-client.runtimes.create(..., request_options={
+client.account.bootstrap_customer_account(..., request_options={
     "max_retries": 1
 })
 ```
@@ -178,7 +178,7 @@ from planir import PlanirClient
 client = PlanirClient(..., timeout=20.0)
 
 # Override timeout for a specific method
-client.runtimes.create(..., request_options={
+client.account.bootstrap_customer_account(..., request_options={
     "timeout_in_seconds": 1
 })
 ```
