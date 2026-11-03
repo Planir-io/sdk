@@ -1,3 +1,5 @@
+export * from "./account/client/requests/index.js";
+export * as account from "./account/index.js";
 export * as health from "./health/index.js";
 export * as meta from "./meta/index.js";
 export * as presets from "./presets/index.js";

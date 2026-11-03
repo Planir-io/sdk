@@ -40,6 +40,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.UnauthorizedError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.list()
@@ -110,6 +111,11 @@ export class RuntimesClient {
                             );
                         case 429:
                             throw new PlanirApi.TooManyRequestsError(
+                                _response.error.body as unknown,
+                                _response.rawResponse,
+                            );
+                        case 503:
+                            throw new PlanirApi.ServiceUnavailableError(
                                 _response.error.body as unknown,
                                 _response.rawResponse,
                             );
@@ -266,6 +272,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.get({
@@ -326,6 +333,8 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -349,6 +358,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.destroy({
@@ -414,6 +424,8 @@ export class RuntimesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -439,6 +451,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.setRuntimeTimeout({
@@ -517,6 +530,8 @@ export class RuntimesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -647,6 +662,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.stop({
@@ -714,6 +730,8 @@ export class RuntimesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -738,6 +756,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.restart({
@@ -805,6 +824,8 @@ export class RuntimesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -829,6 +850,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.rotateRuntimeKey({
@@ -896,6 +918,8 @@ export class RuntimesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -921,6 +945,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.updateConfig({
@@ -997,6 +1022,8 @@ export class RuntimesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1023,6 +1050,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.updateEnv({
@@ -1106,6 +1134,8 @@ export class RuntimesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1132,6 +1162,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.UnprocessableEntityError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.updateNetwork({
@@ -1213,6 +1244,8 @@ export class RuntimesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1238,6 +1271,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.ContentTooLargeError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.updateRuntimeMetadata({
@@ -1316,6 +1350,8 @@ export class RuntimesClient {
                     );
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1339,6 +1375,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.getLogs({
@@ -1409,6 +1446,8 @@ export class RuntimesClient {
                     throw new PlanirApi.ConflictError(_response.error.body as unknown, _response.rawResponse);
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1432,6 +1471,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.getUsage({
@@ -1505,6 +1545,8 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
@@ -1528,6 +1570,7 @@ export class RuntimesClient {
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.TooManyRequestsError}
+     * @throws {@link PlanirApi.ServiceUnavailableError}
      *
      * @example
      *     await client.runtimes.getEvents({
@@ -1600,6 +1643,8 @@ export class RuntimesClient {
                     throw new PlanirApi.NotFoundError(_response.error.body as unknown, _response.rawResponse);
                 case 429:
                     throw new PlanirApi.TooManyRequestsError(_response.error.body as unknown, _response.rawResponse);
+                case 503:
+                    throw new PlanirApi.ServiceUnavailableError(_response.error.body as unknown, _response.rawResponse);
                 default:
                     throw new errors.PlanirApiError({
                         statusCode: _response.error.statusCode,
