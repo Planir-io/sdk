@@ -4,8 +4,10 @@
  * Absent until the platform records its first observation — normally within a few seconds of create. Absence means "not yet observed", never an error.
  */
 export interface Observed {
-    /** Observed box lifecycle phase. `running` means the Planir agent container is running. Public-route delivery, application listeners, and entrypoint state do not govern this field. A runtime that stays `provisioning` for 5 minutes (300 000 ms) without reaching box-running flips to `error` — image-pull, box-boot, and agent crash-loop failures surface this way. `error` is not terminal: the platform keeps retrying, and a box that later runs returns to `running`. `unschedulable` means the location is waiting on capacity for this runtime — distinct from `provisioning` (coming up) and `error` (crashed/stuck), exempt from the 5-minute deadline, and self-correcting: when capacity frees it converges to `running` with no client action. Compute bills zero in the span; destroying instead of waiting is the client's call. `stopping` covers the whole stop teardown — from the stop being acted on until the compute is fully released (`stopped`); compute bills until the scheduled allocation is released. */
+    /** Observed box lifecycle phase. `running` means the Planir agent container is running. Public-route delivery, application listeners, and entrypoint state do not govern this field. A runtime with a non-image startup failure for 5 minutes (300 000 ms) without reaching box-running flips to `error` — box-boot and agent crash-loop failures surface this way. Image retries and ambiguous initial container creation remain provisioning; use timeout/onTimeout to bound the wait. `error` is not terminal: the platform keeps retrying, and a box that later runs returns to `running`. `unschedulable` means the location is waiting on capacity for this runtime — distinct from `provisioning` (coming up) and `error` (crashed/stuck), exempt from the 5-minute deadline, and self-correcting: when capacity frees it converges to `running` with no client action. Compute bills zero in the span; destroying instead of waiting is the client's call. `stopping` covers the whole stop teardown — from the stop being acted on until the compute is fully released (`stopped`); compute bills until the scheduled allocation is released. */
     phase: Observed.Phase;
+    /** Current startup activity. Storage provisioning, scheduling, runtime preparation, image acquisition, initialization, or workload startup. Steps can repeat or be skipped; no percentage or application health is implied. retrying is true for an active image retry; waitingReason identifies it. Absent once running or during teardown. lastSeen dates the observation, not the start of the stage. */
+    startup?: Observed.Startup | undefined;
     /** The desired generation this reflects. 0 means no desired generation has been acknowledged. */
     generation: number;
     lastSeen: string;
@@ -15,12 +17,12 @@ export interface Observed {
     lastExit?: Observed.LastExit | undefined;
     /** Current customer entrypoint state from the in-box agent. Signal exits use `128 + signal`. Absent unless the box is running and current agent status was observed; last-only, with no exit history. */
     entrypoint?: Observed.Entrypoint | undefined;
-    /** Present exactly while the workload is stuck waiting on its IMAGE — a stable, machine-readable value, never raw registry text. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff` long before the 5-minute `error` flip. A stored credential change becomes available after asynchronous propagation; a later pull can then recover without another lifecycle verb. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those). */
+    /** Present while the active initialization or workload image is waiting — a stable, machine-readable value, never raw registry text. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff`; image retries stay provisioning beyond five minutes. A stored credential change becomes available after asynchronous propagation; a later pull can then recover without another lifecycle verb. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those). */
     waitingReason?: Observed.WaitingReason | undefined;
 }
 
 export namespace Observed {
-    /** Observed box lifecycle phase. `running` means the Planir agent container is running. Public-route delivery, application listeners, and entrypoint state do not govern this field. A runtime that stays `provisioning` for 5 minutes (300 000 ms) without reaching box-running flips to `error` — image-pull, box-boot, and agent crash-loop failures surface this way. `error` is not terminal: the platform keeps retrying, and a box that later runs returns to `running`. `unschedulable` means the location is waiting on capacity for this runtime — distinct from `provisioning` (coming up) and `error` (crashed/stuck), exempt from the 5-minute deadline, and self-correcting: when capacity frees it converges to `running` with no client action. Compute bills zero in the span; destroying instead of waiting is the client's call. `stopping` covers the whole stop teardown — from the stop being acted on until the compute is fully released (`stopped`); compute bills until the scheduled allocation is released. */
+    /** Observed box lifecycle phase. `running` means the Planir agent container is running. Public-route delivery, application listeners, and entrypoint state do not govern this field. A runtime with a non-image startup failure for 5 minutes (300 000 ms) without reaching box-running flips to `error` — box-boot and agent crash-loop failures surface this way. Image retries and ambiguous initial container creation remain provisioning; use timeout/onTimeout to bound the wait. `error` is not terminal: the platform keeps retrying, and a box that later runs returns to `running`. `unschedulable` means the location is waiting on capacity for this runtime — distinct from `provisioning` (coming up) and `error` (crashed/stuck), exempt from the 5-minute deadline, and self-correcting: when capacity frees it converges to `running` with no client action. Compute bills zero in the span; destroying instead of waiting is the client's call. `stopping` covers the whole stop teardown — from the stop being acted on until the compute is fully released (`stopped`); compute bills until the scheduled allocation is released. */
     export const Phase = {
         Provisioning: "provisioning",
         Unschedulable: "unschedulable",
@@ -32,6 +34,26 @@ export namespace Observed {
         Destroyed: "destroyed",
     } as const;
     export type Phase = (typeof Phase)[keyof typeof Phase];
+
+    /**
+     * Current startup activity. Storage provisioning, scheduling, runtime preparation, image acquisition, initialization, or workload startup. Steps can repeat or be skipped; no percentage or application health is implied. retrying is true for an active image retry; waitingReason identifies it. Absent once running or during teardown. lastSeen dates the observation, not the start of the stage.
+     */
+    export interface Startup {
+        stage: Startup.Stage;
+        retrying: boolean;
+    }
+
+    export namespace Startup {
+        export const Stage = {
+            ProvisioningStorage: "provisioning_storage",
+            Scheduling: "scheduling",
+            PreparingRuntime: "preparing_runtime",
+            PullingImages: "pulling_images",
+            Initializing: "initializing",
+            Starting: "starting",
+        } as const;
+        export type Stage = (typeof Stage)[keyof typeof Stage];
+    }
 
     /**
      * The Planir agent container's last terminal exit. Absent while it has never died. Customer entrypoint state is reported separately in `observed.entrypoint`.
@@ -58,7 +80,7 @@ export namespace Observed {
               exitCode: number;
               at: string;
           };
-    /** Present exactly while the workload is stuck waiting on its IMAGE — a stable, machine-readable value, never raw registry text. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff` long before the 5-minute `error` flip. A stored credential change becomes available after asynchronous propagation; a later pull can then recover without another lifecycle verb. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those). */
+    /** Present while the active initialization or workload image is waiting — a stable, machine-readable value, never raw registry text. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff`; image retries stay provisioning beyond five minutes. A stored credential change becomes available after asynchronous propagation; a later pull can then recover without another lifecycle verb. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those). */
     export const WaitingReason = {
         ErrImagePull: "ErrImagePull",
         ImagePullBackOff: "ImagePullBackOff",

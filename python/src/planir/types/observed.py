@@ -9,6 +9,7 @@ from ..core.serialization import FieldMetadata
 from .observed_entrypoint import ObservedEntrypoint
 from .observed_last_exit import ObservedLastExit
 from .observed_phase import ObservedPhase
+from .observed_startup import ObservedStartup
 from .observed_waiting_reason import ObservedWaitingReason
 
 
@@ -19,7 +20,12 @@ class Observed(UniversalBaseModel):
 
     phase: ObservedPhase = pydantic.Field()
     """
-    Observed box lifecycle phase. `running` means the Planir agent container is running. Public-route delivery, application listeners, and entrypoint state do not govern this field. A runtime that stays `provisioning` for 5 minutes (300 000 ms) without reaching box-running flips to `error` — image-pull, box-boot, and agent crash-loop failures surface this way. `error` is not terminal: the platform keeps retrying, and a box that later runs returns to `running`. `unschedulable` means the location is waiting on capacity for this runtime — distinct from `provisioning` (coming up) and `error` (crashed/stuck), exempt from the 5-minute deadline, and self-correcting: when capacity frees it converges to `running` with no client action. Compute bills zero in the span; destroying instead of waiting is the client's call. `stopping` covers the whole stop teardown — from the stop being acted on until the compute is fully released (`stopped`); compute bills until the scheduled allocation is released.
+    Observed box lifecycle phase. `running` means the Planir agent container is running. Public-route delivery, application listeners, and entrypoint state do not govern this field. A runtime with a non-image startup failure for 5 minutes (300 000 ms) without reaching box-running flips to `error` — box-boot and agent crash-loop failures surface this way. Image retries and ambiguous initial container creation remain provisioning; use timeout/onTimeout to bound the wait. `error` is not terminal: the platform keeps retrying, and a box that later runs returns to `running`. `unschedulable` means the location is waiting on capacity for this runtime — distinct from `provisioning` (coming up) and `error` (crashed/stuck), exempt from the 5-minute deadline, and self-correcting: when capacity frees it converges to `running` with no client action. Compute bills zero in the span; destroying instead of waiting is the client's call. `stopping` covers the whole stop teardown — from the stop being acted on until the compute is fully released (`stopped`); compute bills until the scheduled allocation is released.
+    """
+
+    startup: typing.Optional[ObservedStartup] = pydantic.Field(default=None)
+    """
+    Current startup activity. Storage provisioning, scheduling, runtime preparation, image acquisition, initialization, or workload startup. Steps can repeat or be skipped; no percentage or application health is implied. retrying is true for an active image retry; waitingReason identifies it. Absent once running or during teardown. lastSeen dates the observation, not the start of the stage.
     """
 
     generation: int = pydantic.Field()
@@ -53,7 +59,7 @@ class Observed(UniversalBaseModel):
         pydantic.Field(
             alias="waitingReason",
             default=None,
-            description="Present exactly while the workload is stuck waiting on its IMAGE — a stable, machine-readable value, never raw registry text. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff` long before the 5-minute `error` flip. A stored credential change becomes available after asynchronous propagation; a later pull can then recover without another lifecycle verb. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those).",
+            description="Present while the active initialization or workload image is waiting — a stable, machine-readable value, never raw registry text. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff`; image retries stay provisioning beyond five minutes. A stored credential change becomes available after asynchronous propagation; a later pull can then recover without another lifecycle verb. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those).",
         ),
     ]
 

@@ -55,6 +55,8 @@ if typing.TYPE_CHECKING:
     from .observed_entrypoint_zero_state import ObservedEntrypointZeroState
     from .observed_last_exit import ObservedLastExit
     from .observed_phase import ObservedPhase
+    from .observed_startup import ObservedStartup
+    from .observed_startup_stage import ObservedStartupStage
     from .observed_waiting_reason import ObservedWaitingReason
     from .payment_rail_unavailable_error import PaymentRailUnavailableError
     from .payment_rail_unavailable_error_error import PaymentRailUnavailableErrorError
@@ -235,6 +237,8 @@ _dynamic_imports: typing.Dict[str, str] = {
     "ObservedEntrypointZeroState": ".observed_entrypoint_zero_state",
     "ObservedLastExit": ".observed_last_exit",
     "ObservedPhase": ".observed_phase",
+    "ObservedStartup": ".observed_startup",
+    "ObservedStartupStage": ".observed_startup_stage",
     "ObservedWaitingReason": ".observed_waiting_reason",
     "PaymentRailUnavailableError": ".payment_rail_unavailable_error",
     "PaymentRailUnavailableErrorError": ".payment_rail_unavailable_error_error",
@@ -439,6 +443,8 @@ __all__ = [
     "ObservedEntrypointZeroState",
     "ObservedLastExit",
     "ObservedPhase",
+    "ObservedStartup",
+    "ObservedStartupStage",
     "ObservedWaitingReason",
     "PaymentRailUnavailableError",
     "PaymentRailUnavailableErrorError",
