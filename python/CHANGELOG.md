@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0-beta.11](https://github.com/Planir-io/sdk/compare/python-v0.1.0-beta.11...python-v1.0.0-beta.11) (2026-11-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* restore typed runtime calls and SDK compatibility ([#52](https://github.com/Planir-io/sdk/issues/52))
+
+### Bug Fixes
+
+* restore typed runtime calls and SDK compatibility ([#52](https://github.com/Planir-io/sdk/issues/52)) ([5446451](https://github.com/Planir-io/sdk/commit/5446451734014568f985135aa86e9078b3a289a1))
+
 ## [0.1.0-beta.11](https://github.com/Planir-io/sdk/compare/python-v0.1.0-beta.10...python-v0.1.0-beta.11) (2026-11-04)
 
 
