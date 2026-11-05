@@ -2,8 +2,12 @@
 
 import typing
 
-from .runtime_with_observed_one import RuntimeWithObservedOne
-from .runtime_with_observed_timeout import RuntimeWithObservedTimeout
-from .runtime_with_observed_zero import RuntimeWithObservedZero
+import pydantic
+from .observed import Observed
+from .runtime import Runtime
 
-RuntimeWithObserved = typing.Union[RuntimeWithObservedZero, RuntimeWithObservedOne, RuntimeWithObservedTimeout]
+
+class RuntimeWithObserved(Runtime):
+    observed: typing.Optional[Observed] = None
+
+    model_config: typing.ClassVar[pydantic.ConfigDict] = pydantic.ConfigDict(extra="allow", frozen=True)

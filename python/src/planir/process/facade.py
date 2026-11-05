@@ -211,6 +211,9 @@ class Commands:
               stdin: str | bytes | None = None, timeout_ms: int | None = None,
               request_timeout_ms: int | None = None,
               capture: bool = True) -> CommandHandle:
+        """Start argv. timeout_ms defaults to 60_000; 0 disables process expiry.
+        request_timeout_ms independently limits the HTTP stream, inheriting the client timeout.
+        """
         request = _start_request(argv, cwd=cwd, env=env, tag=tag, stdin=stdin, timeout_ms=timeout_ms)
         events = self._plane.start(request, timeout_ms=request_timeout_ms)
         return _sync_handle(self._plane, events, capture=capture)
@@ -221,6 +224,9 @@ class Commands:
             request_timeout_ms: int | None = None, capture: bool = True,
             on_stdout: SyncCallback | None = None,
             on_stderr: SyncCallback | None = None) -> CommandResult:
+        """Run argv to completion. timeout_ms defaults to 60_000; 0 disables process expiry.
+        request_timeout_ms independently limits the HTTP stream, inheriting the client timeout.
+        """
         handle = self.start(argv, cwd=cwd, env=env, tag=tag, stdin=stdin, timeout_ms=timeout_ms,
                             request_timeout_ms=request_timeout_ms, capture=capture)
         return handle.wait(on_stdout=on_stdout, on_stderr=on_stderr)
@@ -266,6 +272,9 @@ class Pty:
                env: Mapping[str, str] | None = None, tag: str | None = None,
                timeout_ms: int | None = None, request_timeout_ms: int | None = None,
                capture: bool = True) -> PtyHandle:
+        """Start a PTY. timeout_ms defaults to 60_000; 0 disables process expiry.
+        request_timeout_ms independently limits the HTTP stream, inheriting the client timeout.
+        """
         if cols <= 0 or rows <= 0:
             raise ValueError("PTY dimensions must be positive")
         request = _start_request(argv, cwd=cwd, env=env, tag=tag, timeout_ms=timeout_ms,
@@ -373,6 +382,9 @@ class AsyncCommands:
                     request_timeout_ms: int | None = None, capture: bool = True,
                     on_stdout: AsyncCallback | None = None,
                     on_stderr: AsyncCallback | None = None) -> AsyncCommandHandle:
+        """Start argv. timeout_ms defaults to 60_000; 0 disables process expiry.
+        request_timeout_ms independently limits the HTTP stream, inheriting the client timeout.
+        """
         request = _start_request(argv, cwd=cwd, env=env, tag=tag, stdin=stdin, timeout_ms=timeout_ms)
         events = self._plane.start(request, timeout_ms=request_timeout_ms)
         return await _async_handle(self._plane, events, capture=capture,
@@ -384,6 +396,9 @@ class AsyncCommands:
                   request_timeout_ms: int | None = None, capture: bool = True,
                   on_stdout: AsyncCallback | None = None,
                   on_stderr: AsyncCallback | None = None) -> CommandResult:
+        """Run argv to completion. timeout_ms defaults to 60_000; 0 disables process expiry.
+        request_timeout_ms independently limits the HTTP stream, inheriting the client timeout.
+        """
         handle = await self.start(argv, cwd=cwd, env=env, tag=tag, stdin=stdin,
                                   timeout_ms=timeout_ms, request_timeout_ms=request_timeout_ms,
                                   capture=capture, on_stdout=on_stdout, on_stderr=on_stderr)
@@ -440,6 +455,9 @@ class AsyncPty:
                      tag: str | None = None, timeout_ms: int | None = None,
                      request_timeout_ms: int | None = None, capture: bool = True,
                      on_data: AsyncCallback | None = None) -> AsyncPtyHandle:
+        """Start a PTY. timeout_ms defaults to 60_000; 0 disables process expiry.
+        request_timeout_ms independently limits the HTTP stream, inheriting the client timeout.
+        """
         if cols <= 0 or rows <= 0:
             raise ValueError("PTY dimensions must be positive")
         request = _start_request(argv, cwd=cwd, env=env, tag=tag, timeout_ms=timeout_ms,

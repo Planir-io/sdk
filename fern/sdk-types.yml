@@ -1,0 +1,13 @@
+overlay: 1.0.0
+info:
+  title: Preserve runtime object types
+  version: 1.0.0
+actions:
+  # The API enforces timeout dependencies. Fern interprets these constraint-only
+  # branches as complete types and drops the shared runtime fields.
+  - target: $.components.schemas.CreateRuntimeRequest.oneOf
+    remove: true
+  - target: $.components.schemas.Runtime.oneOf
+    remove: true
+  - target: $.components.schemas.RuntimeWithObserved.oneOf
+    remove: true

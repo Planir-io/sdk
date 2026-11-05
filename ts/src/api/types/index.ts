@@ -3,7 +3,6 @@ export * from "./ApiKeyList.js";
 export * from "./ApiKeyMint.js";
 export * from "./ApiVersionInfo.js";
 export * from "./BillingNotReadyError.js";
-export * from "./CreateRuntimeRequest.js";
 export * from "./CustomerAccount.js";
 export * from "./CustomerAuthUnavailableError.js";
 export * from "./Error_.js";

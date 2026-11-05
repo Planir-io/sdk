@@ -7,11 +7,17 @@ from importlib import import_module
 
 if typing.TYPE_CHECKING:
     from .types import (
+        CreateRuntimeRequestDesiredState,
+        CreateRuntimeRequestNetwork,
+        CreateRuntimeRequestOnTimeout,
         GetLogsRuntimesRequestPrevious,
         ListRuntimesRequestDesiredStateItem,
         ListRuntimesRequestIncludeDestroyed,
     )
 _dynamic_imports: typing.Dict[str, str] = {
+    "CreateRuntimeRequestDesiredState": ".types",
+    "CreateRuntimeRequestNetwork": ".types",
+    "CreateRuntimeRequestOnTimeout": ".types",
     "GetLogsRuntimesRequestPrevious": ".types",
     "ListRuntimesRequestDesiredStateItem": ".types",
     "ListRuntimesRequestIncludeDestroyed": ".types",
@@ -40,6 +46,9 @@ def __dir__():
 
 
 __all__ = [
+    "CreateRuntimeRequestDesiredState",
+    "CreateRuntimeRequestNetwork",
+    "CreateRuntimeRequestOnTimeout",
     "GetLogsRuntimesRequestPrevious",
     "ListRuntimesRequestDesiredStateItem",
     "ListRuntimesRequestIncludeDestroyed",

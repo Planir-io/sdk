@@ -24,9 +24,11 @@ for runtime in page.runtimes:
     print(runtime.id)
 
 # Create a runtime
-runtime = client.runtimes.create(request={"image": "ghcr.io/acme/agent:latest"})
+runtime = client.runtimes.create(image="ghcr.io/acme/agent:latest")
 print(runtime_url(runtime.id, 3000))
 ```
+
+Create fields are typed keyword arguments; older betas used `request={...}`.
 
 ## Commands and terminals
 
@@ -40,7 +42,8 @@ print(result.stdout)
 
 # Keep a process running and control it through one handle.
 command = box.commands.start(
-    ["python", "worker.py"], tag="worker"
+    ["python", "worker.py"], tag="worker",
+    timeout_ms=10 * 60_000, request_timeout_ms=11 * 60_000,
 )
 command.send_input("work\n")
 command.close_stdin()
@@ -54,6 +57,13 @@ terminal.resize(160, 40)
 
 `run()` and `wait()` raise `CommandExitError` or `PtyExitError` on a non-zero
 exit; the error's `result` retains the exit code and captured output.
+
+Commands and PTYs have a **60-second execution timeout** by default, including
+`commands.start()`. Expiry kills the process. Set `timeout_ms` to a longer duration
+in milliseconds, or `0` to disable it. `request_timeout_ms` separately limits the
+HTTP stream; let it outlast the command when waiting for completion. It inherits
+the client's `timeout` (60 seconds by default) when omitted. Runtime lifetime
+(`timeout` on create, in seconds) is separate.
 
 The client defaults to `https://api.planir.io`; pass `base_url` to point elsewhere
 (e.g. a mock server in tests). An async client is available as `AsyncPlanirClient`.

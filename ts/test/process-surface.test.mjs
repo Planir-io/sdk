@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createServer } from "node:http";
 import test from "node:test";
 
@@ -6,6 +7,13 @@ import { Code } from "@connectrpc/connect";
 import { connectNodeAdapter } from "@connectrpc/connect-node";
 import { PlanirClient } from "../dist/index.js";
 import { Process } from "../dist/process/gen/planir/runtime/v1/process_pb.js";
+
+test("runtime types accept supported fields and reject invalid create input", () => {
+    execFileSync(process.execPath, [
+        "node_modules/typescript/bin/tsc", "--noEmit", "--strict", "--skipLibCheck",
+        "--target", "ES2022", "--module", "NodeNext", "test/runtime-types.ts",
+    ], { cwd: new URL("../", import.meta.url), stdio: "inherit" });
+});
 
 test("the package root exposes facade errors, not the raw Process plane", async () => {
     const sdk = await import("../dist/index.js");

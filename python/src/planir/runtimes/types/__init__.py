@@ -6,10 +6,16 @@ import typing
 from importlib import import_module
 
 if typing.TYPE_CHECKING:
+    from .create_runtime_request_desired_state import CreateRuntimeRequestDesiredState
+    from .create_runtime_request_network import CreateRuntimeRequestNetwork
+    from .create_runtime_request_on_timeout import CreateRuntimeRequestOnTimeout
     from .get_logs_runtimes_request_previous import GetLogsRuntimesRequestPrevious
     from .list_runtimes_request_desired_state_item import ListRuntimesRequestDesiredStateItem
     from .list_runtimes_request_include_destroyed import ListRuntimesRequestIncludeDestroyed
 _dynamic_imports: typing.Dict[str, str] = {
+    "CreateRuntimeRequestDesiredState": ".create_runtime_request_desired_state",
+    "CreateRuntimeRequestNetwork": ".create_runtime_request_network",
+    "CreateRuntimeRequestOnTimeout": ".create_runtime_request_on_timeout",
     "GetLogsRuntimesRequestPrevious": ".get_logs_runtimes_request_previous",
     "ListRuntimesRequestDesiredStateItem": ".list_runtimes_request_desired_state_item",
     "ListRuntimesRequestIncludeDestroyed": ".list_runtimes_request_include_destroyed",
@@ -38,6 +44,9 @@ def __dir__():
 
 
 __all__ = [
+    "CreateRuntimeRequestDesiredState",
+    "CreateRuntimeRequestNetwork",
+    "CreateRuntimeRequestOnTimeout",
     "GetLogsRuntimesRequestPrevious",
     "ListRuntimesRequestDesiredStateItem",
     "ListRuntimesRequestIncludeDestroyed",

@@ -147,7 +147,7 @@ export class RuntimesClient {
     /**
      * An HTTP application listening on `0.0.0.0` uses `https://{port}-{runtimeId}.planir.dev` for integer ports 1-65535 except the private Planir agent port 62000. The same URL supports WebSocket and SSE. Raw TCP, UDP, and customer TLS passthrough are not supported.
      *
-     * @param {PlanirApi.CreateRuntimesRequest} request
+     * @param {PlanirApi.CreateRuntimeRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link PlanirApi.BadRequestError}
@@ -163,23 +163,21 @@ export class RuntimesClient {
      *
      * @example
      *     await client.runtimes.create({
-     *         body: {
-     *             "key": "value"
-     *         }
+     *         image: "image"
      *     })
      */
     public create(
-        request: PlanirApi.CreateRuntimesRequest,
+        request: PlanirApi.CreateRuntimeRequest,
         requestOptions?: RuntimesClient.RequestOptions,
     ): core.HttpResponsePromise<PlanirApi.RuntimeWithObserved> {
         return core.HttpResponsePromise.fromPromise(this.__create(request, requestOptions));
     }
 
     private async __create(
-        request: PlanirApi.CreateRuntimesRequest,
+        request: PlanirApi.CreateRuntimeRequest,
         requestOptions?: RuntimesClient.RequestOptions,
     ): Promise<core.WithRawResponse<PlanirApi.RuntimeWithObserved>> {
-        const { "idempotency-key": idempotencyKey, body: _body } = request;
+        const { "idempotency-key": idempotencyKey, ..._body } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,

@@ -6,6 +6,6 @@ plugins:
     opt: target=ts
   - remote: buf.build/protocolbuffers/python:v35.1
     out: python/src/planir/process/gen
-  - remote: buf.build/connectrpc/py:v0.11.1
+  - remote: buf.build/connectrpc/py:v0.12.1
     out: python/src/planir/process/gen
     opt: protobuf=google

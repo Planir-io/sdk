@@ -376,7 +376,7 @@ client = PlanirClient(
 )
 
 client.runtimes.create(
-    request={"key": "value"},
+    image="image",
 )
 
 ```
@@ -393,7 +393,7 @@ client.runtimes.create(
 <dl>
 <dd>
 
-**request:** `CreateRuntimeRequest` 
+**image:** `str` — Resolved container image ref the orchestrator pulls. Echoed back on every Runtime read. Private images are supported via stored registry credentials (`/v1/registry-credentials`), matched by registry host with no extra create field. Compatible examples are GHCR PAT, GitLab deploy token, quay robot, GAR `_json_key`, and ACR service principal; ECR is unsupported because its 12-hour tokens are not long-lived static credentials. Fresh create uses the current committed credential when it contacts the host origin. Later origin pulls observe credential changes after asynchronous propagation; the prior state can remain effective until then. A rejected effective credential is not retried anonymously at that origin. Running containers continue through credential changes. The image is resolved to a digest at create; the digest fixes the later image identity, but create-time process metadata is not bound to those bytes. Images that require their own PID 1, such as systemd or s6 images, are unsupported. Images that require content at /__planir or /__planir-state are unsupported.
     
 </dd>
 </dl>
@@ -402,6 +402,134 @@ client.runtimes.create(
 <dd>
 
 **idempotency_key:** `typing.Optional[str]` — Optional client-supplied idempotency key. Same key + same body within the 24-hour replay window → 200 with the original runtime (not a new create); same key + different body → CONFLICT. Replay is the intended recovery path for a client that loses a runtime id after a 201: re-send the identical create and read the id back. Omitted = no idempotency claim — a retried create makes a second runtime.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**client_ref:** `typing.Optional[str]` — Opaque client correlation handle. No shared id-space, no FK. Optional — the orchestrator generates one when omitted (echoed on reads).
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**config:** `typing.Optional[str]` — Optional opaque workload config, base64 over the wire (see the config description). Omitted = no config file is mounted at /etc/planir/config.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**env:** `typing.Optional[typing.Dict[str, str]]` — Optional env vars (default {}). See the EnvMap description.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**spawn:** `typing.Optional[bool]` — Issue one runtime-bound credential for depth-one child runtime management.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**command:** `typing.Optional[typing.List[str]]` — Optional CMD override (argv array, no shell). With no entrypoint override, it replaces the image CMD and follows the image ENTRYPOINT. Omitted = image CMD. Create-time only — there is no replace verb; recreate to change it.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**entrypoint:** `typing.Optional[typing.List[str]]` — Optional ENTRYPOINT override (argv array, no shell). It replaces the image ENTRYPOINT and image CMD; an explicit command is appended. Omitted = image ENTRYPOINT. Create-time only — there is no replace verb.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**resources:** `typing.Optional[ResourceSpecInput]` 
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**volume_id:** `typing.Optional[str]` — Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**network:** `typing.Optional[CreateRuntimeRequestNetwork]` — Optional egress posture (see NetworkSpec). Omitted = the package Internet default. Replaceable later via PUT /network (applies live, no restart).
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**metadata:** `typing.Optional[typing.Dict[str, str]]` — Optional correlation labels (default {}). See the metadata description.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**rootfs_read_only:** `typing.Optional[bool]` — Hardening knob, default false. false (default): the rootfs is writable — a standard machine; writes land in the ephemeral scratch budget. true: the rootfs is the image verbatim, read-only, with writable /tmp and /run scratch mounts (funded by the same budget); anything durable belongs on `/data`.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**preserve_rootfs:** `typing.Optional[bool]` — Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held in durable storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**timeout:** `typing.Optional[int]` — Runtime lifetime in seconds. Omitted or 0 = unlimited. A positive value arms the deadline while desiredState is running.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**on_timeout:** `typing.Optional[CreateRuntimeRequestOnTimeout]` — Action at the configured positive timeout. Omitted with a positive timeout = stop.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**desired_state:** `typing.Optional[CreateRuntimeRequestDesiredState]` — Initial desired state (default running). Cannot create destroyed.
+    
+</dd>
+</dl>
+
+<dl>
+<dd>
+
+**region:** `typing.Optional[str]` — Optional location to run in — the public region label (e.g. "brq"), a plain string, NEVER an enum. Discover the offered values via GET /v1/regions. Omitted = the cheapest available location for the chosen preset. A location that exists but does not offer this preset's family → 422; a location that is full or not yet live → 503 NO_CAPACITY. Never a silent cross-location fallback. Echoed on every read.
     
 </dd>
 </dl>
