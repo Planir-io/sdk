@@ -26,10 +26,12 @@ for await (const runtime of await client.runtimes.list()) {
 
 // Create a runtime
 const runtime = await client.runtimes.create({
-  body: { image: "ghcr.io/acme/agent:latest" },
+  image: "ghcr.io/acme/agent:latest",
 });
 console.log(runtimeUrl(runtime.id, 3000));
 ```
+
+Create fields are typed directly on the request; older betas used `body: { ... }`.
 
 ## Commands and terminals
 
@@ -42,7 +44,9 @@ console.log(result.stdout);
 // Keep a process running and control it through one handle.
 const command = await box.commands.start(["python", "worker.py"], {
   tag: "worker",
-  onStdout: (data) => process.stdout.write(data),
+  timeoutMs: 10 * 60_000,
+  requestTimeoutMs: 11 * 60_000,
+  onStdout: (data) => { process.stdout.write(data); },
 });
 await command.sendInput("work\n");
 await command.closeStdin();
@@ -56,6 +60,13 @@ await terminal.resize(160, 40);
 
 `run()` and `wait()` throw `CommandExitError` or `PtyExitError` on a non-zero
 exit; the error's `result` retains the exit code and captured output.
+
+Commands and PTYs have a **60-second execution timeout** by default, including
+`commands.start()`. Expiry kills the process. Set `timeoutMs` to a longer duration
+in milliseconds, or `0` to disable it. `requestTimeoutMs` separately limits the
+HTTP stream; let it outlast the command when waiting for completion. It inherits
+the client's `timeoutInSeconds` when omitted. Runtime lifetime (`timeout` on
+create, in seconds) is separate.
 
 The client defaults to `https://api.planir.io`; pass `baseUrl` to point elsewhere
 (e.g. a mock server in tests). `commands.connect(pidOrTag)` and

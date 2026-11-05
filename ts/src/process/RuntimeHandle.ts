@@ -14,7 +14,9 @@ export interface RunOptions {
     env?: Readonly<Record<string, string>>;
     tag?: string;
     stdin?: string | Uint8Array;
+    /** Execution limit in milliseconds; defaults to 60_000. 0 disables it. Expiry kills the process. */
     timeoutMs?: number;
+    /** HTTP stream deadline in milliseconds; inherits the client timeout. Separate from the execution limit. */
     requestTimeoutMs?: number;
     signal?: AbortSignal;
     onStdout?: (data: Uint8Array) => void | Promise<void>;
@@ -31,7 +33,9 @@ export interface PtyOptions {
     cwd?: string;
     env?: Readonly<Record<string, string>>;
     tag?: string;
+    /** Execution limit in milliseconds; defaults to 60_000. 0 disables it. Expiry kills the process. */
     timeoutMs?: number;
+    /** HTTP stream deadline in milliseconds; inherits the client timeout. Separate from the execution limit. */
     requestTimeoutMs?: number;
     signal?: AbortSignal;
     capture?: boolean;

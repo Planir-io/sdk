@@ -143,7 +143,7 @@ class ProcessSurfaceTest(unittest.TestCase):
         client = RawRuntimesClient(client_wrapper=SimpleNamespace(httpx_client=http))
 
         with self.assertRaises(UnprocessableEntityError) as caught:
-            client.create(request={})
+            client.create(image="alpine:3.22")
 
         self.assertIsInstance(caught.exception.body, RuntimeCreatePolicyError)
         self.assertEqual(caught.exception.body.error.code, "UNSAFE_IMAGE_HOST")
@@ -180,7 +180,7 @@ class AsyncPolicyErrorTest(unittest.IsolatedAsyncioTestCase):
         client = AsyncRawRuntimesClient(client_wrapper=SimpleNamespace(httpx_client=http))
 
         with self.assertRaises(UnprocessableEntityError) as caught:
-            await client.create(request={})
+            await client.create(image="alpine:3.22")
 
         self.assertIsInstance(caught.exception.body, RuntimeCreatePolicyError)
 

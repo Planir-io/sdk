@@ -1,5 +1,5 @@
 export type { ConfigRequest } from "./ConfigRequest.js";
-export type { CreateRuntimesRequest } from "./CreateRuntimesRequest.js";
+export { CreateRuntimeRequest } from "./CreateRuntimeRequest.js";
 export type { DestroyRuntimesRequest } from "./DestroyRuntimesRequest.js";
 export type { EnvRequest } from "./EnvRequest.js";
 export type { GetEventsRuntimesRequest } from "./GetEventsRuntimesRequest.js";
