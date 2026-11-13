@@ -73,9 +73,13 @@ class Runtime(UniversalBaseModel):
 
     resources: ResourceSpec
     volume_id: typing_extensions.Annotated[
-        str,
+        typing.Optional[str],
         FieldMetadata(alias="volumeId"),
-        pydantic.Field(alias="volumeId", description="The volume mounted at `/data`."),
+        pydantic.Field(
+            alias="volumeId",
+            default=None,
+            description="The volume mounted at `/data`; null for a runtime created with `storageBytes: 0`.",
+        ),
     ]
     rootfs_read_only: typing_extensions.Annotated[
         bool,

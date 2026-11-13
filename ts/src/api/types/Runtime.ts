@@ -24,8 +24,8 @@ export interface Runtime {
     /** The ENTRYPOINT override as set at create. Absent = the resolved image ENTRYPOINT was used. This field echoes the request override, not the resolved final argv. */
     entrypoint?: string[] | undefined;
     resources: PlanirApi.ResourceSpec;
-    /** The volume mounted at `/data`. */
-    volumeId: string;
+    /** The volume mounted at `/data`; null for a runtime created with `storageBytes: 0`. */
+    volumeId: string | null;
     /** The rootfs hardening knob as set at create (default false). */
     rootfsReadOnly: boolean;
     /** Rootfs preservation at stop as set at create (default true) — false = the throwaway stop (rootfs discarded, `/data` survives). */

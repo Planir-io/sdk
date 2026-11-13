@@ -152,7 +152,6 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
-     * @throws {@link PlanirApi.PaymentRequiredError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
@@ -218,11 +217,6 @@ export class RuntimesClient {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
                         _response.error.body as PlanirApi.UnauthenticatedError,
-                        _response.rawResponse,
-                    );
-                case 402:
-                    throw new PlanirApi.PaymentRequiredError(
-                        _response.error.body as PlanirApi.InsufficientBalanceError,
                         _response.rawResponse,
                     );
                 case 403:

@@ -9,7 +9,7 @@ from .insufficient_balance_error_error import InsufficientBalanceErrorError
 
 class InsufficientBalanceError(UniversalBaseModel):
     """
-    Metered admission refused the create/start: the balance is not positive. Top up first.
+    Metered admission refused: the balance is not positive. Top up first.
     """
 
     error: InsufficientBalanceErrorError
