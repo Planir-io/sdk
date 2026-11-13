@@ -334,17 +334,6 @@ class RawRuntimesClient:
                         ),
                     ),
                 )
-            if _response.status_code == 402:
-                raise PaymentRequiredError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        InsufficientBalanceError,
-                        parse_obj_as(
-                            type_=InsufficientBalanceError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
             if _response.status_code == 403:
                 raise ForbiddenError(
                     headers=dict(_response.headers),
@@ -2469,17 +2458,6 @@ class AsyncRawRuntimesClient:
                         UnauthenticatedError,
                         parse_obj_as(
                             type_=UnauthenticatedError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 402:
-                raise PaymentRequiredError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        InsufficientBalanceError,
-                        parse_obj_as(
-                            type_=InsufficientBalanceError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
