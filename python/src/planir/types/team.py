@@ -37,7 +37,7 @@ class Team(UniversalBaseModel):
         FieldMetadata(alias="availableBalanceMicrocents"),
         pydantic.Field(
             alias="availableBalanceMicrocents",
-            description="Available balance in integer microcents (1 USD = 100,000,000) — posted ledger money minus exact projected open-window usage. Metered teams must keep this above zero to create or start runtimes; flat teams (root included) ignore it. Integer over the wire (Stripe-style); exact for every realistic balance (orders of magnitude below 2^53).",
+            description="Available balance in integer microcents (1 USD = 100,000,000) — posted ledger money minus exact projected open-window usage. Metered teams must keep this above zero to start runtimes or create standalone volumes; at or below zero, their running runtimes are stopped at the next billing check. Flat teams (root included) ignore it. Integer over the wire (Stripe-style); exact for every realistic balance (orders of magnitude below 2^53).",
         ),
     ]
 

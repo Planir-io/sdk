@@ -3,7 +3,7 @@
 import type * as PlanirApi from "../index.js";
 
 export interface RuntimesList {
-    runtimes: PlanirApi.Runtime[];
+    runtimes: PlanirApi.RuntimeWithObserved[];
     /** Pass verbatim as `?cursor=` for the next page. Absent = this is the last page. */
     nextCursor?: string | undefined;
 }

@@ -9,7 +9,7 @@ from .observed_startup_stage import ObservedStartupStage
 
 class ObservedStartup(UniversalBaseModel):
     """
-    Current startup activity. Storage provisioning, scheduling, runtime preparation, image acquisition, initialization, or workload startup. Steps can repeat or be skipped; no percentage or application health is implied. retrying is true for an active image retry; waitingReason identifies it. Absent once running or during teardown. lastSeen dates the observation, not the start of the stage.
+    Current startup activity. Storage provisioning, scheduling, runtime preparation, image acquisition, or workload startup. Steps can repeat or be skipped; no percentage or application health is implied. retrying is true for an active image retry; waitingReason identifies it. Absent once running or during teardown. lastSeen dates the observation, not the start of the stage.
     """
 
     stage: ObservedStartupStage

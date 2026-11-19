@@ -3,8 +3,5 @@
 import typing
 
 ObservedStartupStage = typing.Union[
-    typing.Literal[
-        "provisioning_storage", "scheduling", "preparing_runtime", "pulling_images", "initializing", "starting"
-    ],
-    typing.Any,
+    typing.Literal["provisioning_storage", "scheduling", "preparing_runtime", "pulling_images", "starting"], typing.Any
 ]

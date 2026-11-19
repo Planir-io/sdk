@@ -25,7 +25,7 @@ class Observed(UniversalBaseModel):
 
     startup: typing.Optional[ObservedStartup] = pydantic.Field(default=None)
     """
-    Current startup activity. Storage provisioning, scheduling, runtime preparation, image acquisition, initialization, or workload startup. Steps can repeat or be skipped; no percentage or application health is implied. retrying is true for an active image retry; waitingReason identifies it. Absent once running or during teardown. lastSeen dates the observation, not the start of the stage.
+    Current startup activity. Storage provisioning, scheduling, runtime preparation, image acquisition, or workload startup. Steps can repeat or be skipped; no percentage or application health is implied. retrying is true for an active image retry; waitingReason identifies it. Absent once running or during teardown. lastSeen dates the observation, not the start of the stage.
     """
 
     generation: int = pydantic.Field()
@@ -59,7 +59,7 @@ class Observed(UniversalBaseModel):
         pydantic.Field(
             alias="waitingReason",
             default=None,
-            description="Present while the active initialization or workload image is waiting — a stable, machine-readable value, never raw registry text. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff`; image retries stay provisioning beyond five minutes. A stored credential change becomes available after asynchronous propagation; a later pull can then recover without another lifecycle verb. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those).",
+            description="Present while the workload image is waiting — a stable, machine-readable value, never raw registry text. A private image missing/mismatching its registry credential surfaces here as `ErrImagePull`/`ImagePullBackOff`; image retries stay provisioning beyond five minutes. A stored credential change becomes available after asynchronous propagation; a later pull can then recover without another lifecycle verb. Absent = not waiting on an image (normal boot, running, crashed — see `phase`/`lastExit` for those).",
         ),
     ]
 
