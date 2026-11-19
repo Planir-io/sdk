@@ -6,11 +6,11 @@ import pydantic
 import typing_extensions
 from ..core.pydantic_utilities import UniversalBaseModel
 from ..core.serialization import FieldMetadata
-from .runtime import Runtime
+from .runtime_with_observed import RuntimeWithObserved
 
 
 class RuntimesList(UniversalBaseModel):
-    runtimes: typing.List[Runtime]
+    runtimes: typing.List[RuntimeWithObserved]
     next_cursor: typing_extensions.Annotated[
         typing.Optional[str],
         FieldMetadata(alias="nextCursor"),

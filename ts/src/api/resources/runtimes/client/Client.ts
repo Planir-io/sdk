@@ -31,7 +31,7 @@ export class RuntimesClient {
     }
 
     /**
-     * Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
+     * Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Each item carries the same `observed` overlay as `GET /v1/runtimes/{id}`, absent until the first observation.
      *
      * @param {PlanirApi.ListRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -48,7 +48,7 @@ export class RuntimesClient {
     public async list(
         request: PlanirApi.ListRuntimesRequest = {},
         requestOptions?: RuntimesClient.RequestOptions,
-    ): Promise<core.Page<PlanirApi.Runtime, PlanirApi.RuntimesList>> {
+    ): Promise<core.Page<PlanirApi.RuntimeWithObserved, PlanirApi.RuntimesList>> {
         const list = core.HttpResponsePromise.interceptFunction(
             async (request: PlanirApi.ListRuntimesRequest): Promise<core.WithRawResponse<PlanirApi.RuntimesList>> => {
                 const { limit, cursor, includeDestroyed, desiredState, region } = request;
@@ -131,7 +131,7 @@ export class RuntimesClient {
             },
         );
         const dataWithRawResponse = await list(request).withRawResponse();
-        return new core.Page<PlanirApi.Runtime, PlanirApi.RuntimesList>({
+        return new core.Page<PlanirApi.RuntimeWithObserved, PlanirApi.RuntimesList>({
             response: dataWithRawResponse.data,
             rawResponse: dataWithRawResponse.rawResponse,
             hasNextPage: (response) =>
@@ -152,7 +152,6 @@ export class RuntimesClient {
      *
      * @throws {@link PlanirApi.BadRequestError}
      * @throws {@link PlanirApi.UnauthorizedError}
-     * @throws {@link PlanirApi.PaymentRequiredError}
      * @throws {@link PlanirApi.ForbiddenError}
      * @throws {@link PlanirApi.NotFoundError}
      * @throws {@link PlanirApi.ConflictError}
@@ -218,11 +217,6 @@ export class RuntimesClient {
                 case 401:
                     throw new PlanirApi.UnauthorizedError(
                         _response.error.body as PlanirApi.UnauthenticatedError,
-                        _response.rawResponse,
-                    );
-                case 402:
-                    throw new PlanirApi.PaymentRequiredError(
-                        _response.error.body as PlanirApi.InsufficientBalanceError,
                         _response.rawResponse,
                     );
                 case 403:

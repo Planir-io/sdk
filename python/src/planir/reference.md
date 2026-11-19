@@ -249,7 +249,7 @@ client.meta.get_version()
 <dl>
 <dd>
 
-Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
+Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Each item carries the same `observed` overlay as `GET /v1/runtimes/{id}`, absent until the first observation.
 </dd>
 </dl>
 </dd>
@@ -465,7 +465,7 @@ client.runtimes.create(
 <dl>
 <dd>
 
-**volume_id:** `typing.Optional[str]` — Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
+**volume_id:** `typing.Optional[str]` — Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of creating one from `resources.storageBytes`. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = the volume `resources.storageBytes` asks for, deleted with the runtime; no volume when `storageBytes` is omitted or 0.
     
 </dd>
 </dl>
@@ -1781,7 +1781,7 @@ client.volumes.create_volume(
 <dl>
 <dd>
 
-**size_bytes:** `int` — Provisioned size in bytes — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from `provisionedAt` to accepted deletion, attached or not. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
+**size_bytes:** `int` — Provisioned size in bytes, 1 GiB to 100 GiB — a hard cap enforced by the device itself (the workload hits plain ENOSPC at the brim; deleting files frees space immediately). Fixed for the volume's life (no resize in v1). Billed as provisioned byte-seconds from `provisionedAt` to accepted deletion, attached or not. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated.
     
 </dd>
 </dl>

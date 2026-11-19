@@ -67,7 +67,7 @@ class RawRuntimesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> HttpResponse[RuntimesList]:
         """
-        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
+        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Each item carries the same `observed` overlay as `GET /v1/runtimes/{id}`, absent until the first observation.
 
         Parameters
         ----------
@@ -235,7 +235,7 @@ class RawRuntimesClient:
         resources : typing.Optional[ResourceSpecInput]
 
         volume_id : typing.Optional[str]
-            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
+            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of creating one from `resources.storageBytes`. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = the volume `resources.storageBytes` asks for, deleted with the runtime; no volume when `storageBytes` is omitted or 0.
 
         network : typing.Optional[CreateRuntimeRequestNetwork]
             Optional egress posture (see NetworkSpec). Omitted = the package Internet default. Replaceable later via PUT /network (applies live, no restart).
@@ -330,17 +330,6 @@ class RawRuntimesClient:
                         UnauthenticatedError,
                         parse_obj_as(
                             type_=UnauthenticatedError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 402:
-                raise PaymentRequiredError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        InsufficientBalanceError,
-                        parse_obj_as(
-                            type_=InsufficientBalanceError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
@@ -2206,7 +2195,7 @@ class AsyncRawRuntimesClient:
         request_options: typing.Optional[RequestOptions] = None,
     ) -> AsyncHttpResponse[RuntimesList]:
         """
-        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Returns desired-side handles only — read an individual runtime for its observed state.
+        Pages in creation order via `?limit=` (1–100, default 20) + `?cursor=` (opaque; pass the previous page's `nextCursor` verbatim). Equality-filter on correlation labels with DYNAMIC query params of the form `?metadata.<key>=<value>` (multiple filters AND together), and on the home location with `?region=` (the `region` each response echoes). Destroyed runtimes are excluded unless `?includeDestroyed=true`. Each item carries the same `observed` overlay as `GET /v1/runtimes/{id}`, absent until the first observation.
 
         Parameters
         ----------
@@ -2374,7 +2363,7 @@ class AsyncRawRuntimesClient:
         resources : typing.Optional[ResourceSpecInput]
 
         volume_id : typing.Optional[str]
-            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of auto-creating one. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = an auto-created volume that is deleted with the runtime (the default lifecycle).
+            Attach an EXISTING standalone volume (POST /v1/volumes) at `/data` instead of creating one from `resources.storageBytes`. The volume defines the storage size — mutually exclusive with `resources.storageBytes` (400 when both are present); mount and ownership semantics are identical. Runtime destroy then DETACHES the volume (back to `available`, data intact) instead of deleting it. The volume must be `available`: still creating → 409 INVALID_STATE; attached elsewhere → 409 VOLUME_BUSY; unknown, another team's id, or deletion accepted → 404. Omitted = the volume `resources.storageBytes` asks for, deleted with the runtime; no volume when `storageBytes` is omitted or 0.
 
         network : typing.Optional[CreateRuntimeRequestNetwork]
             Optional egress posture (see NetworkSpec). Omitted = the package Internet default. Replaceable later via PUT /network (applies live, no restart).
@@ -2469,17 +2458,6 @@ class AsyncRawRuntimesClient:
                         UnauthenticatedError,
                         parse_obj_as(
                             type_=UnauthenticatedError,  # type: ignore
-                            object_=_response.json(),
-                        ),
-                    ),
-                )
-            if _response.status_code == 402:
-                raise PaymentRequiredError(
-                    headers=dict(_response.headers),
-                    body=typing.cast(
-                        InsufficientBalanceError,
-                        parse_obj_as(
-                            type_=InsufficientBalanceError,  # type: ignore
                             object_=_response.json(),
                         ),
                     ),
