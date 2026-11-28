@@ -22,7 +22,7 @@ export namespace TeamUsage {
         meteredMs: number;
         attachedVolumeMs: number;
         detachedMs: number;
-        /** Sum of retained runtime-interface ingress bytes for the requested UTC month. Ingress is free and unshaped. */
+        /** Sum of retained runtime-interface ingress bytes for the requested UTC month. Ingress is free. */
         ingressBytes: string;
         /** Sum of retained runtime-interface egress bytes for the requested UTC month. Includes Process traffic, excludes image pulls, and normally trails live traffic by one sampling interval. Fair-use only; never billed. */
         egressBytes: string;

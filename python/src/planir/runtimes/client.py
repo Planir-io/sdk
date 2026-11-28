@@ -172,7 +172,7 @@ class RuntimesClient:
             Hardening knob, default false. false (default): the rootfs is writable — a standard machine; writes land in the ephemeral scratch budget. true: the rootfs is the image verbatim, read-only, with writable /tmp and /run scratch mounts (funded by the same budget); anything durable belongs on `/data`.
 
         preserve_rootfs : typing.Optional[bool]
-            Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held in durable storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
+            Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives: saved locally at stop, then uploaded to durable storage. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
 
         timeout : typing.Optional[int]
             Runtime lifetime in seconds. Omitted or 0 = unlimited. A positive value arms the deadline while desiredState is running.
@@ -326,7 +326,7 @@ class RuntimesClient:
 
     def start(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Runtime:
         """
-        Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm where it last ran, colder elsewhere (the latency class).
+        Boots the newest saved rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Until `rootfs-uploaded` the save exists only on the host it was taken on, so the start runs there, `unschedulable` while that host cannot take it. After it: warm where it last ran, colder elsewhere (the latency class).
 
         Parameters
         ----------
@@ -356,7 +356,7 @@ class RuntimesClient:
 
     def stop(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Runtime:
         """
-        Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the committed image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until the commit is durable, then `stopped`.
+        Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the saved image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until its host holds the saved image, then `stopped`. The upload to durable storage follows; `rootfs-uploaded` marks it.
 
         Parameters
         ----------
@@ -858,7 +858,7 @@ class AsyncRuntimesClient:
             Hardening knob, default false. false (default): the rootfs is writable — a standard machine; writes land in the ephemeral scratch budget. true: the rootfs is the image verbatim, read-only, with writable /tmp and /run scratch mounts (funded by the same budget); anything durable belongs on `/data`.
 
         preserve_rootfs : typing.Optional[bool]
-            Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held in durable storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
+            Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives: saved locally at stop, then uploaded to durable storage. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
 
         timeout : typing.Optional[int]
             Runtime lifetime in seconds. Omitted or 0 = unlimited. A positive value arms the deadline while desiredState is running.
@@ -1044,7 +1044,7 @@ class AsyncRuntimesClient:
 
     async def start(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Runtime:
         """
-        Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm where it last ran, colder elsewhere (the latency class).
+        Boots the newest saved rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Until `rootfs-uploaded` the save exists only on the host it was taken on, so the start runs there, `unschedulable` while that host cannot take it. After it: warm where it last ran, colder elsewhere (the latency class).
 
         Parameters
         ----------
@@ -1082,7 +1082,7 @@ class AsyncRuntimesClient:
 
     async def stop(self, id: str, *, request_options: typing.Optional[RequestOptions] = None) -> Runtime:
         """
-        Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the committed image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until the commit is durable, then `stopped`.
+        Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the saved image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until its host holds the saved image, then `stopped`. The upload to durable storage follows; `rootfs-uploaded` marks it.
 
         Parameters
         ----------

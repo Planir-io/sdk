@@ -537,7 +537,7 @@ export class RuntimesClient {
     }
 
     /**
-     * Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm where it last ran, colder elsewhere (the latency class).
+     * Boots the newest saved rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Until `rootfs-uploaded` the save exists only on the host it was taken on, so the start runs there, `unschedulable` while that host cannot take it. After it: warm where it last ran, colder elsewhere (the latency class).
      *
      * @param {PlanirApi.StartRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -643,7 +643,7 @@ export class RuntimesClient {
     }
 
     /**
-     * Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the committed image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until the commit is durable, then `stopped`.
+     * Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the saved image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until its host holds the saved image, then `stopped`. The upload to durable storage follows; `rootfs-uploaded` marks it.
      *
      * @param {PlanirApi.StopRuntimesRequest} request
      * @param {RuntimesClient.RequestOptions} requestOptions - Request-specific configuration.

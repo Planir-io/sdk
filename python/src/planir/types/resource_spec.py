@@ -14,7 +14,7 @@ class ResourceSpec(UniversalBaseModel):
         FieldMetadata(alias="memoryBytes"),
         pydantic.Field(
             alias="memoryBytes",
-            description="Customer workload container hard memory limit in bytes. Minimum 134217728 (128 MiB) — below that no real image starts, so sub-floor requests are rejected here instead of surfacing as a confusing workload failure after boot.",
+            description="Customer workload container hard memory limit in bytes. Minimum 134217728 (128 MiB) — below that no real image starts, so sub-floor requests are rejected here instead of surfacing as a confusing workload failure after boot. Maximum 137438953472 (128 GiB); create rejects more with 422.",
         ),
     ]
     cpu_millis: typing_extensions.Annotated[
@@ -30,7 +30,7 @@ class ResourceSpec(UniversalBaseModel):
         FieldMetadata(alias="storageBytes"),
         pydantic.Field(
             alias="storageBytes",
-            description="Persistent volume size in bytes. The volume is mounted read-write at `/data` inside the workload; it survives stop/start and follows the runtime for life. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated. Writable by the workload's own user, whatever the image runs as — root or not, no setup needed: the volume root arrives group-writable to a platform group the workload process automatically carries as a supplementary group. Files the workload creates keep their normal ownership. Software that demands strict permissions on its data directory (e.g. PostgreSQL's initdb) should use a subdirectory and set its own mode (`mkdir -m 700 /data/pgdata`). This is the only metered disk. 0 creates the runtime without a volume and without `/data`; any other size is 1 GiB (1073741824) to 100 GiB (107374182400).",
+            description="Persistent volume size in bytes. The volume is mounted read-write at `/data` inside the workload; it survives stop/start and follows the runtime for life. Durability: every live volume is backed up daily to off-site object storage — 7-day retention. Backups are crash-consistent disaster-recovery copies: a restore point is normally under 24 hours old and never silently older than 26 hours — past that the platform raises an alarm. Keep your own backups of critical data. A live volume restore is on request today and arrives as a NEW volume (self-serve restore is planned). Volumes are not live-replicated. Writable by the workload's own user, whatever the image runs as — root or not, no setup needed: the volume's root directory belongs to the image's user. Files the workload creates keep their normal ownership. Software that demands strict permissions on its data directory (e.g. PostgreSQL's initdb) should use a subdirectory and set its own mode (`mkdir -m 700 /data/pgdata`). This is the only metered disk. 0 creates the runtime without a volume and without `/data`; any other size is 1 GiB (1073741824) to 100 GiB (107374182400).",
         ),
     ]
     ephemeral_storage_bytes: typing_extensions.Annotated[

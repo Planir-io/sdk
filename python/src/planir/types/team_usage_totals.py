@@ -30,7 +30,7 @@ class TeamUsageTotals(UniversalBaseModel):
         FieldMetadata(alias="ingressBytes"),
         pydantic.Field(
             alias="ingressBytes",
-            description="Sum of retained runtime-interface ingress bytes for the requested UTC month. Ingress is free and unshaped.",
+            description="Sum of retained runtime-interface ingress bytes for the requested UTC month. Ingress is free.",
         ),
     ]
     egress_bytes: typing_extensions.Annotated[
