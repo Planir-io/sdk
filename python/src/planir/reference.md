@@ -497,7 +497,7 @@ client.runtimes.create(
 <dl>
 <dd>
 
-**preserve_rootfs:** `typing.Optional[bool]` — Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives, held in durable storage while parked. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
+**preserve_rootfs:** `typing.Optional[bool]` — Rootfs preservation at stop, default true. true (default): `stop` commits the full rootfs to an image and the next `start` continues from it — everything the workload wrote (installed tools, cloned repos, system config) survives: saved locally at stop, then uploaded to durable storage. false: the throwaway stop — the rootfs is discarded and `start` boots the original image (writes gone), `/data` intact. Create-time only — there is no per-stop override.
     
 </dd>
 </dl>
@@ -791,7 +791,7 @@ client.runtimes.set_runtime_timeout(
 <dl>
 <dd>
 
-Boots the newest durable committed rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Warm where it last ran, colder elsewhere (the latency class).
+Boots the newest saved rootfs, else the original image — a fresh process, not a resume: a runtime parked a long time wakes with expired tokens and dead TLS sessions, exactly as a rebooted machine would. Until `rootfs-uploaded` the save exists only on the host it was taken on, so the start runs there, `unschedulable` while that host cannot take it. After it: warm where it last ran, colder elsewhere (the latency class).
 </dd>
 </dl>
 </dd>
@@ -864,7 +864,7 @@ client.runtimes.start(
 <dl>
 <dd>
 
-Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the committed image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until the commit is durable, then `stopped`.
+Ends the process: in-memory state, open connections, and sessions are gone — `start` is a fresh boot, never a resume. The rootfs is preserved by default (`preserveRootfs`) and start boots it back; everything outside `/data` survives via the saved image. Quiesce is a TERM→KILL ladder — flush in-flight buffers on SIGTERM. Returns immediately; the runtime shows `stopping` until its host holds the saved image, then `stopped`. The upload to durable storage follows; `rootfs-uploaded` marks it.
 </dd>
 </dl>
 </dd>
